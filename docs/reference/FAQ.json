@@ -179,7 +179,7 @@
           "id": "hr_04",
           "icon": "gauge.with.dots.needle.bottom.50percent",
           "question": "学习准备度评估包含哪些维度?",
-          "answer": "StudyReadinessAlgorithm 综合以下五个维度(每个 0-1 归一化打分):\n\n1. **HRV**(Z-score)—— 硬覆盖项,异常时优先降低强度;\n2. **深睡 + REM 睡眠** —— 恢复性睡眠时长;\n3. **静息心率** —— 偏离个人基线的程度;\n4. **呼吸率** —— 偏离个人基线的程度;\n5. **Apple 锻炼时长** —— 当日运动量。\n\n综合评分映射为 5 档学习强度(从「rest」到「intense」)× 5 类重点(从「review」到「push」)。详见 [AlgorithmIntroduction.md](./AlgorithmIntroduction.md)。"
+          "answer": "StudyReadinessAlgorithm 综合以下五个维度(每个 0-1 归一化打分):\n\n1. **HRV**(Z-score)—— 硬覆盖项,异常时优先降低强度;\n2. **深睡 + REM 睡眠** —— 恢复性睡眠时长;\n3. **静息心率** —— 偏离个人基线的程度;\n4. **呼吸率** —— 偏离个人基线的程度;\n5. **Apple 锻炼时长** —— 当日运动量。\n\n综合评分映射为 5 档学习强度(从「rest」到「intense」)× 5 类重点(从「review」到「push」)。详见 [AlgorithmIntroduction.md](../algorithms/AlgorithmIntroduction.md)。"
         },
         {
           "id": "hr_05",
@@ -425,7 +425,7 @@
           "id": "ab_05",
           "icon": "doc.text",
           "question": "协议与隐私政策在哪里查看?",
-          "answer": "- **应用内** —— 「设置 → 关于 → User Agreement」;\n- **项目根目录** —— `USER_AGREEMENT.md` 与 `LICENSE`(CC BY-NC-SA 4.0)。"
+          "answer": "- **应用内** —— 「设置 → 关于 → User Agreement」;\n- **项目文档目录** —— `docs/reference/USER_AGREEMENT.md` 与 `LICENSE`(CC BY-NC-SA 4.0)。"
         },
         {
           "id": "ab_06",

@@ -41,7 +41,7 @@ struct FAQItem: Codable, Identifiable, Hashable {
 
 /// 负责从 Bundle / 备用路径加载并解析 FAQ.json
 enum FAQLoader {
-    /// 加载 FAQ 内容,优先从主 Bundle 读取,缺失时回退到项目根目录
+    /// 加载 FAQ 内容,优先从主 Bundle 读取,缺失时回退到仓库文档目录
     @MainActor
     static func load() async -> Result<FAQDocument, Error> {
         // 1. 主 Bundle
@@ -54,9 +54,9 @@ enum FAQLoader {
                 return .failure(error)
             }
         }
-        // 2. 项目根目录(开发态回退)
+        // 2. 仓库文档目录(开发态回退)
         let candidates = [
-            "/Users/chenkaigao/Documents/Program/Swift/StudyPulse/FAQ.json"
+            "/Users/chenkaigao/Documents/Program/Swift/StudyPulse/docs/reference/FAQ.json"
         ]
         for path in candidates {
             if FileManager.default.fileExists(atPath: path) {

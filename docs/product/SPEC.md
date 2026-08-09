@@ -3,7 +3,7 @@
 > Functional and non-functional specification for the **StudyPulse** iOS app.
 > Authoritative source for product scope, features, requirements, and
 > release planning. For architecture and code structure, see
-> [AGENTS.md](../AGENTS.md). For design language, see [DESIGN.md](DESIGN.md).
+> [AGENTS.md](../../AGENTS.md). For design language, see [DESIGN.md](DESIGN.md).
 
 ---
 
@@ -684,7 +684,7 @@ and never to other lists.
 +-------------------------------+
 ```
 
-See [AGENTS.md §4–6](../AGENTS.md) for the full architecture guide.
+See [AGENTS.md §4–6](../../AGENTS.md) for the full architecture guide.
 
 ---
 

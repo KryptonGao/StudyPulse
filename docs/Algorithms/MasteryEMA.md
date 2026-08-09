@@ -83,5 +83,4 @@ $$
 
 实现位置：
 
-[DataModels.swift](/Users/chenkaigao/Documents/Program/Swift/StudyPulse/StudyPulse/Models/DataModels.swift:390)
-
+[DataModels.swift](../../StudyPulse/Models/DataModels.swift:390)

@@ -55,9 +55,9 @@ enum ContributionLoader {
                 return .failure(error)
             }
         }
-        // 2. 项目根目录(开发态回退)
+        // 2. 仓库文档目录(开发态回退)
         let candidates = [
-            "/Users/chenkaigao/Documents/Program/Swift/StudyPulse/CONTRIBUTING.json"
+            "/Users/chenkaigao/Documents/Program/Swift/StudyPulse/docs/reference/CONTRIBUTING.json"
         ]
         for path in candidates {
             if FileManager.default.fileExists(atPath: path) {

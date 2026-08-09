@@ -165,5 +165,4 @@ $$
 
 实现位置：
 
-[SpacedRepetition.swift](/Users/chenkaigao/Documents/Program/Swift/StudyPulse/StudyPulse/Models/SpacedRepetition.swift:116)
-
+[SpacedRepetition.swift](../../StudyPulse/Models/SpacedRepetition.swift:116)

@@ -6,7 +6,7 @@
 
 它不是又一个待办清单，也不只是一个题库或番茄钟。StudyPulse 关注的是学生在真实学习周期中的连续决策：这次考试哪里失分、哪些错题已经到复习时间、哪项任务最紧急、最近的成绩是否在下滑、今天的状态更适合冲刺还是巩固。
 
-![StudyPulse 产品封面：AI 智能学习追踪 iOS App](images/introduction/cover.jpeg)
+![StudyPulse 产品封面：AI 智能学习追踪 iOS App](../images/introduction/cover.jpeg)
 
 ## 为谁而设计
 
@@ -54,7 +54,7 @@ StudyPulse 面向多教育体系中的真实评分尺度、考试安排和学习
 
 ## 1. 首页学习仪表盘：一眼读懂今天的学习局面
 
-![StudyPulse 总览：自测、恢复雷达与科目趋势](images/introduction/overview.jpeg)
+![StudyPulse 总览：自测、恢复雷达与科目趋势](../images/introduction/overview.jpeg)
 
 首页是 StudyPulse 的学习指挥台。它将原本分散在各模块的信息浓缩成可快速浏览的卡片，并支持拖拽排序、显示/隐藏和主题个性化。用户可以把最常用的信息放在最顺手的位置。
 
@@ -178,13 +178,13 @@ AI 错题分析不是笼统地给出一段解析。它会围绕已记录的题�
 
 AI 自测允许用户围绕某个错题或主题创建选择题、填空题等练习。题目支持 Markdown 和 LaTeX 表达，适合包含公式的学科。作答流程将生成、答题、结果和批改串起来，用户不需要离开错题上下文，就能完成一轮“学完—测验—纠错”。
 
-![AI 组卷自测：做题与批改报告](images/introduction/ai-quiz.jpeg)
+![AI 组卷自测：做题与批改报告](../images/introduction/ai-quiz.jpeg)
 
 ### AI 思维导图：把解题路径可视化
 
 当一个错题涉及多个知识点时，长篇文字很难快速看清结构。AI 思维导图会把题目内容整理为结构化节点，从核心概念向条件、方法、步骤和易错点展开。它尤其适合公式多、概念关联强的内容，帮助用户在复习前先建立全局视图。
 
-![AI 智能思维导图](images/introduction/ai-mind-map.jpeg)
+![AI 智能思维导图](../images/introduction/ai-mind-map.jpeg)
 
 ### 错题辩论：用追问打破“看懂了”的错觉
 
@@ -294,7 +294,7 @@ StudyPulse 的待办模块不把学习事项拆成互不相干的列表。考试
 
 身体雷达将心率、呼吸率、睡眠、运动和 HRV 等数据置于同一视角，强调“与自己的过去相比”而不是“是否达到别人标准”。HRV 基线来自个人的近期历史；当数据不足时，系统会明确显示数据不足而不是制造虚假的精确结论。这样既避免把健康数据神秘化，也让用户能逐步理解自己在睡眠、运动和学习之间的节奏。
 
-![恢复雷达：综合身体信号形成学习建议](images/introduction/recovery-radar.jpeg)
+![恢复雷达：综合身体信号形成学习建议](../images/introduction/recovery-radar.jpeg)
 
 ## 11. AI 学习助手：从泛聊天走向基于学习上下文的辅助
 
@@ -313,9 +313,9 @@ AI 是一名“有学习上下文的助手”，而不是替学生完成学习�
 
 首页 AI 问答会先识别用户问题更接近成绩、错题、趋势还是学习准备度，再选取对应的本地上下文构建回答。例如，用户问“我最近数学为什么退步”，系统会优先围绕成绩变化与相关记录组织信息；问“今天适合做什么”，则更适合结合任务、考试、复习和状态建议。这样减少了每次都要手工复制数据给 AI 的麻烦。
 
-![AI Coach：根据学习目标提出具体计划](images/introduction/ai-coach.jpeg)
+![AI Coach：根据学习目标提出具体计划](../images/introduction/ai-coach.jpeg)
 
-![StudyPulse AI 教练与传统通用聊天机器人的差异](images/introduction/ai-contextual-coach.jpeg)
+![StudyPulse AI 教练与传统通用聊天机器人的差异](../images/introduction/ai-contextual-coach.jpeg)
 
 ### 流式回复、缓存与调试信息
 
