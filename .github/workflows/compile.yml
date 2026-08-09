@@ -1,0 +1,71 @@
+name: Compile
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compile-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: compile
+    runs-on: macos-15
+    environment:
+      name: compile-approval
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Verify Xcode
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          xcodebuild -version
+          xcode_version="$(xcodebuild -version | awk 'NR == 1 { print $2 }')"
+          if [[ "${xcode_version}" != 26.* ]]; then
+            echo "Expected Xcode 26.x, found ${xcode_version}." >&2
+            exit 1
+          fi
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild \
+            -project StudyPulse.xcodeproj \
+            -scheme StudyPulse \
+            -clonedSourcePackagesDirPath "${RUNNER_TEMP}/StudyPulseSourcePackages" \
+            -resolvePackageDependencies
+
+      - name: Compile app and tests
+        run: |
+          xcodebuild build-for-testing \
+            -project StudyPulse.xcodeproj \
+            -scheme StudyPulse \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "${RUNNER_TEMP}/StudyPulseDerivedData" \
+            -clonedSourcePackagesDirPath "${RUNNER_TEMP}/StudyPulseSourcePackages" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Compile widget extension
+        run: |
+          xcodebuild build \
+            -project StudyPulse.xcodeproj \
+            -scheme StudyPulseWidgetExtension \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "${RUNNER_TEMP}/StudyPulseDerivedData" \
+            -clonedSourcePackagesDirPath "${RUNNER_TEMP}/StudyPulseSourcePackages" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
