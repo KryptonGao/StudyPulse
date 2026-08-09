@@ -17,7 +17,7 @@
 
 StudyPulse 不是只记录“今天学了多久”的计时器，也不是把学习计划交给黑箱自动执行的聊天机器人。它更像一条可回看的学习脉搏：先看证据，再决定强度；先审核建议，再写入行动。
 
-## 先看它能做什么
+## 先看它能做什么？
 
 <p align="center">
   <img src="./docs/images/introduction/overview.jpeg" width="100%" alt="StudyPulse 总览：自测报告、恢复雷达与成绩趋势" />
