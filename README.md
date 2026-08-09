@@ -1,193 +1,126 @@
-<img width="1920" height="1080" alt="StudyPulse-7ad0187版本海报 001" src="https://github.com/user-attachments/assets/55f089f6-9801-48bc-90b7-f0d8716ab14e" />
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%" alt="StudyPulse：把成绩、错题、考试、专注与恢复信号串成可执行的学习闭环" />
+</p>
+
+<p align="center">
+  <a href="https://gao-chenkai.github.io/StudyPulse/">产品介绍</a> ·
+  <a href="./docs/AlgorithmIntroduction.md">算法说明</a> ·
+  <a href="#构建与运行">本地运行</a> ·
+  <a href="#隐私边界">隐私边界</a>
+</p>
 
 # StudyPulse
 
-> 一个支持全球教育体系的 iOS 学业管理应用，使用 SwiftUI + MVVM 构建。
-> 通过 HealthKit 多维身体信号（HRV / 心率 / 呼吸率 / 深睡+REM / 锻炼）
-> 与 Apple 学习场景（学习计时器 / 连续打卡 / 闪卡 SRS）给出个性化学习建议与趋势分析。
-> 本项目也接受经过人工审核的 Codex 协作。
+> 一个面向 iPhone 与 iPad 的本地优先 iOS 学习系统。
+>
+> 它把成绩、错题、考试、待办、专注时长、学习日记与 HealthKit 恢复信号放进同一个工作区，再把分析结果转成可以审核、执行和复盘的下一步。
 
----
+StudyPulse 不是只记录“今天学了多久”的计时器，也不是把学习计划交给黑箱自动执行的聊天机器人。它更像一条可回看的学习脉搏：先看证据，再决定强度；先审核建议，再写入行动。
 
-## [功能概览](https://gao-chenkai.github.io/StudyPulse/)
+## 先看它能做什么
 
-StudyPulse 帮助学生管理学习过程中的核心数据：
+<p align="center">
+  <img src="./docs/images/introduction/overview.jpeg" width="100%" alt="StudyPulse 总览：自测报告、恢复雷达与成绩趋势" />
+</p>
 
-- AI Coach: AI Coach 是 StudyPulse 里的“长期学习教练”，核心不是简单聊天，而是围绕学习目标持续分析、规划和跟进。
-它主要有四层能力：
-1. 目标管理
-   你可以设定目标、目标日期、涉及科目、当前分数、目标分数、每日可用学习时间、考试关联、个人目的和限制条件。目标修改后会保留版本历史。
-2. 本地学习分析
-   Coach 会综合分析：
-   - 历史成绩与趋势
-   - 错题数量、掌握度和复习记录
-   - 学习任务与考试
-   - 专注学习时长
-   - HealthKit 的睡眠、HRV、心率、呼吸率、运动和准备度
-   - 日记中的心情、精力，以及学习反思
-   然后给出各科预测分数、置信区间、目标差距、成功概率、风险和支持证据，并判断应该继续当前目标、调整策略、目标不可行，还是数据不足。
-3. AI 计划建议
-   在本地分析完成后，BYOK 大模型会生成一份可审核的学习计划，包括：
-   - 具体学习任务
-   - 科目与开始时间
-   - 学习目的
-   - 重要程度
-   - 完成条件
-   - 不可行时的替代方案
-   你可以逐项修改、选择、拒绝或确认。只有确认后，计划才会加入 Todo，不会自动改动现有任务。
-4. 持续对话与执行追踪
-   你可以进行目标关联对话，也可以创建独立聊天。Coach 不只回答问题，还能建议 Todo。任务完成情况会根据错题复习次数、掌握度、练习数量、知识点掌握或学习反思自动评估。
-此外，它还支持：
-   - 每日 Coach 通知
-   - 后台刷新和任务重新评估
-   - 目标历史与提案记录
-   - 提案过期、目标版本校验，避免旧计划误用
-   - 中英文、简体中文、繁体中文、日文和韩文输出
-   - Siri / App Intent 直接打开指定目标
-简单说，AI Coach 的工作流程是：
-目标 → 本地数据分析 → AI 解释与规划 → 你审核 → Todo 执行 → 自动评估 → 下一轮调整
-它需要在设置中单独开启 AI Coach，并配置有效的 BYOK 大模型；本地分析与 Todo 管理由应用自身控制，大模型主要负责解释、对话和生成建议。
-<img width="201" height="437" alt="截屏 2026-07-22 00 16 13" src="https://github.com/user-attachments/assets/6656186f-c15b-4ff9-aceb-32c2ebbde765" />
-<img width="201" height="437" alt="IMG_6107" src="https://github.com/user-attachments/assets/0ee34b97-feb6-49e8-a125-06be27ede284" />
-<img width="201" height="437" alt="截屏 2026-07-22 00 25 27" src="https://github.com/user-attachments/assets/69ba3c04-cd48-4a29-8f67-0d46af1c0b3f" />
-<img width="201" height="437" alt="截屏 2026-07-22 00 29 50" src="https://github.com/user-attachments/assets/b94ae1c9-9460-42dd-bd87-f692c2a29878" />
+### 一条学习闭环
 
+<p align="center">
+  <img src="./assets/readme/flow.svg" width="100%" alt="StudyPulse 四步工作流：收集学习记录、读取恢复信号、生成可审核建议、执行并复盘" />
+</p>
 
----
+- **收集**：成绩、错题、考试、Todo、学习日记、例程与专注会话统一管理；错题支持 OCR、图片、Markdown、手写答题与 PDF 导出。
+- **读取**：HealthKit 提供 HRV、心率、呼吸率、深睡与 REM、Apple 锻炼等信号，结合个人基线推导学习准备度与推荐强度。
+- **调整**：本地分析负责组织证据；启用并配置 BYOK 后，AI Coach、AI 自测、相似题、思维导图和错题辩论可以提供解释与提案。
+- **执行**：你可以修改、选择、拒绝或确认建议；确认后的计划才会进入 Todo，学习结果再回到下一轮复盘。
 
+## 真实界面
 
-- 成绩追踪：多科目成绩录入，支持自定义满分、原始分、排名、重要程度，以及成绩附件图片。
-- 成绩可视化：交互式图表查看每门科目的趋势、平均分、最高/最低分；"需要关注的科目"智能提醒；图表类型可在 `Settings → Chart Type` 中切换（折线 / 柱状 / 饼图 / 散点 / 热力 / 频数直方图）。
-<img width="201" height="437" alt="截屏 2026-07-20 21 34 12" src="https://github.com/user-attachments/assets/72df2a52-cec8-496a-bafb-0dc2a40ce718" />
-<img width="201" height="437" alt="截屏 2026-07-20 21 36 14" src="https://github.com/user-attachments/assets/311cd60e-b54b-4427-aeae-21a75bc01b04" />
-<img width="201" height="437" alt="截屏 2026-07-20 21 37 15" src="https://github.com/user-attachments/assets/800fe466-f19c-462b-baea-0a218f4a791a" />
-<img width="201" height="437" alt="截屏 2026-07-20 21 38 22" src="https://github.com/user-attachments/assets/54314134-f574-4200-a4de-b4509efedb35" />
+这些图来自仓库内的产品介绍素材，主页不再依赖 GitHub 临时附件链接。
 
-- 错题本：分 4 个区块（题目 / 错误原因 / 错误解法 / 正确解法），每区块可独立添加照片，并内置 OCR 文字识别与 Markdown 预览。
-  - **闪卡复习（SRS / SM-2）**：错题可入队复习队列，使用 SM-2 算法计算下次复习日期；提供 `FlashcardStudyView` / `FlashcardCardView` / `FlashcardSessionSummaryView` / `FlashcardCalculatorView` 与 `SRSReviewNotifications` 本地通知。
-  - **一键导出 PDF 错题集**：按科目 / 时间范围 / 具体错题三种方式筛选，默认包含图片；用 Core Text + NSAttributedString 渲染多页 A4 PDF，文字以矢量字体嵌入（可选 / 复制 / 搜索），含封面 + 目录 + 每题独立页。
-- 考试管理：单科考试与综合考试的日程表，支持多日考试（examEndDate）与具体时间段（ExamTimeSlot），关联系统日历、添加本地提醒、关联错题；`ExamDetailView` 包含考场信息（学校 / 教室 / 座位）、考前待办清单（`ExamChecklistItem`）、可定制的倒计时通知天数（默认 [1, 3, 5, 10, 30]）、复盘（ExamReview）与分享给家人按钮。
-- 待办（Todo）：统一呈现日常作业 / 阅读材料 / 考试日程，含类型筛选（All / Exams / Homework / Reading）、时间分组（Within 1 Week / Within 1 Month / Later）、列表 / 日历切换、过期任务 sheet；可绑定系统 Reminders。
-<img width="201" height="437" alt="截屏 2026-07-20 21 39 34" src="https://github.com/user-attachments/assets/7c4a54ee-74fe-4f3f-ba0c-2029c19f6e44" />
+<table>
+  <tr>
+    <td width="50%"><img src="./docs/images/introduction/ai-coach.jpeg" width="100%" alt="AI Coach：目标分析、对话与 Todo 提案" /></td>
+    <td width="50%"><img src="./docs/images/introduction/recovery-radar.jpeg" width="100%" alt="恢复雷达：多维 HealthKit 信号进入学习建议" /></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="./docs/images/introduction/ai-quiz.jpeg" width="100%" alt="AI 自测：生成题目、作答与批阅反馈" /></td>
+    <td width="50%"><img src="./docs/images/introduction/ai-mind-map.jpeg" width="100%" alt="AI 思维导图：从错题整理知识关系" /></td>
+  </tr>
+</table>
 
-- HRV 健康准备度：基于 Apple Watch 的 HRV（SDNN）数据，使用 14 天基线与 Z-score 评估当日学习状态，提供简洁 / 数据 / 图表三级展示。
-- 多维身体信号：基于 HealthKit 的心率 / 呼吸率 / 深睡+REM / Apple 锻炼时长，结合 30 天个人基线合成 5 档学习强度 × 5 类学习重点的个性化建议；详见 `docs/AlgorithmIntroduction.md`。
-<img width="201" height="437" alt="截屏 2026-07-20 21 40 26" src="https://github.com/user-attachments/assets/bcd0b9d7-c48f-453c-8df2-9af0dffa1ae1" />
-<img width="201" height="437" alt="截屏 2026-07-20 21 41 19" src="https://github.com/user-attachments/assets/37cf99e0-b91f-46e9-8368-12f5f03c7aae" />
+## 能力地图
 
-- 学习计时器（Study Timer / Pomodoro）：5 档强度（Peak / Deep Focus / Steady / Light / Recovery）匹配 StudyReadinessAlgorithm 的建议强度，配套 Lock Screen + Dynamic Island Live Activity（`StudyTimerLiveActivity`）；完成的会话持久化为 `StudySession` 写入 `~/Documents/study_sessions.json`。
-- 连续打卡 & 成就系统：每日的「错题复习 / 成绩录入 / 专注分钟」三目标驱动连续天数与里程碑徽章；主页新增 `StreakHomeCard`，设置里新增 `AchievementsView` / `DailyGoalsConfigView`；支持每日 20:00 晚间提醒（可在设置中关闭）。详见 `docs/STREAK_ACHIEVEMENT_PLAN.md`。
-<img width="201" height="437" alt="截屏 2026-07-20 21 42 42" src="https://github.com/user-attachments/assets/9c10ac2c-588f-4264-99c3-5ce07be4ba67" />
-<img width="201" height="437" alt="截屏 2026-07-20 21 43 20" src="https://github.com/user-attachments/assets/68cd8c85-9aed-48ee-bdfa-9f5492022a43" />
+### 学习工作区
 
-- 习惯洞察（HabitInsight）：基于 90 天 `StudySession` 由 `HabitInsightEngine.computeInsights(...)` 纯函数派生 4 类 PatternKind（peakEfficiency / procrastination / streakDay / weakDay）+ HourSlot 时段分布；定时通知在用户历史峰值时段前提示"今日最佳学习窗口"。
-- AI 自测题（AIQuiz）：基于错题或科目由 `AIQuizLLM` 生成选择题 / 填空题（`QuizQuestion`，含 Markdown + LaTeX），用户作答后批改并解释错因；可一键把错题加入错题本。
-- AI 相似题（AISimilarQuestion）：基于一道错题由 `AISimilarQuestionLLM` 生成 3~5 道相似题，用户作答后批改。
-- AI 思维导图（AutoMindMap）：基于错题四块内容由 `AutoMindMapLLM` 输出节点 JSON，渲染为可折叠树。
-- 错题辩论（MistakeDebate）：多轮对话引导学生反思错解，由 `AIDiscussionLLM` 驱动；首条 AI 输出用 `isInitialContext` 标记 + 视觉弱化，仅作为 system prompt 引用。
+- 成绩追踪与趋势图：自定义满分、原始分、排名、重要程度和成绩附件。
+- 错题本：题目、错误原因、错误解法、正确解法四个区块，可独立添加图片并进行 OCR。
+- SRS / SM-2 闪卡复习：复习队列、下次复习日期、本地通知与复习总结。
+- 考试与 Todo：单科 / 综合考试、多日考试、时间段、考试清单、系统日历与提醒事项。
+- 学习日记、心情、精力、例程、连续打卡、成就与习惯洞察。
 
+### 身体状态与专注
 
----
+- 14 天 HRV 基线与 30 天个人身体基线。
+- 5 档学习强度 × 5 类学习重点的准备度建议。
+- Study Timer、Lock Screen / Dynamic Island Live Activity、学习会话历史。
+- iPhone 与 iPad 布局、小组件、App Intents 与 App Group 数据同步。
 
-## 技术栈
+### 可选 AI 学习工具
 
-- 平台：iOS 18.6+（iPhone 与 iPad）
-- 语言：Swift 6.0
-- 框架：SwiftUI、Swift Charts、Vision（OCR）、EventKit（日历 / 提醒事项）、HealthKit（HRV + 多维身体信号）、UserNotifications、ActivityKit（Live Activity）、SwiftData（实体层）、AppIntents（快捷指令）、UniformTypeIdentifiers、PhotosUI、WidgetKit
-- 包管理器：Swift Package Manager
-  - 本地包：`SwiftStreamingMarkdown`（位于 `Packages/SwiftStreamingMarkdown-0.2.0/`，含 LaTeX 公式与流式 Markdown 渲染）
-  - Vendored 包（位于 `Packages/Vendored/`）：`swift-cmark`（cmark-gfm Markdown 核心）、`swift-markdown`、`highlightswift`（代码高亮）、`iosMath`（LaTeX 数学）
-- 架构模式：MVVM + Repository
-  - 视图层（`Views/`）只负责 SwiftUI 渲染与用户交互，**不**直接管理数据状态。
-  - 5 个主页面（Home / Trends / Mistake / Exam / Todo）各持一个 `@MainActor final class XxxViewModel: ObservableObject`，状态为 `@Published private(set)`，由父 View 通过 `static func makeDefault(container:)` 工厂创建。
-  - 数据访问通过 10 个 Repository（`Repositories/Protocols/*Repository.swift` + `Default*Repository` 实现），由 `RepositoryContainer` 聚合（`@Observable @MainActor`）+ 3 个跨域编排子模块（`BulkOperationOrchestrator` / `TodoAggregator` / `PhaseFilterRefresher`）。ViewModel / View 通过 `@Environment(RepositoryContainer.self) var container` 注入。
-  - 纯函数业务逻辑抽到 `Services/`（DateFormatters / SubjectAggregator / SuggestionEngine / ExamFilter / MistakeFilter / DailyPlanEngine / QuoteProvider），**不依赖 SwiftUI**，便于复用与测试。
-- 数据持久化：
-  - SwiftData 实体层（12 个 `@Model` 实体：`SubjectRecord` / `GradeRecord` / `MistakeNoteRecord` / `ExamRecord` / `ComprehensiveExamRecord` / `UserProfileRecord` / `TaskItemRecord` / `ReviewStateRecord` / `StudyPhaseRecord` / `PlantStateRecord` / `RoutineRecord` / `RoutineInstanceRecord` / `DiaryEntryRecord`）作为持久化后端，由 `ModelContainerFactory.makeContainer()` 启动时创建，`ModelContainerFactory.migrateFromJSONIfNeeded(context:)` 一次性从老 JSON 迁移。
-  - 视图层使用 `nonisolated value type` 的 struct（`Subject` / `Grade` / `MistakeNote` / `Exam` / `comprehensiveExam` / `UserProfile` / `TaskItem` / `StudyPhase` / `PhaseGoal` / `ReviewState` / `Routine` / `RoutineInstance` / `DiaryEntry` / `QuizQuestion` / `HabitInsight` / `PlantStage` 等），由 `Repository.toSnapshot()` / `init(from:)` 与 SwiftData 实体互转。
-  - 偏好设置、主页顺序、phase 激活、每日目标等保存在 UserDefaults；小组件数据保存在 App Group 容器。
-- 并发模型：Swift 6 Strict Concurrency，`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`；`@Observable @MainActor` RepositoryContainer 持有 10 个 Repository；`nonisolated value-type` 模型可安全跨 actor 传递；纯 I/O 枚举与 `ImageCache` 为 `nonisolated`。
-- 工程文件：`StudyPulse.xcodeproj`，含 StudyPulse 主应用 + StudyPulseWidgetExtension 小组件两个目标。
+- **AI Coach**：目标、成绩、错题、考试、专注、健康与日记证据汇合后，生成带依据的分析与计划提案。
+- **AI Quiz / Similar Question**：围绕错题或科目生成选择题 / 填空题与相似题，完成后批阅并解释。
+- **Auto Mind Map**：把错题内容整理成可折叠的知识节点树。
+- **Mistake Debate**：通过多轮对话帮助学生拆解错误思路，而不是只给出答案。
 
----
+> AI 功能是可选能力，需要在设置中开启并配置兼容的 BYOK 模型。学习数据的本地分析和 Todo 管理由 App 控制；生成的计划必须经过用户确认才会写入任务。
+
+## 技术骨架
+
+- **SwiftUI + MVVM + Repository**：视图负责渲染与交互，ViewModel 负责页面状态，Repository 负责数据访问，纯函数 Services 负责过滤、聚合、建议与算法。
+- **SwiftData**：版本化 schema migration 保存结构化记录；旧版 JSON 在启动时一次性迁移。偏好、小组件与部分历史数据按各自边界存储在本地或 App Group。
+- **Swift 6 严格并发**：默认 MainActor 隔离；跨 actor 传递使用 `nonisolated` value types；统一日志、卡顿监测与备份 / 恢复基础设施。
+- **Apple 原生能力**：HealthKit、Charts、Vision、EventKit、ActivityKit、WidgetKit、AppIntents、PhotosUI 与 UserNotifications。
 
 ## 构建与运行
 
-前置条件：
-
-- macOS 15.0+
-- Xcode 26.x（推荐 26.3 或更高）
-- iOS 部署目标 18.6+
-- Swift 6.0
-
-推荐方式：在 Xcode 中打开 `StudyPulse.xcodeproj`，解析 SPM 包（File → Packages → Resolve Package Versions），选择模拟器或真机后按 Cmd+R 运行。
-
-命令行方式（使用 `scripts/build.sh`）：
-
-- 调试构建（默认 iPhone 17 模拟器）：`./scripts/build.sh`
-- 发布构建：`./scripts/build.sh release`
-- 清理构建目录：`./scripts/build.sh clean`
-- 列出可用模拟器：`./scripts/build.sh list`
-- 查看所有选项：`./scripts/build.sh help`
-
-直接使用 xcodebuild：
+当前工程配置：macOS 15+、Xcode 26.x、Swift 6.0、iOS 26.0+。打开 `StudyPulse.xcodeproj` 后选择 `StudyPulse` scheme，即可在模拟器或真机运行。
 
 ```bash
-xcodebuild -project StudyPulse.xcodeproj \
-  -scheme StudyPulse \
-  -configuration Debug \
-  -destination 'platform=iOS Simulator,name=iPhone 17' build
+# Debug 构建（默认使用脚本隔离 DerivedData）
+./scripts/build.sh
+
+# 运行测试
+./scripts/build.sh test
+
+# 列出可用模拟器
+./scripts/build.sh list
 ```
 
-可用 scheme：`StudyPulse`、`MarkdownUI`、StudyPulseWidgetExtension。
-可用配置：`Debug`、`Release`。
+也可以在 Xcode 中通过 File → Packages → Resolve Package Versions 解析本地 Swift Package，再按 Cmd+R 运行。
 
-> **注意**：Xcode IDE 和 xcodebuild CLI 不要在同一 DerivedData 目录上并发运行（会引起 `build.db` 锁）。`scripts/build.sh` 默认使用 `DerivedDataBuild/` 子目录以隔离。
+> 不要让 Xcode IDE 与命令行构建同时使用同一个 DerivedData 目录，否则可能出现 `build.db` 锁。脚本默认使用仓库内独立的 `DerivedDataBuild/`。
 
----
+## 隐私边界
 
-## 隐私权限
+- HealthKit 只读：应用读取 HRV、心率、呼吸率、睡眠与锻炼数据，不向 HealthKit 写入数据。
+- 学习记录默认由 App 在设备侧管理，SwiftData、UserDefaults 与 App Group 分别承担结构化数据、偏好与小组件共享。
+- AI 是显式开启的外部能力：启用 BYOK 前，应确认模型服务商、Base URL、模型与发送内容；未配置时使用本地功能，不应把“AI 可用”理解成默认上传。
+- 相机、照片、日历、提醒事项、健康与通知权限只在对应功能启用时请求。
 
-应用需要以下权限键（已在 Info.plist 与 entitlements 中声明）：
+## 进一步阅读
 
-- `NSCameraUsageDescription`：拍摄错题照片。
-- `NSPhotoLibraryUsageDescription`：从照片库选择照片。
-- `NSCalendarsUsageDescription`：添加考试到系统日历。
-- `NSRemindersUsageDescription`：同步作业 / 阅读到系统提醒事项（Todo 模块需要）。
-- `NSHealthShareUsageDescription`：读取 HRV / 心率 / 呼吸率 / 睡眠 / Apple 锻炼时间。
-- `NSSupportsLiveActivities`：启用学习计时器 Live Activity。
-- `com.apple.developer.healthkit`：entitlements 开启 HealthKit 能力。
-- `com.apple.security.application-groups`：App Group `group.com.chenkai.gao.studypulse`，主应用与小组件共享数据。
+- [算法说明](./docs/AlgorithmIntroduction.md)
+- [错题保质期与复习](./docs/Algorithms/MistakeShelfLife.md)
+- [学习准备度](./docs/Algorithms/StudyReadiness.md)
+- [间隔重复](./docs/Algorithms/SpacedRepetition.md)
+- [成绩预测](./docs/Algorithms/ScorePrediction.md)
+- [项目设计](./docs/DESIGN.md)
 
-应用不向 HealthKit 写入数据（无 `NSHealthUpdateUsageDescription`）。
-
----
-
-## 性能要点
-
-- `RepositoryContainer.asyncInit()` 在 `.task` 后台执行（JSON 迁移 + 10 repo 串行 `loadAll` + 内嵌图片迁移 + 通知 widget 调度 + `RoutineSpawner.runOnce()`），主数据就绪前不写入 widget；`isReady == true` 后才执行 `HealthKitManager.bootstrap()` / `AchievementManager.bootstrap()` / `PlantManager.bootstrap()`。
-- `ImageCache` 使用 NSCache（最多 50 项、最大 300px），完全线程安全（nonisolated）。
-- `AvatarView` / `WelcomeHeaderView` / `SettingsView` 的头像加载改为异步 Task，不再阻塞主线程。
-- `HomeView` 采用分帧渲染（phased rendering），把首帧 long task 拆到多个 RunLoop 帧中绘制。
-- `LagMonitor.shared` 持续监测主线程帧间隔，连续丢帧时把详细堆栈 / 时间戳写入 LogStore，便于事后通过 Export Log 复盘。
-- iPad `HomeView` 使用 `LazyVGrid` 呈现仪表盘，保持内存占用低。
-- `ModelContainerFactory` 仅在首次启动时执行一次 SwiftData 迁移（UserDefaults flag 记录），避免重复迁移 I/O。
-- `StudyTimerLiveActivity` 通过 `ActivityKit` 在 Lock Screen / Dynamic Island 上呈现，所有像素由小组件扩展渲染，不增加主应用内存占用。
-- `RepositoryContainer.observeActivePhaseChanges()` 用 0.5s polling 监测 `activePhaseId` 变化，避免引入 Combine 依赖；切换 phase 触发 6 个 `filtered*` 缓存重算（grade / mistake / exam / task / routine / diary）。
-- `Services/` 是纯函数 enum，5 个 ViewModel 内部对 grade / mistake / exam 的过滤聚合全部走 `SubjectAggregator.aggregate` / `ExamFilter.examsWithinDays` 等共享服务，无重复实现。
-- `PlantManager` 通过 `NotificationCenter` 监听 `achievementsSnapshotDidChange` 替代原 1.5s polling（每分钟 40 次 MainActor 唤醒），事件驱动完全足够。
-
----
-
-## 开发者
+## 开发者与许可
 
 - Gao-Chenkai
-- Ken8891837
+- Ken8891837（两个账号均为 Gao Chenkai 本人使用）
+- 本项目接受经过人工审核的 Codex 协作。
 
-（两个账号均为 Gao Chenkai 本人使用）
-
----
-
-## 许可
-
-CC BY-NC-SA 4.0
+许可：CC BY-NC-SA 4.0。详见 [LICENSE](./LICENSE)。

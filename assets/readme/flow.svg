@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430" role="img" aria-labelledby="flow-title flow-desc">
+  <title id="flow-title">The StudyPulse learning loop</title>
+  <desc id="flow-desc">A four-step view of how StudyPulse collects learning records and health signals, derives context, optionally uses BYOK AI, and turns reviewed suggestions into actions.</desc>
+
+  <defs>
+    <linearGradient id="flow-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4fbff"/>
+      <stop offset="1" stop-color="#fff9fc"/>
+    </linearGradient>
+    <marker id="flow-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#8bb2c9"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="430" rx="30" fill="url(#flow-bg)" stroke="#d8eaf4" stroke-width="2"/>
+  <text x="54" y="60" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" font-weight="700" letter-spacing="2" fill="#1474b8">A REVIEWABLE LOOP</text>
+  <text x="54" y="96" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="29" font-weight="800" fill="#17354a">从“我今天怎样”到“我下一步做什么”</text>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+    <path d="M286 230 H319" stroke="#8bb2c9" stroke-width="3" marker-end="url(#flow-arrow)"/>
+    <path d="M568 230 H601" stroke="#8bb2c9" stroke-width="3" marker-end="url(#flow-arrow)"/>
+    <path d="M850 230 H883" stroke="#8bb2c9" stroke-width="3" marker-end="url(#flow-arrow)"/>
+
+    <g transform="translate(48 132)">
+      <rect width="238" height="196" rx="24" fill="#ffffff" stroke="#b6dcf2" stroke-width="2"/>
+      <circle cx="34" cy="35" r="17" fill="#eaf5ff"/>
+      <text x="34" y="42" text-anchor="middle" font-size="16" font-weight="800" fill="#1474b8">01</text>
+      <text x="70" y="42" font-size="20" font-weight="800" fill="#17354a">COLLECT</text>
+      <text x="26" y="84" font-size="19" font-weight="700" fill="#2c546a">学习记录</text>
+      <text x="26" y="115" font-size="18" fill="#577687">成绩 · 错题 · 考试</text>
+      <text x="26" y="143" font-size="18" fill="#577687">专注 · 日记 · 例程</text>
+      <text x="26" y="178" font-size="16" fill="#6d8c9f">SwiftData / local records</text>
+    </g>
+
+    <g transform="translate(330 132)">
+      <rect width="238" height="196" rx="24" fill="#ffffff" stroke="#a7e2d8" stroke-width="2"/>
+      <circle cx="34" cy="35" r="17" fill="#eafaf7"/>
+      <text x="34" y="42" text-anchor="middle" font-size="16" font-weight="800" fill="#008f83">02</text>
+      <text x="70" y="42" font-size="20" font-weight="800" fill="#17354a">READ</text>
+      <text x="26" y="84" font-size="19" font-weight="700" fill="#2c546a">恢复信号</text>
+      <text x="26" y="115" font-size="18" fill="#577687">HRV · 心率 · 呼吸率</text>
+      <text x="26" y="143" font-size="18" fill="#577687">睡眠 · 锻炼</text>
+      <text x="26" y="178" font-size="16" fill="#6d8c9f">HealthKit / readiness</text>
+    </g>
+
+    <g transform="translate(612 132)">
+      <rect width="238" height="196" rx="24" fill="#ffffff" stroke="#e6bfd0" stroke-width="2"/>
+      <circle cx="34" cy="35" r="17" fill="#fff0f6"/>
+      <text x="34" y="42" text-anchor="middle" font-size="16" font-weight="800" fill="#b1436d">03</text>
+      <text x="70" y="42" font-size="20" font-weight="800" fill="#17354a">ADJUST</text>
+      <text x="26" y="84" font-size="19" font-weight="700" fill="#2c546a">分析与建议</text>
+      <text x="26" y="115" font-size="18" fill="#577687">本地分析 + 可选 BYOK</text>
+      <text x="26" y="143" font-size="18" fill="#577687">先审核，再保存</text>
+      <text x="26" y="178" font-size="16" fill="#6d8c9f">Coach / plan proposals</text>
+    </g>
+
+    <g transform="translate(894 132)">
+      <rect width="238" height="196" rx="24" fill="#ffffff" stroke="#b8dfc3" stroke-width="2"/>
+      <circle cx="34" cy="35" r="17" fill="#edf9f0"/>
+      <text x="34" y="42" text-anchor="middle" font-size="16" font-weight="800" fill="#3f9360">04</text>
+      <text x="70" y="42" font-size="20" font-weight="800" fill="#17354a">ACT</text>
+      <text x="26" y="84" font-size="19" font-weight="700" fill="#2c546a">可执行动作</text>
+      <text x="26" y="115" font-size="18" fill="#577687">Todo · SRS · 通知</text>
+      <text x="26" y="143" font-size="18" fill="#577687">学习 · 复盘 · 再调整</text>
+      <text x="26" y="178" font-size="16" fill="#6d8c9f">local action / feedback</text>
+    </g>
+  </g>
+
+  <path d="M1128 352 C964 407 796 407 620 352 S276 296 72 352" fill="none" stroke="#b7d7e6" stroke-width="2" stroke-dasharray="6 9"/>
+  <text x="600" y="395" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" font-weight="700" letter-spacing="1.2" fill="#6d8c9f">FEEDBACK RETURNS TO THE NEXT STUDY DAY</text>
+</svg>

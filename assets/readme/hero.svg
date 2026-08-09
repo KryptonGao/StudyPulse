@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="hero-title hero-desc">
+  <title id="hero-title">StudyPulse — a local-first iOS study system</title>
+  <desc id="hero-desc">StudyPulse connects learning records, recovery signals, optional AI guidance, and reviewable next actions in one study loop.</desc>
+
+  <defs>
+    <linearGradient id="hero-sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dff3ff"/>
+      <stop offset="0.62" stop-color="#edf8ff"/>
+      <stop offset="1" stop-color="#fff5fb"/>
+    </linearGradient>
+    <linearGradient id="hero-wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2f9bf4" stop-opacity="0"/>
+      <stop offset="0.35" stop-color="#2f9bf4" stop-opacity="0.7"/>
+      <stop offset="0.72" stop-color="#05bbab" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#d6436d" stop-opacity="0.18"/>
+    </linearGradient>
+    <marker id="hero-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#7aa8c7"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="420" rx="30" fill="url(#hero-sky)"/>
+  <path d="M0 330 C180 265 310 385 492 315 S824 245 1200 310 L1200 420 L0 420 Z" fill="#ffffff" fill-opacity="0.54"/>
+  <path d="M0 342 C205 274 304 392 510 326 S873 266 1200 322" fill="none" stroke="url(#hero-wave)" stroke-width="3"/>
+
+  <g id="hero-copy" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+    <text x="68" y="62" font-size="16" font-weight="700" letter-spacing="2.4" fill="#1474b8">STUDY SYSTEM / iOS</text>
+    <text x="68" y="143" font-size="78" font-weight="800" letter-spacing="-3" fill="#102433">StudyPulse</text>
+    <text x="72" y="191" font-size="27" font-weight="700" fill="#1a4058">把学习数据，变成下一步可以执行的节奏。</text>
+    <text x="72" y="229" font-size="20" fill="#456477">成绩、错题、考试、专注与恢复，在同一个本地学习工作区里汇合。</text>
+
+    <g transform="translate(72 266)">
+      <rect width="122" height="38" rx="19" fill="#ffffff" fill-opacity="0.88" stroke="#b7daf1"/>
+      <text x="61" y="25" text-anchor="middle" font-size="17" font-weight="700" fill="#1474b8">SwiftUI</text>
+      <rect x="134" width="130" height="38" rx="19" fill="#ffffff" fill-opacity="0.88" stroke="#b7daf1"/>
+      <text x="199" y="25" text-anchor="middle" font-size="17" font-weight="700" fill="#1474b8">HealthKit</text>
+      <rect x="276" width="125" height="38" rx="19" fill="#ffffff" fill-opacity="0.88" stroke="#b7daf1"/>
+      <text x="338" y="25" text-anchor="middle" font-size="17" font-weight="700" fill="#1474b8">SwiftData</text>
+      <rect x="413" width="106" height="38" rx="19" fill="#ffffff" fill-opacity="0.88" stroke="#d6b5c8"/>
+      <text x="466" y="25" text-anchor="middle" font-size="17" font-weight="700" fill="#a33f66">BYOK AI</text>
+    </g>
+
+    <text x="72" y="365" font-size="16" font-weight="700" letter-spacing="1.6" fill="#6b8b9d">MEASURE  ·  UNDERSTAND  ·  ACT  ·  REVIEW</text>
+  </g>
+
+  <g id="hero-proof" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+    <rect x="702" y="42" width="430" height="330" rx="28" fill="#ffffff" fill-opacity="0.78" stroke="#ffffff" stroke-width="2"/>
+    <text x="736" y="78" font-size="15" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" letter-spacing="1.6" fill="#6d8c9f">TODAY'S STUDY PULSE</text>
+    <text x="736" y="111" font-size="22" font-weight="750" fill="#17354a">本地学习工作区</text>
+    <text x="1038" y="110" text-anchor="end" font-size="18" font-weight="700" fill="#1474b8">READY / 82</text>
+
+    <g transform="translate(900 194)">
+      <path d="M0 -72 L68 -22 L42 58 L-42 58 L-68 -22 Z" fill="none" stroke="#d6e6f0" stroke-width="2"/>
+      <path d="M0 -48 L45 -15 L28 38 L-28 38 L-45 -15 Z" fill="none" stroke="#d6e6f0" stroke-width="2"/>
+      <path d="M0 -24 L22 -8 L14 19 L-14 19 L-22 -8 Z" fill="none" stroke="#d6e6f0" stroke-width="2"/>
+      <path d="M0 -58 L51 -17 L24 46 L-35 27 L-56 -18 Z" fill="#2f9bf4" fill-opacity="0.17" stroke="#2f9bf4" stroke-width="3"/>
+      <circle cx="0" cy="-58" r="5" fill="#2f9bf4"/>
+      <circle cx="51" cy="-17" r="5" fill="#2f9bf4"/>
+      <circle cx="24" cy="46" r="5" fill="#2f9bf4"/>
+      <circle cx="-35" cy="27" r="5" fill="#2f9bf4"/>
+      <circle cx="-56" cy="-18" r="5" fill="#2f9bf4"/>
+      <text x="0" y="-86" text-anchor="middle" font-size="17" font-weight="700" fill="#267bb6">HRV</text>
+      <text x="80" y="-16" font-size="17" font-weight="700" fill="#267bb6">心率</text>
+      <text x="37" y="72" font-size="17" font-weight="700" fill="#267bb6">睡眠</text>
+      <text x="-88" y="62" text-anchor="end" font-size="17" font-weight="700" fill="#267bb6">锻炼</text>
+      <text x="-88" y="-16" text-anchor="end" font-size="17" font-weight="700" fill="#267bb6">呼吸</text>
+    </g>
+
+    <g transform="translate(736 286)">
+      <rect width="105" height="48" rx="14" fill="#eaf5ff"/>
+      <text x="52" y="22" text-anchor="middle" font-size="20" font-weight="800" fill="#1474b8">41 ms</text>
+      <text x="52" y="39" text-anchor="middle" font-size="13" fill="#6b8b9d">HRV</text>
+      <rect x="116" width="105" height="48" rx="14" fill="#eefaf7"/>
+      <text x="168" y="22" text-anchor="middle" font-size="20" font-weight="800" fill="#008f83">82 min</text>
+      <text x="168" y="39" text-anchor="middle" font-size="13" fill="#6b8b9d">FOCUS</text>
+      <rect x="232" width="105" height="48" rx="14" fill="#fff0f6"/>
+      <text x="284" y="22" text-anchor="middle" font-size="20" font-weight="800" fill="#b1436d">3.1 h</text>
+      <text x="284" y="39" text-anchor="middle" font-size="13" fill="#6b8b9d">SLEEP</text>
+    </g>
+  </g>
+
+  <g id="hero-loop" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+    <path d="M694 387 H1088" fill="none" stroke="#9cc3da" stroke-width="2" marker-end="url(#hero-arrow)"/>
+    <circle cx="728" cy="387" r="7" fill="#2f9bf4"/>
+    <text x="744" y="393" font-size="16" font-weight="700" fill="#31576b">signals</text>
+    <circle cx="834" cy="387" r="7" fill="#05bbab"/>
+    <text x="850" y="393" font-size="16" font-weight="700" fill="#31576b">context</text>
+    <circle cx="940" cy="387" r="7" fill="#d6436d"/>
+    <text x="956" y="393" font-size="16" font-weight="700" fill="#31576b">guidance</text>
+    <circle cx="1050" cy="387" r="7" fill="#53a86f"/>
+    <text x="1066" y="393" font-size="16" font-weight="700" fill="#31576b">action</text>
+  </g>
+</svg>
