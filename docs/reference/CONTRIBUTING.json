@@ -22,7 +22,7 @@
           "id": "before_start",
           "icon": "checklist",
           "title": "开始前需要了解什么?",
-          "content": "在开始贡献前,请先阅读:\n\n1. **本贡献指南** — 你正在阅读\n2. **AGENTS.md** — 项目架构、开发约定、Agent 工作规则\n3. **CODE_WIKI.md** / **CODE_WIKI_CN.md** — 详细代码文档(中英)\n4. **USER_AGREEMENT.md** — 用户协议与隐私政策\n5. **README.md** — 项目概览、构建方式、依赖清单\n6. **SPEC.md** / **DESIGN.md** — 产品规范与设计文档\n7. **AlgorithmIntroduction.md** — 学习准备度算法说明\n\n建议先在本地完整构建项目并跑通主流程(成绩 → 错题 → 考试 → HRV → 小组件)。"
+          "content": "在开始贡献前,请先阅读:\n\n1. **本贡献指南** — 你正在阅读\n2. **AGENTS.md** — 项目架构、开发约定、Agent 工作规则\n3. **docs/architecture/CODE_WIKI.md** / **docs/architecture/CODE_WIKI_CN.md** — 详细代码文档(中英)\n4. **docs/reference/USER_AGREEMENT.md** — 用户协议与隐私政策\n5. **README.md** — 项目概览、构建方式、依赖清单\n6. **docs/product/SPEC.md** / **docs/product/DESIGN.md** — 产品规范与设计文档\n7. **docs/algorithms/AlgorithmIntroduction.md** — 学习准备度算法说明\n\n建议先在本地完整构建项目并跑通主流程(成绩 → 错题 → 考试 → HRV → 小组件)。"
         },
         {
           "id": "first_time",
@@ -109,7 +109,7 @@
           "id": "i18n_notes",
           "icon": "character.bubble",
           "title": "i18n 注意事项",
-          "content": "实施本地化时需要注意:\n\n- 使用 `String(localized:)` 而非硬编码字符串\n- 复数形式使用 `%d` + `.stringsdict` 或手动 `((n == 1) ? \"\" : \"s\")`\n- 时间、数字使用 `Date.FormatStyle` / `IntegerFormatStyle`\n- 避免在字符串中拼接语言相关的顺序\n- 测试 RTL 布局(Arabic / Hebrew)下的对齐\n- Emoji 与 SF Symbols 优先于位图\n\n参考项目 `AGENTS.md` 与 `CODE_WIKI_CN.md` 了解更详细的国际化实践。"
+          "content": "实施本地化时需要注意:\n\n- 使用 `String(localized:)` 而非硬编码字符串\n- 复数形式使用 `%d` + `.stringsdict` 或手动 `((n == 1) ? \"\" : \"s\")`\n- 时间、数字使用 `Date.FormatStyle` / `IntegerFormatStyle`\n- 避免在字符串中拼接语言相关的顺序\n- 测试 RTL 布局(Arabic / Hebrew)下的对齐\n- Emoji 与 SF Symbols 优先于位图\n\n参考项目 `AGENTS.md` 与 `docs/architecture/CODE_WIKI_CN.md` 了解更详细的国际化实践。"
         }
       ]
     },
@@ -134,7 +134,7 @@
           "id": "pr_process",
           "icon": "arrow.up.doc.on.clipboard",
           "title": "Pull Request 流程",
-          "content": "**提交 PR 前**\n\n1. 在本地 `Cmd+B` 完整构建,确保无 error / warning\n2. 运行 `bash scripts/build.sh` 验证\n3. 在至少一个真机或模拟器上手动测试主流程\n4. 同步更新五份 Localizable.strings\n5. 更新相关文档(AGENTS.md / README.md / SPEC.md)\n6. 关联对应 Issue(使用 `Closes #123` 或 `Fixes #456`)\n\n**PR 描述模板**\n\n```\n## 改动简述\n<!-- 一句话描述本次改动 -->\n\n## 改动类型\n- [ ] Bug 修复\n- [ ] 新功能\n- [ ] 重构\n- [ ] 文档\n- [ ] 翻译\n\n## 截图 / 录屏(视觉改动必须)\n<!-- iPhone 模拟器截图 -->\n\n## 测试情况\n<!-- 描述手动测试的步骤与结果 -->\n\n## 关联 Issue\nCloses #\n\n## Checklist\n- [ ] 本地构建通过\n- [ ] 五份 Localizable.strings 已同步\n- [ ] AGENTS.md / 相关文档已更新\n- [ ] 在真机/模拟器上测试通过\n```\n\n**Review 流程**\n\n- 维护者会在 7 天内 review\n- 接受 review 意见并 push fix\n- 至少 1 位维护者 approve 后合并"
+          "content": "**提交 PR 前**\n\n1. 在本地 `Cmd+B` 完整构建,确保无 error / warning\n2. 运行 `bash scripts/build.sh` 验证\n3. 在至少一个真机或模拟器上手动测试主流程\n4. 同步更新五份 Localizable.strings\n5. 更新相关文档(AGENTS.md / README.md / docs/product/SPEC.md)\n6. 关联对应 Issue(使用 `Closes #123` 或 `Fixes #456`)\n\n**PR 描述模板**\n\n```\n## 改动简述\n<!-- 一句话描述本次改动 -->\n\n## 改动类型\n- [ ] Bug 修复\n- [ ] 新功能\n- [ ] 重构\n- [ ] 文档\n- [ ] 翻译\n\n## 截图 / 录屏(视觉改动必须)\n<!-- iPhone 模拟器截图 -->\n\n## 测试情况\n<!-- 描述手动测试的步骤与结果 -->\n\n## 关联 Issue\nCloses #\n\n## Checklist\n- [ ] 本地构建通过\n- [ ] 五份 Localizable.strings 已同步\n- [ ] AGENTS.md / 相关文档已更新\n- [ ] 在真机/模拟器上测试通过\n```\n\n**Review 流程**\n\n- 维护者会在 7 天内 review\n- 接受 review 意见并 push fix\n- 至少 1 位维护者 approve 后合并"
         }
       ]
     },

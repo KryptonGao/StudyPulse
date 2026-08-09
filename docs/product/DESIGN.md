@@ -2,7 +2,7 @@
 
 > Visual & interaction design reference for the **StudyPulse** iOS app.
 > Authoritative source for the design system, theming, and platform-specific
-> UX rules. For architecture and code structure, see [AGENTS.md](AGENTS.md).
+> UX rules. For architecture and code structure, see [AGENTS.md](../../AGENTS.md).
 
 ---
 

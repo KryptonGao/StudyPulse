@@ -80,7 +80,7 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
     - `Health/`：
       - `HealthKitManager.swift`：HRV（SDNN）准备度、14 天基线、日级历史、BodyStatus、PersonalBaselines 30 天个人基线。
       - `HealthHistoryStore.swift`：`DailyHealthSnapshot` 30 天滚动持久化（NSLock 线程安全）。
-      - `StudyReadinessAlgorithm.swift`：多维学习准备度算法（5 强度 × 5 重点）。详细说明见 `docs/AlgorithmIntroduction.md`。
+      - `StudyReadinessAlgorithm.swift`：多维学习准备度算法（5 强度 × 5 重点）。详细说明见 `docs/algorithms/AlgorithmIntroduction.md`。
     - `Logging/`：
       - `Log.swift`：`LogLevel` / `LogEntry` / `LogStore`（actor 隔离并发安全，5000 条上限，超出丢最早条目）；`Log.app` / `Log.widget` / `Log.notification` / `Log.ui` / `Log.data` / `Log.study` / `Log.health` 等 subsystem category；`Log.record(_:category:message:)` 同时写 `os.Logger` 与 `LogStore`。
       - `LogDocument.swift`：`FileDocument` 包装内存日志。
@@ -271,7 +271,7 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
   - `TestDoubles/`：10 个 Mock Repository（`MockDiaryRepository` / `MockExamRepository` / `MockGradeRepository` / `MockMistakeRepository` / `MockPhaseRepository` / `MockProfileRepository` / `MockRoutineInstanceRepository` / `MockRoutineRepository` / `MockSubjectRepository` / `MockTaskRepository`）。
   - 单元测试覆盖：`DailyPlanEngineTests` / `DateFormattersTests` / `DifficultyTagTests` / `ExamFilterTests` / `MistakeFilterTests` / `PlantStageTransitionsTests` / `QuoteProviderTests` / `RecoveryLevelTests` / `RepositoryContainerTests` / `SubjectAggregatorTests` / `SuggestionEngineTests`。
 - `en.lproj` / `zh-Hans.lproj` / `zh-Hant.lproj` / `ja.lproj` / `ko.lproj`：主应用各语言 Localizable.strings。
-- `AGENTS.md` / `docs/CODE_WIKI.md` / `docs/CODE_WIKI_CN.md` / `README.md` / `docs/AlgorithmIntroduction.md` / `docs/ScorePredictionAlgorithm.md` / `docs/STREAK_ACHIEVEMENT_PLAN.md` / `docs/SPEC.md` / `docs/DESIGN.md` / `docs/USER_AGREEMENT.md` / `docs/FAQ.json` / `docs/CONTRIBUTING.json` / `LICENSE`：文档、协议与许可。
+- `AGENTS.md` / `docs/architecture/CODE_WIKI.md` / `docs/architecture/CODE_WIKI_CN.md` / `README.md` / `docs/algorithms/AlgorithmIntroduction.md` / `docs/algorithms/ScorePredictionAlgorithm.md` / `docs/plans/STREAK_ACHIEVEMENT_PLAN.md` / `docs/product/SPEC.md` / `docs/product/DESIGN.md` / `docs/reference/USER_AGREEMENT.md` / `docs/reference/FAQ.json` / `docs/reference/CONTRIBUTING.json` / `LICENSE`：文档、协议与许可。
 - `scripts/build.sh`：构建辅助脚本（默认使用 `DerivedDataBuild/` 子目录以隔离）。
 
 ---
@@ -308,8 +308,8 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
 业务 / 服务层目录：
 - `RepositoryContainer`（`@Observable @MainActor`）聚合 16 个 Repository + ModelContainer 持有 + `isReady` + 3 个跨域编排子模块（`bulkOps` / `todoAggregator` / `phaseRefresher`，Phase 3 拆出独立文件）+ 跨域 facade（`addGrade` / `addGrades` / `addMistake` / `addMistakes` / `addExams` / `addTask` / `addTasks` / `addDiary` / `addRoutine` / `deleteGrade` / `deleteExam` / `deleteTask` / `activatePhase` / `bulkClearData` / `todoEntries`）；**注意：双实例陷阱——`StudyPulseApp` 写 `@State private var container = RepositoryContainer()`，不要写 `DataManager.shared` 之类的双实例**。ViewModel 通过 `DataManager.shared` 调用会拿到空数据（独立实例）；**自检：所有 ViewModel 都用 `container.xxxRepo.xxx` 路径访问，App 入口持有同一个 `RepositoryContainer` 单例**。
 - `AppEnvironmentManager`（`@MainActor ObservableObject` 单例）持有 `AppPreferences`（语言 / 主题 / 图表类型 / 主色 / glassEffect / Trends 热力图 / `activePhaseId`），提供 `effectiveColorScheme` / `effectiveAccentColor` / `setLanguage` / `setColorScheme` / `setAccent` / `setGlassEffect` / `setLearningHeatmapOnTrends` / `setActivePhase`。
-- `HealthKitManager`（`@MainActor ObservableObject` 单例）持有 `HRVReadiness`（Z-score / 分类 / 建议）、`dailyHRVHistory` / `lastSampleCount` / `hrvDetailLevel` / `BodyStatus` / `PersonalBaselines` 30 天个人基线 / `bodyStatusAuthorized` / `isReady`；`enable()` / `disable()` / `refreshReadiness()` / `refreshBodyStatus()` / `bootstrap()`。`StudyReadinessAlgorithm` 在 HRV 之外把多维身体信号（深睡 + REM、锻炼、心率、呼吸）归一化打分，合成 5 档强度 × 5 类重点建议。详见 `docs/AlgorithmIntroduction.md`。
-- `AchievementManager`（`@MainActor ObservableObject` 单例）持有 `AchievementsSnapshot`（`config` / `todayLog` / `streak` / `cumulativeProgress` / `unlockedAchievements` / `todayProgress`），对外暴露 `recordGradeRecorded` / `recordMistakeReviewed` / `recordFocusMinutes` 三个事件入口；`updateConfig` 改每日目标；`handleDayRolloverIfNeeded` 在 `scenePhase == .active` 时跨日滚动。`AchievementStore` 负责 `AchievementsSnapshot` 持久化 + 首次启动从 `grades.json` / `study_sessions.json` 反推 30 天历史。详见 `docs/STREAK_ACHIEVEMENT_PLAN.md`。
+- `HealthKitManager`（`@MainActor ObservableObject` 单例）持有 `HRVReadiness`（Z-score / 分类 / 建议）、`dailyHRVHistory` / `lastSampleCount` / `hrvDetailLevel` / `BodyStatus` / `PersonalBaselines` 30 天个人基线 / `bodyStatusAuthorized` / `isReady`；`enable()` / `disable()` / `refreshReadiness()` / `refreshBodyStatus()` / `bootstrap()`。`StudyReadinessAlgorithm` 在 HRV 之外把多维身体信号（深睡 + REM、锻炼、心率、呼吸）归一化打分，合成 5 档强度 × 5 类重点建议。详见 `docs/algorithms/AlgorithmIntroduction.md`。
+- `AchievementManager`（`@MainActor ObservableObject` 单例）持有 `AchievementsSnapshot`（`config` / `todayLog` / `streak` / `cumulativeProgress` / `unlockedAchievements` / `todayProgress`），对外暴露 `recordGradeRecorded` / `recordMistakeReviewed` / `recordFocusMinutes` 三个事件入口；`updateConfig` 改每日目标；`handleDayRolloverIfNeeded` 在 `scenePhase == .active` 时跨日滚动。`AchievementStore` 负责 `AchievementsSnapshot` 持久化 + 首次启动从 `grades.json` / `study_sessions.json` 反推 30 天历史。详见 `docs/plans/STREAK_ACHIEVEMENT_PLAN.md`。
 - `StudyTimerManager`（`@MainActor ObservableObject`）持有当前会话（强度 / 剩余时间 / 状态 idle / running / paused / completed），负责创建 / 更新 / 结束 `StudyTimerActivityAttributes` Live Activity；**完成会话时经 `sessionRepository.upsert(_:)` 持久化为 `StudySession`（绑定 `selectedInvestmentTarget`），老 `~/Documents/study_sessions.json` 由 `StudySessionRepository.refreshFromLegacyJSON()` 一次性合并导入**。`StudyTimerPalette` 提供主应用与 Live Activity 共享的色板。
 - `CalendarManager`：EventKit 单例。考试通过 `addExamToCalendar` 写入 `EKEvent`（可选 startTime/endTime，nil 时回退为全天事件）；作业 / 阅读材料通过 `addTaskToReminders` 写入 `EKReminder`（dueDateComponents + EKAlarm）。
 - `OCRManager`：Vision 文本识别（`recognitionLanguages = ["zh-Hans", "en"]`）。
@@ -428,8 +428,8 @@ ViewModel 到 RepositoryContainer 的调用示例：
 5. LLM：`LLMSettingsView`（BYOK 大模型配置：总开关 + Base URL + API Key + Model + Temperature + System Prompt + Test Connection）。
 6. Data Management：`DataManagementSettingsView`（顶部 `Phase Management` 入口 + CSV 导出 / 还原示例数据 / Developer Admin / Export Log）；`AchievementsView`（成就 / 连续打卡主页）+ `DailyGoalsConfigView`（每日目标配置 + 提醒时间）也从这里跳转。
 7. About：`AboutSettingsView`（关于 + 版权 + Test Notifications + `UserAgreementView` 全文）。
-8. FAQ：`QASettingsView`（高频问题，源数据 `docs/FAQ.json`）。
-9. Contribution：`ContributionSettingsView`（开源贡献指南，源数据 `docs/CONTRIBUTING.json`）。
+8. FAQ：`QASettingsView`（高频问题，源数据 `docs/reference/FAQ.json`）。
+9. Contribution：`ContributionSettingsView`（开源贡献指南，源数据 `docs/reference/CONTRIBUTING.json`）。
 
 `PhaseManagementView`：
 - 顶部 active list（可点击切换 + 跳转 `PhaseEditView`）。
@@ -548,7 +548,7 @@ PersonalBaselines 30 天个人基线：
 - 由 `HealthHistoryStore` 维护，过去 30 天 `DailyHealthSnapshot` 滚动窗口，存于 `~/Documents/health_history.json`（NSLock 线程安全）。
 - `StudyReadinessAlgorithm` 优先用个人 30 天均值 / 标准差对每个信号打分，至少 7 天样本时启用；样本不足时回退到 `AgeReference` 年龄段参考范围。
 - 每个信号最终归一化到 0~1，HRV 作为硬覆盖，其余信号合成 5 档学习强度 × 5 类学习重点（最多 25 种组合），未覆盖的组合回退到「steady / balanced」。
-- 完整输入 / 评分 / 决策细节见 `docs/AlgorithmIntroduction.md`。
+- 完整输入 / 评分 / 决策细节见 `docs/algorithms/AlgorithmIntroduction.md`。
 
 对外状态：hrvEnabled、hrvOnboardingCompleted、isAuthorized、isReady、readiness、dailyHRVHistory、lastSampleCount、hrvDetailLevel、bodyStatus、personalBaselines、bodyStatusAuthorized。
 `hrvDetailLevel` 决定 `HRVStatusCard` 呈现模式 suggestionOnly / dataAndSuggestion / chartAndData。
@@ -991,11 +991,11 @@ AI 代理在本仓库工作时遵循以下规则：
 - 持久化图像作为文件而非 JSON 内联：使用 `profileRepo.saveAvatar` / `gradeRepo` 内部图片保存。
 - 优先使用 `iPadLayout` 辅助而不是在视图里内联写 size class 分支。
 - 不要手工修改 `StudyPulse.xcodeproj/project.pbxproj` —— 让 Xcode 管理。**Xcode 16+ 使用 `PBXFileSystemSynchronizedRootGroup` 自动收录 `StudyPulse/` 下的新 `.swift` 文件**。新增 Swift 文件后在 Xcode 中 Add Files to StudyPulse... / 拖入项目即可。
-- 涉及新功能 / 新增配置时同步检查 `docs/AlgorithmIntroduction.md` / `docs/ScorePredictionAlgorithm.md` / `docs/STREAK_ACHIEVEMENT_PLAN.md` / `docs/SPEC.md` / `docs/DESIGN.md` / `README.md` 是否需要更新：
-  - 修改 `StudyReadinessAlgorithm` 评分规则必须同步更新 `docs/AlgorithmIntroduction.md`。
-  - 修改 `ScorePredictionEngine` / `MistakeGapAnalyzer` / `ScorePredictorFactory` 必须同步更新 `docs/ScorePredictionAlgorithm.md`。
-  - 修改「每日目标 / 连续天数 / 成就」规则必须同步更新 `docs/STREAK_ACHIEVEMENT_PLAN.md`。
-  - 修改 phase / 主色 / glass / 背景图 / 热力图 / 错题 SRS / 考试清单 / Repository 等架构性规则时同步更新 `AGENTS.md` / `SPEC.md` / `README.md`。
+- 涉及新功能 / 新增配置时同步检查 `docs/algorithms/AlgorithmIntroduction.md` / `docs/algorithms/ScorePredictionAlgorithm.md` / `docs/plans/STREAK_ACHIEVEMENT_PLAN.md` / `docs/product/SPEC.md` / `docs/product/DESIGN.md` / `README.md` 是否需要更新：
+  - 修改 `StudyReadinessAlgorithm` 评分规则必须同步更新 `docs/algorithms/AlgorithmIntroduction.md`。
+  - 修改 `ScorePredictionEngine` / `MistakeGapAnalyzer` / `ScorePredictorFactory` 必须同步更新 `docs/algorithms/ScorePredictionAlgorithm.md`。
+  - 修改「每日目标 / 连续天数 / 成就」规则必须同步更新 `docs/plans/STREAK_ACHIEVEMENT_PLAN.md`。
+  - 修改 phase / 主色 / glass / 背景图 / 热力图 / 错题 SRS / 考试清单 / Repository 等架构性规则时同步更新 `AGENTS.md` / `docs/product/SPEC.md` / `README.md`。
 - 写入 widget 前确认 `container.isReady == true`，避免在主数据加载完成前写入空数据。
 - 启动 Live Activity 前检查 `Activity<StudyTimerActivityAttributes>.activities` 避免重复；更新 / 结束 Activity 需在主线程调用 `ActivityKit` API。
 - `AchievementManager.record*()` 是事件入口：业务逻辑层不要直接修改 `AchievementsSnapshot`，统一通过 `record*()` 触发。

@@ -131,5 +131,4 @@ $$
 
 实现位置：
 
-[ScorePredictionEngine.swift](/Users/chenkaigao/Documents/Program/Swift/StudyPulse/StudyPulse/Views/Exam/ScorePredictionEngine.swift:1)
-
+[ScorePredictionEngine.swift](../../StudyPulse/Views/Exam/ScorePredictionEngine.swift:1)

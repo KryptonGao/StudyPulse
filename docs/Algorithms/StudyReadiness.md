@@ -135,5 +135,4 @@ $$
 
 实现位置：
 
-[StudyReadinessAlgorithm.swift](/Users/chenkaigao/Documents/Program/Swift/StudyPulse/StudyPulse/Managers/Health/StudyReadinessAlgorithm.swift:377)
-
+[StudyReadinessAlgorithm.swift](../../StudyPulse/Managers/Health/StudyReadinessAlgorithm.swift:377)

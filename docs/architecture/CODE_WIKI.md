@@ -395,7 +395,7 @@ StudyPulse/
 │
 ├── TestData/                              # Sample CSVs + restore_sample_data.py
 ├── en.lproj / zh-Hans.lproj / zh-Hant.lproj / ja.lproj / ko.lproj
-├── AGENTS.md / docs/CODE_WIKI.md / docs/CODE_WIKI_CN.md / README.md
+├── AGENTS.md / docs/architecture/CODE_WIKI.md / docs/architecture/CODE_WIKI_CN.md / README.md
 └── scripts/build.sh
 ```
 
@@ -930,7 +930,7 @@ ContentView
 | `DailyGoalsConfigView` | `Views/Settings/DailyGoalsConfigView.swift` | Daily goals | Configure target + reminder time |
 | `ChartTypeSettingsView` | `Views/Settings/ChartTypeSettingsView.swift` | Chart type | 6 chart types |
 | `ContributionSettingsView` | `Views/Settings/ContributionSettingsView.swift` | Heatmap | GitHub-style heatmap config |
-| `UserAgreementView` | `Views/Settings/UserAgreementView.swift` | Agreement | Full `docs/USER_AGREEMENT.md` text |
+| `UserAgreementView` | `Views/Settings/UserAgreementView.swift` | Agreement | Full `docs/reference/USER_AGREEMENT.md` text |
 | `PhaseManagementView` | `Views/Settings/PhaseManagementView.swift` | Phase mgmt | Active / archived / overview |
 | `PhaseEditView` | `Views/Settings/PhaseEditView.swift` | Phase editor | Edit name / dates / goals |
 | `ProfileEditView` | `Views/Profile/ProfileEditView.swift` | Profile editor | 12+ fields |

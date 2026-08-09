@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://gao-chenkai.github.io/StudyPulse/">产品介绍</a> ·
-  <a href="./docs/AlgorithmIntroduction.md">算法说明</a> ·
+  <a href="./docs/README.md">文档中心</a> ·
   <a href="#构建与运行">本地运行</a> ·
   <a href="#隐私边界">隐私边界</a>
 </p>
@@ -110,12 +110,13 @@ StudyPulse 不是只记录“今天学了多久”的计时器，也不是把学
 
 ## 进一步阅读
 
-- [算法说明](./docs/AlgorithmIntroduction.md)
-- [错题保质期与复习](./docs/Algorithms/MistakeShelfLife.md)
-- [学习准备度](./docs/Algorithms/StudyReadiness.md)
-- [间隔重复](./docs/Algorithms/SpacedRepetition.md)
-- [成绩预测](./docs/Algorithms/ScorePrediction.md)
-- [项目设计](./docs/DESIGN.md)
+- [文档中心](./docs/README.md)
+- [学习建议算法](./docs/algorithms/AlgorithmIntroduction.md)
+- [错题保质期与复习](./docs/algorithms/MistakeShelfLife.md)
+- [学习准备度](./docs/algorithms/StudyReadiness.md)
+- [间隔重复](./docs/algorithms/SpacedRepetition.md)
+- [成绩预测](./docs/algorithms/ScorePrediction.md)
+- [项目设计](./docs/product/DESIGN.md)
 
 ## 开发者与许可
 
