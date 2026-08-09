@@ -55,6 +55,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "${RUNNER_TEMP}/StudyPulseDerivedData" \
             -clonedSourcePackagesDirPath "${RUNNER_TEMP}/StudyPulseSourcePackages" \
+            -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO
 
@@ -67,5 +68,6 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "${RUNNER_TEMP}/StudyPulseDerivedData" \
             -clonedSourcePackagesDirPath "${RUNNER_TEMP}/StudyPulseSourcePackages" \
+            -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO
