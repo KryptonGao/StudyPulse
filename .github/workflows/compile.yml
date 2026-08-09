@@ -17,7 +17,7 @@ concurrency:
 jobs:
   compile:
     name: compile
-    runs-on: macos-15
+    runs-on: macos-26
     environment:
       name: compile-approval
     timeout-minutes: 30
