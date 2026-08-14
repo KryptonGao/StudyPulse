@@ -10,6 +10,85 @@ import Darwin
 
 @MainActor
 final class PersistenceExecutorTests: XCTestCase {
+    func testLowFrequencyStartupLoadsPublishValueSnapshots() async throws {
+        let container = try TestModelContainerFactory.makeInMemoryContainer()
+        let context = container.mainContext
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+
+        let goal = CoachGoal(
+            title: "Finals",
+            subjects: [CoachGoalSubject(subject: "Math", targetScore: 90)],
+            targetDate: now.addingTimeInterval(86_400)
+        )
+        let legacyMessage = CoachConversationMessage(
+            goalID: goal.id,
+            chatID: UUID(),
+            role: .user,
+            content: "Review calculus",
+            createdAt: now
+        )
+        let investmentSubject = TimeInvestmentSubject(name: "Reading", createdAt: now)
+        let subTask = SubTask(subjectID: investmentSubject.id, name: "Chapter 1", createdAt: now)
+        let reward = GoalReward(
+            title: "Break",
+            target: .subject(investmentSubject.id),
+            thresholdSeconds: 3_600,
+            createdAt: now
+        )
+        let session = StudySession(
+            id: UUID(),
+            startDate: now,
+            durationSeconds: 1_800,
+            intensity: .steady,
+            completed: true
+        )
+
+        context.insert(CoachGoalRecord(from: goal))
+        context.insert(CoachConversationMessageRecord(from: legacyMessage))
+        context.insert(TimeInvestmentSubjectRecord(from: investmentSubject))
+        context.insert(SubTaskRecord(from: subTask))
+        context.insert(GoalRewardRecord(from: reward))
+        context.insert(StudySessionRecord(from: session))
+        try context.save()
+
+        let executor = PersistenceExecutor(modelContainer: container)
+        let coach = try await executor.loadCoachSnapshots()
+        let sessions = try await executor.loadStudySessionSnapshots(mergeLegacyJSONIfNeeded: false)
+        let investments = try await executor.loadTimeInvestmentSnapshots()
+
+        XCTAssertEqual(coach.goals.map(\.id), [goal.id])
+        XCTAssertEqual(coach.chats.count, 1)
+        XCTAssertEqual(coach.messages.first?.chatID, coach.chats.first?.id)
+        XCTAssertEqual(sessions.map(\.id), [session.id])
+        XCTAssertEqual(investments.subjects.map(\.id), [investmentSubject.id])
+        XCTAssertEqual(investments.subTasks.map(\.id), [subTask.id])
+        XCTAssertEqual(investments.rewards.map(\.id), [reward.id])
+
+        // The Repository-facing startup APIs publish the same snapshots after
+        // the actor finishes, while retaining the MainActor context for CRUD.
+        let migrationKey = "studyPulse.studySessionsLegacyMigrationV2"
+        let previousMigrationValue = UserDefaults.standard.object(forKey: migrationKey)
+        UserDefaults.standard.set(true, forKey: migrationKey)
+        defer {
+            if let previousMigrationValue {
+                UserDefaults.standard.set(previousMigrationValue, forKey: migrationKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: migrationKey)
+            }
+        }
+
+        let coachRepository = DefaultCoachRepository()
+        await coachRepository.loadAll(context: context)
+        let sessionRepository = DefaultStudySessionRepository()
+        await sessionRepository.loadAll(context: context)
+        let investmentRepository = DefaultTimeInvestmentRepository()
+        await investmentRepository.loadAll(context: context)
+
+        XCTAssertEqual(coachRepository.messages.first?.chatID, coachRepository.chats.first?.id)
+        XCTAssertEqual(sessionRepository.sessions.map(\.id), [session.id])
+        XCTAssertEqual(investmentRepository.subjects.map(\.id), [investmentSubject.id])
+    }
+
     func testConcurrentReadsAndWritesRemainConsistent() async throws {
         let container = try TestModelContainerFactory.makeInMemoryContainer()
         let executor = PersistenceExecutor(modelContainer: container)

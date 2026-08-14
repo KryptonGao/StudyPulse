@@ -534,6 +534,9 @@ final class RepositoryContainer {
         (taskRepo as? any PersistenceExecutorBacked)?.attachPersistenceExecutor(executor)
         (routineRepo as? any PersistenceExecutorBacked)?.attachPersistenceExecutor(executor)
         (diaryRepo as? any PersistenceExecutorBacked)?.attachPersistenceExecutor(executor)
+        (coachRepo as? any PersistenceExecutorAttachable)?.attachPersistenceExecutor(executor)
+        (studySessionRepo as? any PersistenceExecutorAttachable)?.attachPersistenceExecutor(executor)
+        (timeInvestmentRepo as? any PersistenceExecutorAttachable)?.attachPersistenceExecutor(executor)
     }
 
     private func loadHighFrequencyRepositories(context: ModelContext) async {

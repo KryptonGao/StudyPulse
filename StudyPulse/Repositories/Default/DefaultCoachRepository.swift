@@ -1,23 +1,42 @@
 import Foundation
 import SwiftData
+import os
 
 @Observable @MainActor
-final class DefaultCoachRepository: CoachRepository {
+final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachable {
     private(set) var goals: [CoachGoal] = []
     private(set) var analyses: [CoachAnalysis] = []
     private(set) var proposals: [CoachProposal] = []
     private(set) var chats: [CoachChat] = []
     private(set) var messages: [CoachConversationMessage] = []
     private var context: ModelContext?
+    @ObservationIgnored private var persistenceExecutor: PersistenceExecutor?
+
+    func attachPersistenceExecutor(_ executor: PersistenceExecutor) {
+        persistenceExecutor = executor
+    }
 
     func loadAll(context: ModelContext) async {
         self.context = context
-        goals = (try? context.fetch(FetchDescriptor<CoachGoalRecord>()))?.compactMap { $0.toSnapshot() } ?? []
-        analyses = (try? context.fetch(FetchDescriptor<CoachAnalysisRecord>(sortBy: [SortDescriptor(\.calculatedAt, order: .reverse)])))?.compactMap { $0.toSnapshot() } ?? []
-        proposals = (try? context.fetch(FetchDescriptor<CoachProposalRecord>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])))?.compactMap { $0.toSnapshot() } ?? []
-        messages = (try? context.fetch(FetchDescriptor<CoachConversationMessageRecord>(sortBy: [SortDescriptor(\.createdAt)])))?.compactMap { $0.toSnapshot() } ?? []
-        chats = (try? context.fetch(FetchDescriptor<CoachChatRecord>(sortBy: [SortDescriptor(\.updatedAt, order: .reverse)])))?.compactMap { $0.toSnapshot() } ?? []
-        migrateLegacyMessagesToChats()
+        let executor = persistenceExecutor ?? PersistenceExecutor(modelContainer: context.container)
+        persistenceExecutor = executor
+        do {
+            let snapshots = try await executor.loadCoachSnapshots()
+            goals = snapshots.goals
+            analyses = snapshots.analyses
+            proposals = snapshots.proposals
+            chats = snapshots.chats
+            messages = snapshots.messages
+        } catch is CancellationError {
+            Log.data.debug("CoachRepository startup load cancelled")
+        } catch {
+            goals = []
+            analyses = []
+            proposals = []
+            chats = []
+            messages = []
+            Log.data.error("CoachRepository load failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     func addGoal(_ goal: CoachGoal) {
@@ -129,28 +148,4 @@ final class DefaultCoachRepository: CoachRepository {
         messages.removeAll { $0.chatID == chatID }
     }
 
-    private func migrateLegacyMessagesToChats() {
-        let legacyGoalIDs = Set(messages.compactMap { message in
-            chats.contains(where: { $0.id == message.chatID }) ? nil : message.goalID
-        })
-        for goalID in legacyGoalIDs {
-            let legacy = messages.filter { message in
-                message.goalID == goalID && !chats.contains(where: { chat in chat.id == message.chatID })
-            }
-            guard !legacy.isEmpty else { continue }
-            let chat = CoachChat(goalID: goalID, title: "New chat")
-            addChat(chat)
-            for old in legacy {
-                let migrated = CoachConversationMessage(id: old.id, goalID: old.goalID, chatID: chat.id,
-                                                        role: old.role, content: old.content,
-                                                        createdAt: old.createdAt, isStreaming: old.isStreaming,
-                                                        error: old.error, todoSuggestions: old.todoSuggestions)
-                if let index = messages.firstIndex(where: { $0.id == old.id }) { messages[index] = migrated }
-                if let context, let record = (try? context.fetch(FetchDescriptor<CoachConversationMessageRecord>()))?.first(where: { $0.id == old.id }) {
-                    record.payload = (try? JSONEncoder().encode(migrated)) ?? Data()
-                }
-            }
-        }
-        try? context?.save()
-    }
 }
