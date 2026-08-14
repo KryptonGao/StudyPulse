@@ -3,14 +3,27 @@ import SwiftData
 import os
 
 @Observable @MainActor
-final class DefaultStudySessionRepository: StudySessionRepository {
+final class DefaultStudySessionRepository: StudySessionRepository, PersistenceExecutorAttachable {
     private(set) var sessions: [StudySession] = []
     private var context: ModelContext?
+    @ObservationIgnored private var persistenceExecutor: PersistenceExecutor?
+
+    func attachPersistenceExecutor(_ executor: PersistenceExecutor) {
+        persistenceExecutor = executor
+    }
 
     func loadAll(context: ModelContext) async {
         self.context = context
-        mergeLegacyJSONIfNeeded(context: context)
-        reload(context: context)
+        let executor = persistenceExecutor ?? PersistenceExecutor(modelContainer: context.container)
+        persistenceExecutor = executor
+        do {
+            sessions = try await executor.loadStudySessionSnapshots()
+        } catch is CancellationError {
+            Log.data.debug("StudySessionRepository startup load cancelled")
+        } catch {
+            sessions = []
+            Log.data.error("StudySessionRepository load failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     func upsert(_ session: StudySession) {

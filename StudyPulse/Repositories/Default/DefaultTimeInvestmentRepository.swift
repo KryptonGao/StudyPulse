@@ -1,13 +1,19 @@
 import Foundation
 import SwiftData
+import os
 
 @Observable @MainActor
-final class DefaultTimeInvestmentRepository: TimeInvestmentRepository {
+final class DefaultTimeInvestmentRepository: TimeInvestmentRepository, PersistenceExecutorAttachable {
     private(set) var subjects: [TimeInvestmentSubject] = []
     private(set) var subTasks: [SubTask] = []
     private(set) var rewards: [GoalReward] = []
     private var context: ModelContext?
+    @ObservationIgnored private var persistenceExecutor: PersistenceExecutor?
     private weak var sessionRepository: (any StudySessionRepository)?
+
+    func attachPersistenceExecutor(_ executor: PersistenceExecutor) {
+        persistenceExecutor = executor
+    }
 
     func setSessionRepository(_ repository: any StudySessionRepository) {
         sessionRepository = repository
@@ -15,15 +21,21 @@ final class DefaultTimeInvestmentRepository: TimeInvestmentRepository {
 
     func loadAll(context: ModelContext) async {
         self.context = context
-        subjects = ((try? context.fetch(FetchDescriptor<TimeInvestmentSubjectRecord>())) ?? [])
-            .map { $0.toSnapshot() }
-            .sorted(by: Self.subjectSort)
-        subTasks = ((try? context.fetch(FetchDescriptor<SubTaskRecord>())) ?? [])
-            .map { $0.toSnapshot() }
-            .sorted(by: Self.subTaskSort)
-        rewards = ((try? context.fetch(FetchDescriptor<GoalRewardRecord>())) ?? [])
-            .compactMap { $0.toSnapshot() }
-            .sorted { $0.createdAt < $1.createdAt }
+        let executor = persistenceExecutor ?? PersistenceExecutor(modelContainer: context.container)
+        persistenceExecutor = executor
+        do {
+            let snapshots = try await executor.loadTimeInvestmentSnapshots()
+            subjects = snapshots.subjects.sorted(by: Self.subjectSort)
+            subTasks = snapshots.subTasks.sorted(by: Self.subTaskSort)
+            rewards = snapshots.rewards.sorted { $0.createdAt < $1.createdAt }
+        } catch is CancellationError {
+            Log.data.debug("TimeInvestmentRepository startup load cancelled")
+        } catch {
+            subjects = []
+            subTasks = []
+            rewards = []
+            Log.data.error("TimeInvestmentRepository load failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     func upsertSubject(_ subject: TimeInvestmentSubject) throws {
