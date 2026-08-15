@@ -7,6 +7,10 @@ protocol ExamSimulationRepository: AnyObject, Sendable {
     func loadAll(context: ModelContext) async
     func upsert(_ simulation: ExamSimulation)
     func delete(_ simulation: ExamSimulation)
+    func simulation(id: UUID) -> ExamSimulation?
+    func latestRunningSimulation() -> ExamSimulation?
+    func recentCompleted(limit: Int) -> [ExamSimulation]
+    func recentAnalyzed(limit: Int) -> [ExamSimulation]
 }
 
 extension ExamSimulationRepository {
@@ -15,9 +19,6 @@ extension ExamSimulationRepository {
     }
 
     var analyzedSimulations: [ExamSimulation] {
-        simulations
-            .filter { $0.analysis != nil && $0.isValidCompletedSession }
-            .sorted { $0.createdAt > $1.createdAt }
+        recentAnalyzed(limit: 50)
     }
 }
-

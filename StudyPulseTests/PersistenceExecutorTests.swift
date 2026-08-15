@@ -84,7 +84,9 @@ final class PersistenceExecutorTests: XCTestCase {
         let investmentRepository = DefaultTimeInvestmentRepository()
         await investmentRepository.loadAll(context: context)
 
-        XCTAssertEqual(coachRepository.messages.first?.chatID, coachRepository.chats.first?.id)
+        // Conversation payloads are deliberately absent from the startup
+        // snapshot; opening a chat uses the chatID predicate to hydrate them.
+        XCTAssertTrue(coachRepository.messages.isEmpty)
         XCTAssertEqual(sessionRepository.sessions.map(\.id), [session.id])
         XCTAssertEqual(investmentRepository.subjects.map(\.id), [investmentSubject.id])
     }

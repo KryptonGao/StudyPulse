@@ -136,7 +136,7 @@ enum BackupImporter {
             routines: container.routineRepo.routines,
             routineInstances: container.routineInstanceRepo.allInstances,
             diaryEntries: container.diaryRepo.diaryEntries,
-            studySessions: container.studySessionRepo.sessions,
+            studySessions: container.studySessionRepo.allSessionsForBackup(),
             timeInvestmentSubjects: container.timeInvestmentRepo.subjects,
             subTasks: container.timeInvestmentRepo.subTasks,
             goalRewards: container.timeInvestmentRepo.rewards,
@@ -147,7 +147,7 @@ enum BackupImporter {
             coachAnalyses: container.coachRepo.analyses,
             coachProposals: container.coachRepo.proposals,
             coachChats: container.coachRepo.chats,
-            coachMessages: container.coachRepo.messages,
+            coachMessages: container.coachRepo.allMessages(),
             preferences: BackupPreferencesDTO(preferences: container.envManager.preferences),
             healthHistory: nil
         )

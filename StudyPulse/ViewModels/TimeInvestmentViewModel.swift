@@ -193,17 +193,18 @@ final class TimeInvestmentViewModel: ObservableObject {
             errorMessage = "time.investment.error.manualSession".localized()
             return
         }
+        let hydrated = existing.flatMap { container.studySessionRepo.session(id: $0.id) } ?? existing
         let session = StudySession(
-            id: existing?.id ?? UUID(),
+            id: hydrated?.id ?? UUID(),
             startDate: startDate,
             durationSeconds: durationMinutes * 60,
-            intensity: existing?.intensity ?? .steady,
+            intensity: hydrated?.intensity ?? .steady,
             completed: true,
-            heartRateSamples: existing?.heartRateSamples,
-            difficultyAnnotations: existing?.difficultyAnnotations,
+            heartRateSamples: hydrated?.heartRateSamples,
+            difficultyAnnotations: hydrated?.difficultyAnnotations,
             investmentTarget: target,
-            source: existing?.source ?? .manual,
-            timeZoneIdentifier: existing?.timeZoneIdentifier
+            source: hydrated?.source ?? .manual,
+            timeZoneIdentifier: hydrated?.timeZoneIdentifier
                 ?? TimeZone.autoupdatingCurrent.identifier
         )
         container.studySessionRepo.upsert(session)
@@ -224,17 +225,18 @@ final class TimeInvestmentViewModel: ObservableObject {
     }
 
     func updateSession(_ session: StudySession, target: InvestmentTarget) {
+        let hydrated = container.studySessionRepo.session(id: session.id) ?? session
         let updated = StudySession(
-            id: session.id,
-            startDate: session.startDate,
-            durationSeconds: session.durationSeconds,
-            intensity: session.intensity,
-            completed: session.completed,
-            heartRateSamples: session.heartRateSamples,
-            difficultyAnnotations: session.difficultyAnnotations,
+            id: hydrated.id,
+            startDate: hydrated.startDate,
+            durationSeconds: hydrated.durationSeconds,
+            intensity: hydrated.intensity,
+            completed: hydrated.completed,
+            heartRateSamples: hydrated.heartRateSamples,
+            difficultyAnnotations: hydrated.difficultyAnnotations,
             investmentTarget: target,
-            source: session.source,
-            timeZoneIdentifier: session.timeZoneIdentifier
+            source: hydrated.source,
+            timeZoneIdentifier: hydrated.timeZoneIdentifier
         )
         container.studySessionRepo.upsert(updated)
         evaluateRewards()

@@ -29,11 +29,9 @@ final class ExamSimulationViewModel {
 
     var isLLMConfigured: Bool { container.envManager.llmConfig.isConfigured }
     var subjects: [Subject] { container.subjectRepo.subjects.filter(\.enabled) }
-    var analyzedHistory: [ExamSimulation] { container.examSimulationRepo.analyzedSimulations }
+    var analyzedHistory: [ExamSimulation] { container.examSimulationRepo.recentAnalyzed(limit: 20) }
     var history: [ExamSimulation] {
-        container.examSimulationRepo.simulations
-            .filter { $0.status != .preparing && $0.status != .running }
-            .sorted { $0.createdAt > $1.createdAt }
+        container.examSimulationRepo.recentCompleted(limit: 6)
     }
     var validAnalyzedCount: Int { analyzedHistory.count }
 
@@ -151,8 +149,9 @@ final class ExamSimulationViewModel {
     }
 
     func showResult(_ item: ExamSimulation) {
-        simulation = item
-        recorder = ExamSimulationBehaviorRecorder(simulation: item)
+        guard let full = container.examSimulationRepo.simulation(id: item.id) else { return }
+        simulation = full
+        recorder = ExamSimulationBehaviorRecorder(simulation: full)
         state = .result
     }
 
@@ -254,9 +253,7 @@ final class ExamSimulationViewModel {
     }
 
     private func restoreRunningSimulationIfNeeded(now: Date = Date()) {
-        guard let active = container.examSimulationRepo.simulations
-            .filter({ $0.status == .running })
-            .max(by: { $0.createdAt < $1.createdAt }) else { return }
+        guard let active = container.examSimulationRepo.latestRunningSimulation() else { return }
 
         simulation = active
         recorder = ExamSimulationBehaviorRecorder(simulation: active)

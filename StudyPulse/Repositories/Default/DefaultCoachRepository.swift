@@ -46,7 +46,9 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
 
     func updateGoal(_ goal: CoachGoal) {
         if let i = goals.firstIndex(where: { $0.id == goal.id }) { goals[i] = goal }
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachGoalRecord>()))?.first(where: { $0.id == goal.id }) {
+        if let context, let record = (try? context.fetch(FetchDescriptor<CoachGoalRecord>(
+            predicate: #Predicate { $0.id == goal.id }
+        )))?.first {
             record.payload = (try? JSONEncoder().encode(goal)) ?? Data(); record.updatedAt = goal.updatedAt
             try? context.save()
         }
@@ -55,7 +57,9 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
     func deleteGoal(_ goal: CoachGoal) {
         chats(for: goal.id).forEach(deleteChat)
         deleteMessages(for: goal.id)
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachGoalRecord>()))?.first(where: { $0.id == goal.id }) { context.delete(record); try? context.save() }
+        if let context, let record = (try? context.fetch(FetchDescriptor<CoachGoalRecord>(
+            predicate: #Predicate { $0.id == goal.id }
+        )))?.first { context.delete(record); try? context.save() }
         goals.removeAll { $0.id == goal.id }
     }
 
@@ -75,7 +79,13 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
 
     func updateChat(_ chat: CoachChat) {
         if let index = chats.firstIndex(where: { $0.id == chat.id }) { chats[index] = chat }
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachChatRecord>()))?.first(where: { $0.id == chat.id }) {
+        if let context, let record = (try? context.fetch(
+            FetchDescriptor<CoachChatRecord>(predicate: #Predicate { $0.id == chat.id })
+        ))?.first {
+            record.goalID = chat.goalID
+            record.title = chat.title
+            record.isArchived = chat.isArchived
+            record.createdAt = chat.createdAt
             record.payload = (try? JSONEncoder().encode(chat)) ?? Data(); record.updatedAt = chat.updatedAt
             try? context.save()
         }
@@ -83,7 +93,9 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
 
     func deleteChat(_ chat: CoachChat) {
         deleteMessages(forChatID: chat.id)
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachChatRecord>()))?.first(where: { $0.id == chat.id }) {
+        if let context, let record = (try? context.fetch(FetchDescriptor<CoachChatRecord>(
+            predicate: #Predicate { $0.id == chat.id }
+        )))?.first {
             context.delete(record); try? context.save()
         }
         chats.removeAll { $0.id == chat.id }
@@ -91,7 +103,9 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
 
     func saveAnalysis(_ analysis: CoachAnalysis) {
         // Keep every successful run so Coach history can show a trend.
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachAnalysisRecord>()))?.first(where: { $0.id == analysis.id }) {
+        if let context, let record = (try? context.fetch(FetchDescriptor<CoachAnalysisRecord>(
+            predicate: #Predicate { $0.id == analysis.id }
+        )))?.first {
             record.payload = (try? JSONEncoder().encode(analysis)) ?? Data(); record.calculatedAt = analysis.calculatedAt
         } else { context?.insert(CoachAnalysisRecord(from: analysis)) }
         analyses.removeAll { $0.id == analysis.id }
@@ -101,7 +115,9 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
     func saveProposal(_ proposal: CoachProposal) {
         if let i = proposals.firstIndex(where: { $0.id == proposal.id }) { proposals[i] = proposal }
         else { proposals.insert(proposal, at: 0) }
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachProposalRecord>()))?.first(where: { $0.id == proposal.id }) {
+        if let context, let record = (try? context.fetch(FetchDescriptor<CoachProposalRecord>(
+            predicate: #Predicate { $0.id == proposal.id }
+        )))?.first {
             record.payload = (try? JSONEncoder().encode(proposal)) ?? Data(); record.statusRaw = proposal.status.rawValue
         } else { context?.insert(CoachProposalRecord(from: proposal)) }
         try? context?.save()
@@ -110,11 +126,59 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
     func proposal(id: UUID) -> CoachProposal? { proposals.first { $0.id == id } }
 
     func messages(for goalID: UUID) -> [CoachConversationMessage] {
-        messages.filter { $0.goalID == goalID }.sorted { $0.createdAt < $1.createdAt }
+        guard let context else {
+            return messages.filter { $0.goalID == goalID }.sorted { $0.createdAt < $1.createdAt }
+        }
+        let descriptor = FetchDescriptor<CoachConversationMessageRecord>(
+            predicate: #Predicate { $0.goalID == goalID },
+            sortBy: [SortDescriptor(\.createdAt)]
+        )
+        return (try? context.fetch(descriptor))?.compactMap { $0.toSnapshot() } ?? []
     }
 
     func messages(forChatID chatID: UUID) -> [CoachConversationMessage] {
-        messages.filter { $0.chatID == chatID }.sorted { $0.createdAt < $1.createdAt }
+        guard let context else {
+            return messages.filter { $0.chatID == chatID }.sorted { $0.createdAt < $1.createdAt }
+        }
+        let descriptor = FetchDescriptor<CoachConversationMessageRecord>(
+            predicate: #Predicate { $0.chatID == chatID },
+            sortBy: [SortDescriptor(\.createdAt)]
+        )
+        return (try? context.fetch(descriptor))?.compactMap { $0.toSnapshot() } ?? []
+    }
+
+    func latestMessage(forChatID chatID: UUID) -> CoachConversationMessage? {
+        guard let context else {
+            return messages.filter { $0.chatID == chatID }.max { $0.createdAt < $1.createdAt }
+        }
+        var descriptor = FetchDescriptor<CoachConversationMessageRecord>(
+            predicate: #Predicate { $0.chatID == chatID },
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+        return (try? context.fetch(descriptor))?.first?.toSnapshot()
+    }
+
+    func latestMessage(for goalID: UUID) -> CoachConversationMessage? {
+        guard let context else {
+            return messages.filter { $0.goalID == goalID }.max { $0.createdAt < $1.createdAt }
+        }
+        var descriptor = FetchDescriptor<CoachConversationMessageRecord>(
+            predicate: #Predicate { $0.goalID == goalID },
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+        return (try? context.fetch(descriptor))?.first?.toSnapshot()
+    }
+
+    func allMessages() -> [CoachConversationMessage] {
+        guard let context else {
+            return messages.sorted { $0.createdAt < $1.createdAt }
+        }
+        let descriptor = FetchDescriptor<CoachConversationMessageRecord>(
+            sortBy: [SortDescriptor(\.createdAt)]
+        )
+        return (try? context.fetch(descriptor))?.compactMap { $0.toSnapshot() } ?? []
     }
 
     func addMessage(_ message: CoachConversationMessage) {
@@ -124,7 +188,11 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
 
     func updateMessage(_ message: CoachConversationMessage) {
         if let index = messages.firstIndex(where: { $0.id == message.id }) { messages[index] = message }
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachConversationMessageRecord>()))?.first(where: { $0.id == message.id }) {
+        if let context, let record = (try? context.fetch(
+            FetchDescriptor<CoachConversationMessageRecord>(predicate: #Predicate { $0.id == message.id })
+        ))?.first {
+            record.goalID = message.goalID
+            record.chatID = message.chatID
             record.payload = (try? JSONEncoder().encode(message)) ?? Data(); record.roleRaw = message.role.rawValue
             record.createdAt = message.createdAt; try? context.save()
         }
@@ -132,7 +200,9 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
 
     func deleteMessages(for goalID: UUID) {
         if let context {
-            let records = (try? context.fetch(FetchDescriptor<CoachConversationMessageRecord>()))?.filter { $0.goalID == goalID } ?? []
+            let records = (try? context.fetch(FetchDescriptor<CoachConversationMessageRecord>(
+                predicate: #Predicate { $0.goalID == goalID }
+            ))) ?? []
             records.forEach(context.delete); try? context.save()
         }
         messages.removeAll { $0.goalID == goalID }
@@ -140,9 +210,9 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
 
     func deleteMessages(forChatID chatID: UUID) {
         if let context {
-            let records = (try? context.fetch(FetchDescriptor<CoachConversationMessageRecord>()))?.filter {
-                $0.toSnapshot()?.chatID == chatID
-            } ?? []
+            let records = (try? context.fetch(FetchDescriptor<CoachConversationMessageRecord>(
+                predicate: #Predicate { $0.chatID == chatID }
+            ))) ?? []
             records.forEach(context.delete); try? context.save()
         }
         messages.removeAll { $0.chatID == chatID }

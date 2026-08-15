@@ -13,7 +13,9 @@ final class CoachCoordinator {
         let recentMoodEntries = container.diaryRepo.entriesInRange(
             Calendar.current.date(byAdding: .day, value: -7, to: now) ?? .distantPast, now
         )
-        let recentAnnotations = snapshotAnnotations(from: container.studySessionRepo.sessions, now: now)
+        let cutoff = now.addingTimeInterval(-7 * 86_400)
+        let recentSessions = container.studySessionRepo.sessions(from: cutoff, to: now)
+        let recentAnnotations = snapshotAnnotations(from: recentSessions, now: now)
         let psychologicalStability = psychologicalStabilityScore(
             mistakes: container.mistakeRepo.filteredMistakeSets,
             annotations: recentAnnotations,
@@ -248,8 +250,12 @@ final class CoachCoordinator {
 
     func evaluateCoachTasks(now: Date = Date()) {
         container.studySessionRepo.refreshFromLegacyJSON()
+        let taskStart = container.taskRepo.taskItems
+            .compactMap { $0.coachExecutionSpec?.startDate }
+            .min() ?? now
+        let detailedSessions = container.studySessionRepo.sessions(from: taskStart, to: now)
         let input = CoachTaskEvaluationInput(mistakes: container.mistakeRepo.mistakeSets,
-                                             sessions: container.studySessionRepo.sessions, now: now)
+                                             sessions: detailedSessions, now: now)
         for task in container.taskRepo.taskItems {
             guard var spec = task.coachExecutionSpec else { continue }
             let evaluation = CoachTaskEvaluator.evaluate(spec: spec, input: input)

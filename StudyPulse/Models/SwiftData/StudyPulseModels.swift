@@ -883,15 +883,18 @@ final class CoachProposalRecord {
 
 @Model
 final class CoachConversationMessageRecord {
-    #Index<CoachConversationMessageRecord>([\.goalID], [\.createdAt])
+    #Index<CoachConversationMessageRecord>([\.goalID], [\.chatID], [\.createdAt])
     @Attribute(.unique) var id: UUID
     var goalID: UUID?
+    /// Denormalized so chat history can be fetched without decoding payload.
+    /// Optional keeps V1/V4 records migratable; new writes always populate it.
+    var chatID: UUID?
     var roleRaw: String
     var payload: Data
     var createdAt: Date
 
     init(from message: CoachConversationMessage) {
-        id = message.id; goalID = message.goalID; roleRaw = message.role.rawValue
+        id = message.id; goalID = message.goalID; chatID = message.chatID; roleRaw = message.role.rawValue
         payload = (try? JSONEncoder().encode(message)) ?? Data(); createdAt = message.createdAt
     }
 
@@ -903,30 +906,98 @@ final class CoachChatRecord {
     #Index<CoachChatRecord>([\.goalID], [\.updatedAt])
     @Attribute(.unique) var id: UUID
     var goalID: UUID?
+    /// List-facing chat fields. The payload remains the compatibility source
+    /// for records written before schema V5.
+    var title: String?
+    var isArchived: Bool?
+    var createdAt: Date?
     var payload: Data
     var updatedAt: Date
 
     init(from chat: CoachChat) {
-        id = chat.id; goalID = chat.goalID
+        id = chat.id; goalID = chat.goalID; title = chat.title; isArchived = chat.isArchived; createdAt = chat.createdAt
         payload = (try? JSONEncoder().encode(chat)) ?? Data(); updatedAt = chat.updatedAt
     }
 
     func toSnapshot() -> CoachChat? { try? JSONDecoder().decode(CoachChat.self, from: payload) }
+
+    func toSummary() -> CoachChat? {
+        guard let title, let isArchived, let createdAt else { return toSnapshot() }
+        return CoachChat(
+            id: id,
+            goalID: goalID,
+            title: title,
+            isArchived: isArchived,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
 }
 
 @Model
 final class StudySessionRecord {
-    #Index<StudySessionRecord>([\.startDate])
+    #Index<StudySessionRecord>([\.startDate], [\.investmentTargetID])
     @Attribute(.unique) var id: UUID
     var startDate: Date
+    /// Denormalized list/filter fields. Optional keeps existing V1 records
+    /// readable while allowing old payloads to be backfilled lazily.
+    var durationSeconds: Int?
+    var intensityRaw: String?
+    var completed: Bool?
+    var investmentTargetKindRaw: String?
+    var investmentTargetID: UUID?
+    var sourceRaw: String?
+    var timeZoneIdentifier: String?
+    var heartRateSampleCount: Int?
+    var difficultyAnnotationCount: Int?
     var payload: Data
 
     init(from session: StudySession) {
         id = session.id; startDate = session.startDate
+        durationSeconds = session.durationSeconds
+        intensityRaw = session.intensity.rawValue
+        completed = session.completed
+        investmentTargetKindRaw = session.investmentTarget?.kindRawValue
+        investmentTargetID = session.investmentTarget?.rawID
+        sourceRaw = session.source.rawValue
+        timeZoneIdentifier = session.timeZoneIdentifier
+        heartRateSampleCount = session.heartRateSamples?.count ?? 0
+        difficultyAnnotationCount = session.difficultyAnnotations?.count ?? 0
         payload = (try? JSONEncoder().encode(session)) ?? Data()
     }
 
     func toSnapshot() -> StudySession? { try? JSONDecoder().decode(StudySession.self, from: payload) }
+
+    func toSummary() -> StudySessionSummary? {
+        if let durationSeconds,
+           let intensityRaw,
+           let intensity = StudySession.SessionIntensity(rawValue: intensityRaw),
+           let completed,
+           let sourceRaw,
+           let source = StudySessionSource(rawValue: sourceRaw),
+           let heartRateSampleCount,
+           let difficultyAnnotationCount {
+            let target = investmentTargetKindRaw.flatMap { kind in
+                investmentTargetID.flatMap { InvestmentTarget(kindRawValue: kind, id: $0) }
+            }
+            return StudySessionSummary(
+                id: id,
+                startDate: startDate,
+                durationSeconds: durationSeconds,
+                intensity: intensity,
+                completed: completed,
+                heartRateSampleCount: heartRateSampleCount,
+                difficultyAnnotationCount: difficultyAnnotationCount,
+                investmentTarget: target,
+                source: source,
+                timeZoneIdentifier: timeZoneIdentifier
+            )
+        }
+
+        // Only legacy records take this compatibility path. New records never
+        // decode their telemetry payload for a list query.
+        return toSnapshot().map(StudySessionSummary.init)
+    }
 }
 
 // MARK: - Time Investment
@@ -1072,37 +1143,107 @@ final class GoalRewardRecord {
 
 @Model
 final class ExamSimulationRecord {
-    #Index<ExamSimulationRecord>([\.createdAt])
+    #Index<ExamSimulationRecord>([\.createdAt], [\.statusRaw])
     @Attribute(.unique) var id: UUID
     var createdAt: Date
+    var subject: String?
+    var startedAt: Date?
+    var endedAt: Date?
+    var durationSeconds: Int?
+    var statusRaw: String?
+    var totalScore: Int?
+    var questionCount: Int?
+    var answeredCount: Int?
+    var hasAnalysis: Bool?
     var payload: Data
 
     init(from simulation: ExamSimulation) {
         id = simulation.id
         createdAt = simulation.createdAt
+        subject = simulation.subject
+        startedAt = simulation.startedAt
+        endedAt = simulation.endedAt
+        durationSeconds = simulation.durationSeconds
+        statusRaw = simulation.status.rawValue
+        totalScore = simulation.totalScore
+        questionCount = simulation.questionRecords.count
+        answeredCount = simulation.answeredCount
+        hasAnalysis = simulation.analysis != nil
         payload = (try? JSONEncoder().encode(simulation)) ?? Data()
     }
 
     func toSnapshot() -> ExamSimulation? {
         try? JSONDecoder().decode(ExamSimulation.self, from: payload)
     }
+
+    func toSummary() -> ExamSimulation? {
+        guard let subject, let durationSeconds, let statusRaw,
+              let status = ExamSimulationStatus(rawValue: statusRaw),
+              questionCount != nil, answeredCount != nil, hasAnalysis != nil else {
+            return toSnapshot()
+        }
+        return ExamSimulation(
+            id: id,
+            subject: subject,
+            createdAt: createdAt,
+            startedAt: startedAt,
+            endedAt: endedAt,
+            durationSeconds: durationSeconds,
+            status: status,
+            questionRecords: [],
+            events: [],
+            totalScore: totalScore,
+            analysis: nil,
+            lastError: nil
+        )
+    }
 }
 
 @Model
 final class ExamGoalRecord {
-    #Index<ExamGoalRecord>([\.createdAt])
+    #Index<ExamGoalRecord>([\.createdAt], [\.examDate], [\.phaseId])
     @Attribute(.unique) var id: UUID
     var createdAt: Date
+    var examName: String?
+    var subject: String?
+    var examDate: Date?
+    var currentScore: Double?
+    var targetScore: Double?
+    var fullScore: Double?
+    var phaseId: UUID?
     var payload: Data
 
     init(from goal: ExamGoal) {
         id = goal.id
         createdAt = goal.createdAt
+        examName = goal.examName
+        subject = goal.subject
+        examDate = goal.examDate
+        currentScore = goal.currentScore
+        targetScore = goal.targetScore
+        fullScore = goal.fullScore
+        phaseId = goal.phaseId
         payload = (try? JSONEncoder().encode(goal)) ?? Data()
     }
 
     func toSnapshot() -> ExamGoal? {
         try? JSONDecoder().decode(ExamGoal.self, from: payload)
+    }
+
+    func toSummary() -> ExamGoal? {
+        guard let examName, let subject, let examDate, let currentScore,
+              let targetScore, let fullScore else { return toSnapshot() }
+        return ExamGoal(
+            id: id,
+            examName: examName,
+            subject: subject,
+            examDate: examDate,
+            currentScore: currentScore,
+            targetScore: targetScore,
+            fullScore: fullScore,
+            phaseId: phaseId,
+            createdAt: createdAt
+        )
     }
 }
 
@@ -1112,17 +1253,38 @@ final class ExamPlanRecord {
     @Attribute(.unique) var id: UUID
     var examGoalID: UUID
     var createdAt: Date
+    var improvementTarget: Double?
+    var summary: String?
+    var modelInfo: String?
     var payload: Data
 
     init(from plan: ExamPlan) {
         id = plan.id
         examGoalID = plan.examGoalID
         createdAt = plan.createdAt
+        improvementTarget = plan.improvementTarget
+        summary = plan.summary
+        modelInfo = plan.modelInfo
         payload = (try? JSONEncoder().encode(plan)) ?? Data()
     }
 
     func toSnapshot() -> ExamPlan? {
         try? JSONDecoder().decode(ExamPlan.self, from: payload)
+    }
+
+    func toSummary() -> ExamPlan? {
+        guard let improvementTarget, let summary else { return toSnapshot() }
+        return ExamPlan(
+            id: id,
+            examGoalID: examGoalID,
+            improvementTarget: improvementTarget,
+            summary: summary,
+            weakPoints: [],
+            phases: [],
+            dailyTasks: [],
+            modelInfo: modelInfo,
+            createdAt: createdAt
+        )
     }
 }
 

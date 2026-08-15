@@ -56,7 +56,7 @@ enum BackupExporter {
         let healthHistory = options.includesDerivedHealthData
             ? HealthHistoryStore.load()
             : nil
-        let sessions = container.studySessionRepo.sessions.map { session -> StudySession in
+        let sessions = container.studySessionRepo.allSessionsForBackup().map { session -> StudySession in
             guard !options.includesDerivedHealthData else { return session }
             return StudySession(
                 id: session.id,
@@ -93,7 +93,7 @@ enum BackupExporter {
             coachAnalyses: container.coachRepo.analyses,
             coachProposals: container.coachRepo.proposals,
             coachChats: container.coachRepo.chats,
-            coachMessages: container.coachRepo.messages,
+            coachMessages: container.coachRepo.allMessages(),
             preferences: BackupPreferencesDTO(preferences: container.envManager.preferences),
             healthHistory: healthHistory
         )

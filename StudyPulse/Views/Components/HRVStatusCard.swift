@@ -124,8 +124,8 @@ struct HRVStatusCard: View {
                 let cutoff = Calendar.current.date(
                     byAdding: .day, value: -7, to: .now
                 ) ?? .now
-                recentAnnotations = container.studySessionRepo.sessions
-                    .filter { $0.startDate >= cutoff }
+                recentAnnotations = container.studySessionRepo
+                    .sessions(from: cutoff, to: .now)
                     .flatMap { $0.difficultyAnnotations ?? [] }
                 refreshRadar()
                 refreshAI()
