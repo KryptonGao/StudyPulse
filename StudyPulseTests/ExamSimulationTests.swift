@@ -159,7 +159,8 @@ final class ExamSimulationRepositoryTests: XCTestCase {
         await reloaded.loadAll(context: modelContainer.mainContext)
         XCTAssertEqual(reloaded.simulations.count, 1)
         XCTAssertEqual(reloaded.simulations.first?.id, simulation.id)
-        XCTAssertEqual(reloaded.simulations.first?.questionRecords.count, 10)
+        XCTAssertEqual(reloaded.simulations.first?.questionRecords.count, 0)
+        XCTAssertEqual(reloaded.simulation(id: simulation.id)?.questionRecords.count, 10)
     }
 
     func testViewModelRestoresRunningSessionAfterViewRecreation() async throws {

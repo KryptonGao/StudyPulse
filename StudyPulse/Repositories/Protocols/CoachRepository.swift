@@ -22,6 +22,10 @@ protocol CoachRepository: AnyObject, Sendable {
     func proposal(id: UUID) -> CoachProposal?
     func messages(for goalID: UUID) -> [CoachConversationMessage]
     func messages(forChatID chatID: UUID) -> [CoachConversationMessage]
+    func latestMessage(forChatID chatID: UUID) -> CoachConversationMessage?
+    func latestMessage(for goalID: UUID) -> CoachConversationMessage?
+    /// Explicit full-history read used by backup/export, never startup.
+    func allMessages() -> [CoachConversationMessage]
     func addMessage(_ message: CoachConversationMessage)
     func updateMessage(_ message: CoachConversationMessage)
     func deleteMessages(for goalID: UUID)

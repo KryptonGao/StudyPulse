@@ -59,6 +59,8 @@ final class StudyTimerManager {
     var totalSeconds: Int = 0
     var currentIntensity: StudySession.SessionIntensity?
     var sessions: [StudySession] = []
+    var sessionSummaries: [StudySessionSummary] = []
+    var totalSessionCount: Int = 0
     var selectedInvestmentTarget: InvestmentTarget?
     private(set) var activeInvestmentTarget: InvestmentTarget?
     private(set) var lastUnlockedRewards: [GoalReward] = []
@@ -108,6 +110,8 @@ final class StudyTimerManager {
         self.sessionRepository = sessionRepository
         self.timeInvestmentRepository = timeInvestmentRepository
         sessions = sessionRepository.sessions
+        sessionSummaries = sessionRepository.sessionSummaries
+        totalSessionCount = sessionRepository.totalSessionCount
         restoreLastInvestmentTarget()
     }
 
@@ -269,6 +273,8 @@ final class StudyTimerManager {
     func refreshSessions() {
         if let sessionRepository {
             sessions = sessionRepository.sessions
+            sessionSummaries = sessionRepository.sessionSummaries
+            totalSessionCount = sessionRepository.totalSessionCount
         }
     }
 
@@ -276,6 +282,8 @@ final class StudyTimerManager {
         if let sessionRepository {
             sessionRepository.upsert(session)
             sessions = sessionRepository.sessions
+            sessionSummaries = sessionRepository.sessionSummaries
+            totalSessionCount = sessionRepository.totalSessionCount
         } else {
             Log.data.error("StudyTimer session ignored because repository is not attached")
         }

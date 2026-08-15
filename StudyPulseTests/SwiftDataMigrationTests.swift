@@ -5,7 +5,7 @@ import XCTest
 
 @MainActor
 final class SwiftDataMigrationTests: XCTestCase {
-    func testV3StoreMigratesToV4AndAcceptsTimeInvestmentRecords() throws {
+    func testV3StoreMigratesToV5AndAcceptsTimeInvestmentRecords() throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -25,7 +25,7 @@ final class SwiftDataMigrationTests: XCTestCase {
             try container.mainContext.save()
         }
 
-        let schema = Schema(versionedSchema: StudyPulseSchemaV4.self)
+        let schema = Schema(versionedSchema: StudyPulseSchemaV5.self)
         let configuration = ModelConfiguration(
             "StudyPulse",
             schema: schema,

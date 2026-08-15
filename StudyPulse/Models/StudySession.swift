@@ -198,6 +198,77 @@ nonisolated struct StudySession: Codable, Identifiable, Equatable, Sendable {
     }
 }
 
+/// Metadata used by history, trend, and time-investment lists.
+///
+/// The telemetry arrays deliberately do not belong to this value.  A list can
+/// therefore be rendered without decoding the potentially large heart-rate
+/// stream and annotation payload for every historical session.
+nonisolated struct StudySessionSummary: Codable, Identifiable, Equatable, Sendable {
+    let id: UUID
+    let startDate: Date
+    let durationSeconds: Int
+    let intensity: StudySession.SessionIntensity
+    let completed: Bool
+    let heartRateSampleCount: Int
+    let difficultyAnnotationCount: Int
+    let investmentTarget: InvestmentTarget?
+    let source: StudySessionSource
+    let timeZoneIdentifier: String?
+
+    init(
+        id: UUID,
+        startDate: Date,
+        durationSeconds: Int,
+        intensity: StudySession.SessionIntensity,
+        completed: Bool,
+        heartRateSampleCount: Int = 0,
+        difficultyAnnotationCount: Int = 0,
+        investmentTarget: InvestmentTarget? = nil,
+        source: StudySessionSource = .timer,
+        timeZoneIdentifier: String? = nil
+    ) {
+        self.id = id
+        self.startDate = startDate
+        self.durationSeconds = durationSeconds
+        self.intensity = intensity
+        self.completed = completed
+        self.heartRateSampleCount = heartRateSampleCount
+        self.difficultyAnnotationCount = difficultyAnnotationCount
+        self.investmentTarget = investmentTarget
+        self.source = source
+        self.timeZoneIdentifier = timeZoneIdentifier
+    }
+
+    init(from session: StudySession) {
+        self.init(
+            id: session.id,
+            startDate: session.startDate,
+            durationSeconds: session.durationSeconds,
+            intensity: session.intensity,
+            completed: session.completed,
+            heartRateSampleCount: session.heartRateSamples?.count ?? 0,
+            difficultyAnnotationCount: session.difficultyAnnotations?.count ?? 0,
+            investmentTarget: session.investmentTarget,
+            source: session.source,
+            timeZoneIdentifier: session.timeZoneIdentifier
+        )
+    }
+
+    /// A compatibility value for code that only needs session metadata.
+    func asSession() -> StudySession {
+        StudySession(
+            id: id,
+            startDate: startDate,
+            durationSeconds: durationSeconds,
+            intensity: intensity,
+            completed: completed,
+            investmentTarget: investmentTarget,
+            source: source,
+            timeZoneIdentifier: timeZoneIdentifier
+        )
+    }
+}
+
 /// Legacy JSON reader retained only for the idempotent SwiftData migration.
 enum StudySessionStore {
     /// 持久化文件名

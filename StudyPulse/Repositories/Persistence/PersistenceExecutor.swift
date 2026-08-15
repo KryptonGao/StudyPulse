@@ -198,11 +198,13 @@ actor PersistenceExecutor {
 
     // MARK: - Startup reads for low-frequency repositories
 
-    /// Fetch and decode all Coach history on the SwiftData actor.
+    /// Load Coach list data without hydrating the conversation history.
     ///
-    /// Legacy messages without a persisted chat are migrated here as part of
-    /// the same background transaction, so `DefaultCoachRepository.loadAll`
-    /// only publishes value snapshots on the MainActor.
+    /// Messages are intentionally not part of the startup snapshot. Their
+    /// `chatID`/`goalID` columns are indexed, so the repository can fetch one
+    /// conversation when it is opened. Records from pre-V5 stores have no
+    /// denormalized chat ID; only that compatibility subset is decoded once to
+    /// complete the migration.
     func loadCoachSnapshots() throws -> CoachSnapshots {
         let goalRecords = try modelContext.fetch(FetchDescriptor<CoachGoalRecord>())
         let analysisRecords = try modelContext.fetch(
@@ -215,11 +217,6 @@ actor PersistenceExecutor {
                 sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
             )
         )
-        let messageRecords = try modelContext.fetch(
-            FetchDescriptor<CoachConversationMessageRecord>(
-                sortBy: [SortDescriptor(\.createdAt)]
-            )
-        )
         let chatRecords = try modelContext.fetch(
             FetchDescriptor<CoachChatRecord>(
                 sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
@@ -229,26 +226,55 @@ actor PersistenceExecutor {
         let goals = goalRecords.compactMap { $0.toSnapshot() }
         let analyses = analysisRecords.compactMap { $0.toSnapshot() }
         let proposals = proposalRecords.compactMap { $0.toSnapshot() }
-        var messages = messageRecords.compactMap { $0.toSnapshot() }
-        var chats = chatRecords.compactMap { $0.toSnapshot() }
+        var didBackfillChats = false
+        var chats = chatRecords.compactMap { record -> CoachChat? in
+            let needsBackfill = record.title == nil || record.isArchived == nil || record.createdAt == nil
+            guard let chat = record.toSummary() else { return nil }
+            guard needsBackfill else { return chat }
+            record.goalID = chat.goalID
+            record.title = chat.title
+            record.isArchived = chat.isArchived
+            record.createdAt = chat.createdAt
+            didBackfillChats = true
+            return chat
+        }
 
-        // Keep the historical migration semantics, but perform the record
-        // writes and JSON encoding on this actor rather than MainActor.
-        let legacyGoalIDs = Set(messages.compactMap { message in
-            chats.contains(where: { $0.id == message.chatID }) ? nil : message.goalID
-        })
-        var didMigrateLegacyMessages = false
-        for goalID in legacyGoalIDs {
-            let legacy = messages.filter { message in
-                message.goalID == goalID && !chats.contains { chat in chat.id == message.chatID }
+        // V1-V4 message records have a nil chatID because the relation lived
+        // only inside payload. This compatibility scan is deliberately
+        // one-time; after the index is backfilled, normal launches never
+        // fetch the message table just to build the Coach list.
+        var migratedMessages: [CoachConversationMessage] = []
+        let messageIndexMigrationKey = "studyPulse.coachMessageIndexMigrationV1"
+        let shouldBackfillMessageIndex = !UserDefaults.standard.bool(forKey: messageIndexMigrationKey)
+        if shouldBackfillMessageIndex {
+            let knownChatIDs = Set(chats.map(\.id))
+            let indexedMessageRecords = try modelContext.fetch(
+                FetchDescriptor<CoachConversationMessageRecord>(
+                    sortBy: [SortDescriptor(\.createdAt)]
+                )
+            )
+            let legacyMessageRecords = indexedMessageRecords.filter { record in
+                guard let chatID = record.chatID else { return true }
+                // A short compatibility path for stores written by an early
+                // build that denormalized chatID before the chat record existed.
+                // Normal records are never opened or decoded here.
+                return !knownChatIDs.contains(chatID)
             }
-            guard !legacy.isEmpty else { continue }
-
-            let chat = CoachChat(goalID: goalID, title: "New chat")
-            chats.append(chat)
-            modelContext.insert(CoachChatRecord(from: chat))
-
-            for old in legacy {
+            var migratedChatByGoal: [UUID?: CoachChat] = [:]
+            for record in legacyMessageRecords {
+                guard let old = record.toSnapshot() else { continue }
+                let chat: CoachChat
+                if let existing = chats.first(where: { $0.id == old.chatID }) {
+                    chat = existing
+                } else if let existing = migratedChatByGoal[old.goalID] {
+                    chat = existing
+                } else {
+                    let newChat = CoachChat(goalID: old.goalID, title: "New chat")
+                    chats.append(newChat)
+                    migratedChatByGoal[old.goalID] = newChat
+                    modelContext.insert(CoachChatRecord(from: newChat))
+                    chat = newChat
+                }
                 let migrated = CoachConversationMessage(
                     id: old.id,
                     goalID: old.goalID,
@@ -260,18 +286,17 @@ actor PersistenceExecutor {
                     error: old.error,
                     todoSuggestions: old.todoSuggestions
                 )
-                if let index = messages.firstIndex(where: { $0.id == old.id }) {
-                    messages[index] = migrated
-                }
-                if let record = messageRecords.first(where: { $0.id == old.id }) {
-                    record.payload = (try? JSONEncoder().encode(migrated)) ?? Data()
-                }
+                record.chatID = chat.id
+                record.payload = (try? JSONEncoder().encode(migrated)) ?? Data()
+                migratedMessages.append(migrated)
             }
-            didMigrateLegacyMessages = true
         }
 
-        if didMigrateLegacyMessages {
+        if didBackfillChats || !migratedMessages.isEmpty {
             try modelContext.save()
+        }
+        if shouldBackfillMessageIndex {
+            UserDefaults.standard.set(true, forKey: messageIndexMigrationKey)
         }
 
         return CoachSnapshots(
@@ -279,13 +304,14 @@ actor PersistenceExecutor {
             analyses: analyses,
             proposals: proposals,
             chats: chats,
-            messages: messages
+            messages: migratedMessages
         )
     }
 
-    /// Merge the legacy JSON session store and load the complete SwiftData
-    /// session history on the SwiftData actor.
-    func loadStudySessionSnapshots(mergeLegacyJSONIfNeeded: Bool = true) throws -> [StudySession] {
+    /// Merge the legacy JSON session store and load bounded session summaries.
+    /// Full heart-rate/annotation payloads are hydrated by the repository's
+    /// ID/date-window detail APIs only.
+    func loadStudySessionSnapshots(mergeLegacyJSONIfNeeded: Bool = true) throws -> [StudySessionSummary] {
         let migrationKey = "studyPulse.studySessionsLegacyMigrationV2"
         if mergeLegacyJSONIfNeeded && !UserDefaults.standard.bool(forKey: migrationKey) {
             let existing = try modelContext.fetch(FetchDescriptor<StudySessionRecord>())
@@ -309,7 +335,28 @@ actor PersistenceExecutor {
         let descriptor = FetchDescriptor<StudySessionRecord>(
             sortBy: [SortDescriptor(\.startDate, order: .reverse)]
         )
-        return try modelContext.fetch(descriptor).compactMap { $0.toSnapshot() }
+        var bounded = descriptor
+        bounded.fetchLimit = 365
+        let records = try modelContext.fetch(bounded)
+        var didBackfill = false
+        let summaries = records.compactMap { record -> StudySessionSummary? in
+            let needsBackfill = record.durationSeconds == nil
+            guard let summary = record.toSummary() else { return nil }
+            guard needsBackfill else { return summary }
+            record.durationSeconds = summary.durationSeconds
+            record.intensityRaw = summary.intensity.rawValue
+            record.completed = summary.completed
+            record.investmentTargetKindRaw = summary.investmentTarget?.kindRawValue
+            record.investmentTargetID = summary.investmentTarget?.rawID
+            record.sourceRaw = summary.source.rawValue
+            record.timeZoneIdentifier = summary.timeZoneIdentifier
+            record.heartRateSampleCount = summary.heartRateSampleCount
+            record.difficultyAnnotationCount = summary.difficultyAnnotationCount
+            didBackfill = true
+            return summary
+        }
+        if didBackfill { try modelContext.save() }
+        return summaries
     }
 
     /// Fetch and decode all time-investment entities on the SwiftData actor.

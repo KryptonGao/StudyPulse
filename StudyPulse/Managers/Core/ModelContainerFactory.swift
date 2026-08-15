@@ -21,11 +21,11 @@ enum ModelContainerFactory {
 
     /// Models in the current production schema. Kept for debug/test helpers.
     static var modelTypes: [any PersistentModel.Type] {
-        StudyPulseSchemaV4.models
+        StudyPulseSchemaV5.models
     }
 
     static var currentSchema: Schema {
-        Schema(versionedSchema: StudyPulseSchemaV4.self)
+        Schema(versionedSchema: StudyPulseSchemaV5.self)
     }
 
     enum StoreError: LocalizedError {

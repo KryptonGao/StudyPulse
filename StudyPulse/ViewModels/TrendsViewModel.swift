@@ -140,7 +140,9 @@ final class TrendsViewModel {
         let mistakes = container.mistakeRepo.filteredMistakeSets.filter { $0.date >= cutoff }
         let subjectRecords = container.subjectRepo.subjects
         let fullScores = Dictionary(uniqueKeysWithValues: subjectRecords.map { ($0.name, $0.fullScore) })
-        let sessions = container.studySessionRepo.sessions.filter { $0.completed && $0.startDate >= cutoff }
+        let sessions = container.studySessionRepo
+            .sessions(from: cutoff, to: now)
+            .filter(\.completed)
         let subjectIDs = Dictionary(uniqueKeysWithValues: subjectRecords.map { ($0.id, $0.name) })
         let calendar = Calendar.current
 

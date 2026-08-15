@@ -17,7 +17,7 @@ enum TestModelContainerFactory {
 
     /// 创建并返回一个新的只在内存中运行的 ModelContainer（包含与生产完全一致的 Schema）。
     static func makeInMemoryContainer() throws -> ModelContainer {
-        let schema = Schema(versionedSchema: StudyPulseSchemaV4.self)
+        let schema = Schema(versionedSchema: StudyPulseSchemaV5.self)
         let config = ModelConfiguration("TestStudyPulse", schema: schema, isStoredInMemoryOnly: true)
         return try ModelContainer(
             for: schema,

@@ -239,7 +239,7 @@ struct CoachView: View {
                 .foregroundStyle(chat.isArchived ? Color.secondary : Color.teal)
             VStack(alignment: .leading, spacing: 4) {
                 Text(chat.title).font(.headline).foregroundStyle(.primary).lineLimit(1)
-                if let last = container.coachRepo.messages(forChatID: chat.id).last {
+                if let last = container.coachRepo.latestMessage(forChatID: chat.id) {
                     Text(last.content).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 } else {
                     Text("No messages yet".localized()).font(.caption).foregroundStyle(.secondary)
@@ -304,7 +304,7 @@ struct CoachView: View {
                 Text(goal.title).font(.headline).foregroundStyle(.primary)
                 Text(String(format: "Target date: %@".localized(), goal.targetDate.formatted(date: .abbreviated, time: .omitted)))
                     .font(.caption).foregroundStyle(.secondary)
-                if let last = container.coachRepo.messages(for: goal.id).last {
+                if let last = container.coachRepo.latestMessage(for: goal.id) {
                     Text(last.content).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
             }
@@ -383,7 +383,7 @@ private struct CoachChatListView: View {
                 .foregroundStyle(chat.isArchived ? Color.secondary : Color.teal)
             VStack(alignment: .leading, spacing: 4) {
                 Text(chat.title).font(.headline).foregroundStyle(.primary).lineLimit(1)
-                if let last = container.coachRepo.messages(forChatID: chat.id).last {
+                if let last = container.coachRepo.latestMessage(forChatID: chat.id) {
                     Text(last.content).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 } else {
                     Text("No messages yet".localized()).font(.caption).foregroundStyle(.secondary)

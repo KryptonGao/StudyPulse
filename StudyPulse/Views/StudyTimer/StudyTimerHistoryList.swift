@@ -21,26 +21,26 @@ struct StudyTimerHistoryList: View {
 
     private var todayMinutes: Int {
         let calendar = Calendar.current
-        return timer.sessions
+        return timer.sessionSummaries
             .filter { $0.completed && calendar.isDateInToday($0.startDate) }
             .reduce(0) { $0 + $1.durationSeconds / 60 }
     }
 
     private var completedCount: Int {
-        timer.sessions.filter(\.completed).count
+        timer.sessionSummaries.filter(\.completed).count
     }
 
-    private var recentSessions: [StudySession] {
+    private var recentSessions: [StudySessionSummary] {
         Array(
-            timer.sessions
+            timer.sessionSummaries
                 .sorted { $0.startDate > $1.startDate }
                 .prefix(maxSessions)
         )
     }
 
-    private var groupedByDay: [(date: Date, sessions: [StudySession])] {
+    private var groupedByDay: [(date: Date, sessions: [StudySessionSummary])] {
         let cal = Calendar.current
-        var bucket: [Date: [StudySession]] = [:]
+        var bucket: [Date: [StudySessionSummary]] = [:]
         for session in recentSessions {
             let day = cal.startOfDay(for: session.startDate)
             bucket[day, default: []].append(session)
@@ -104,7 +104,7 @@ struct StudyTimerHistoryList: View {
         .padding(.vertical, 24)
     }
 
-    private func daySection(date: Date, sessions: [StudySession]) -> some View {
+    private func daySection(date: Date, sessions: [StudySessionSummary]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(dayHeader(for: date))
@@ -125,7 +125,7 @@ struct StudyTimerHistoryList: View {
         .padding(.top, 4)
     }
 
-    private func sessionRow(_ session: StudySession) -> some View {
+    private func sessionRow(_ session: StudySessionSummary) -> some View {
         NavigationLink(value: session.id) {
             HStack(spacing: 10) {
                 Image(systemName: session.intensity.icon)
@@ -149,7 +149,7 @@ struct StudyTimerHistoryList: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(session.completed ? .primary : .secondary)
 
-                if let samples = session.heartRateSamples, !samples.isEmpty {
+                if session.heartRateSampleCount > 0 {
                     Image(systemName: "heart.fill")
                         .font(.system(size: 11))
                         .foregroundColor(.pink)
@@ -226,7 +226,7 @@ struct HistorySummaryInline: View {
                     Spacer()
 
                     Label(
-                        "\(timer.sessions.filter(\.completed).count) sessions total".localized(),
+                        "\(timer.totalSessionCount) sessions total".localized(),
                         systemImage: "list.clipboard"
                     )
                     .font(.system(size: 13))
@@ -259,7 +259,7 @@ struct HistorySummaryInline: View {
 
     private var todayMinutes: Int {
         let calendar = Calendar.current
-        return timer.sessions
+        return timer.sessionSummaries
             .filter { $0.completed && calendar.isDateInToday($0.startDate) }
             .reduce(0) { $0 + $1.durationSeconds / 60 }
     }
