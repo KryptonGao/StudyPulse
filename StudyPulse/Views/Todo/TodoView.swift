@@ -196,7 +196,10 @@ struct TodoView: View {
             .padding(.horizontal, DesignToken.Spacing.mainHorizontal(for: sizeClass))
             .padding(.vertical, 10)
         }
-        .background(Color(.systemGroupedBackground))
+        // 筛选栏不设独立背景:与 Todo 页面根背景(Color(.systemGroupedBackground).opacity(rootBackground))保持一致,
+        // 避免出现与页面主体不一致的灰色色带。
+        // No dedicated background: keep the filter bar in sync with the Todo page
+        // root background instead of painting an opaque gray band.
     }
 
     @ViewBuilder

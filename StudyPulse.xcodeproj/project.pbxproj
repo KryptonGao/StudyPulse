@@ -7,20 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2709FD172FEFB8F900FAB5CE /* docs/FAQ.json in Resources */ = {isa = PBXBuildFile; fileRef = 2709FD152FEFB8D000FAB5CE /* docs/FAQ.json */; };
 		278CBE142FE778660035AA84 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 278CBE132FE778660035AA84 /* WidgetKit.framework */; };
 		278CBE162FE778660035AA84 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 278CBE152FE778660035AA84 /* SwiftUI.framework */; };
 		278CBE232FE778660035AA84 /* StudyPulseWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 278CBE112FE778660035AA84 /* StudyPulseWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		278D45F22FE7BA3E0073EB87 /* AGENTS.md in Resources */ = {isa = PBXBuildFile; fileRef = 278D45F12FE7BA3E0073EB87 /* AGENTS.md */; };
-		278D45F62FE7BA560073EB87 /* docs/CODE_WIKI_CN.md in Resources */ = {isa = PBXBuildFile; fileRef = 278D45F52FE7BA560073EB87 /* docs/CODE_WIKI_CN.md */; };
-		278D45F82FE7BA5C0073EB87 /* docs/AlgorithmIntroduction.md in Resources */ = {isa = PBXBuildFile; fileRef = 278D45F72FE7BA5C0073EB87 /* docs/AlgorithmIntroduction.md */; };
-		27A00001FEFB900000FAB5C0 /* docs/CONTRIBUTING.json in Resources */ = {isa = PBXBuildFile; fileRef = 27A00002FEFB900100FAB5C0 /* docs/CONTRIBUTING.json */; };
 		27AB0003FE0000000000A003 /* SwiftStreamingMarkdown in Frameworks */ = {isa = PBXBuildFile; productRef = 27AB0002FE0000000000A002 /* SwiftStreamingMarkdown */; };
+		27B7B1CC3028A15400F02422 /* FAQ.json in Resources */ = {isa = PBXBuildFile; fileRef = 27B7B1CB3028A15400F02422 /* FAQ.json */; };
+		27B7B1CE3028A18E00F02422 /* CONTRIBUTING.json in Resources */ = {isa = PBXBuildFile; fileRef = 27B7B1CD3028A18E00F02422 /* CONTRIBUTING.json */; };
+		27B7B1D03028A22D00F02422 /* CODE_WIKI.md in Resources */ = {isa = PBXBuildFile; fileRef = 27B7B1CF3028A22D00F02422 /* CODE_WIKI.md */; };
+		27B7B1D33028A23E00F02422 /* CODE_WIKI_CN.md in Resources */ = {isa = PBXBuildFile; fileRef = 27B7B1D23028A23E00F02422 /* CODE_WIKI_CN.md */; };
+		27B7B1D93028A29E00F02422 /* AlgorithmIntroduction.md in Resources */ = {isa = PBXBuildFile; fileRef = 27B7B1D83028A29E00F02422 /* AlgorithmIntroduction.md */; };
+		27B7B1DC3028A2ED00F02422 /* SPEC.md in Resources */ = {isa = PBXBuildFile; fileRef = 27B7B1DB3028A2ED00F02422 /* SPEC.md */; };
+		27B7B1E13028A39A00F02422 /* DESIGN.md in Resources */ = {isa = PBXBuildFile; fileRef = 27B7B1DF3028A39A00F02422 /* DESIGN.md */; };
 		27BACC03FE0000000000B003 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 27BACC02FE0000000000B002 /* ZIPFoundation */; };
-		27BF505B2FE6D1E50038966E /* docs/SPEC.md in Resources */ = {isa = PBXBuildFile; fileRef = 27BF505A2FE6D1E50038966E /* docs/SPEC.md */; };
 		27BF505D2FE6D1F10038966E /* AGENTS.md in Resources */ = {isa = PBXBuildFile; fileRef = 27BF505C2FE6D1F10038966E /* AGENTS.md */; };
-		27BF50612FE6D2070038966E /* docs/CODE_WIKI.md in Resources */ = {isa = PBXBuildFile; fileRef = 27BF50602FE6D2070038966E /* docs/CODE_WIKI.md */; };
-		27BF50632FE6D2160038966E /* docs/DESIGN.md in Resources */ = {isa = PBXBuildFile; fileRef = 27BF50622FE6D2160038966E /* docs/DESIGN.md */; };
 		27BF50652FE6D2200038966E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 27BF50642FE6D2200038966E /* README.md */; };
 /* End PBXBuildFile section */
 
@@ -56,29 +56,23 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		2709FD152FEFB8D000FAB5CE /* docs/FAQ.json */ = {isa = PBXFileReference; lastKnownFileType = public.json; path = docs/FAQ.json; sourceTree = "<group>"; };
 		2743C83E2F6EAEA000CC1EED /* StudyPulse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyPulse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		276CC94F2FE6CEE7009F126C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		276CC9512FE6CEF3009F126C /* docs/SPEC.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/SPEC.md; sourceTree = "<group>"; };
 		278CBE112FE778660035AA84 /* StudyPulseWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = StudyPulseWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		278CBE132FE778660035AA84 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		278CBE152FE778660035AA84 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		278CBE332FE778EE0035AA84 /* StudyPulseWidget/StudyPulseWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = StudyPulseWidget/StudyPulseWidgetExtension.entitlements; sourceTree = "<group>"; };
-		278D45EE2FE7B9950073EB87 /* docs/AlgorithmIntroduction.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/AlgorithmIntroduction.md; sourceTree = "<group>"; };
 		278D45F02FE7BA260073EB87 /* StudyPulseWidget/StudyPulseWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = StudyPulseWidget/StudyPulseWidgetExtension.entitlements; sourceTree = "<group>"; };
 		278D45F12FE7BA3E0073EB87 /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
-		278D45F32FE7BA500073EB87 /* docs/CODE_WIKI.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/CODE_WIKI.md; sourceTree = "<group>"; };
-		278D45F52FE7BA560073EB87 /* docs/CODE_WIKI_CN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/CODE_WIKI_CN.md; sourceTree = "<group>"; };
-		278D45F72FE7BA5C0073EB87 /* docs/AlgorithmIntroduction.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/AlgorithmIntroduction.md; sourceTree = "<group>"; };
-		278D45F92FE7BA650073EB87 /* docs/DESIGN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/DESIGN.md; sourceTree = "<group>"; };
 		278D45FB2FE7BA6A0073EB87 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		278D45FD2FE7BA750073EB87 /* docs/SPEC.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/SPEC.md; sourceTree = "<group>"; };
-		27A00002FEFB900100FAB5C0 /* docs/CONTRIBUTING.json */ = {isa = PBXFileReference; lastKnownFileType = public.json; path = docs/CONTRIBUTING.json; sourceTree = "<group>"; };
-		27BF505A2FE6D1E50038966E /* docs/SPEC.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/SPEC.md; sourceTree = "<group>"; };
+		27B7B1CB3028A15400F02422 /* FAQ.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = FAQ.json; path = docs/reference/FAQ.json; sourceTree = "<group>"; };
+		27B7B1CD3028A18E00F02422 /* CONTRIBUTING.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = CONTRIBUTING.json; path = docs/reference/CONTRIBUTING.json; sourceTree = "<group>"; };
+		27B7B1CF3028A22D00F02422 /* CODE_WIKI.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = CODE_WIKI.md; path = docs/architecture/CODE_WIKI.md; sourceTree = "<group>"; };
+		27B7B1D23028A23E00F02422 /* CODE_WIKI_CN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = CODE_WIKI_CN.md; path = docs/architecture/CODE_WIKI_CN.md; sourceTree = "<group>"; };
+		27B7B1D83028A29E00F02422 /* AlgorithmIntroduction.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = AlgorithmIntroduction.md; path = docs/algorithms/AlgorithmIntroduction.md; sourceTree = "<group>"; };
+		27B7B1DB3028A2ED00F02422 /* SPEC.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = SPEC.md; path = docs/product/SPEC.md; sourceTree = "<group>"; };
+		27B7B1DF3028A39A00F02422 /* DESIGN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = DESIGN.md; path = docs/product/DESIGN.md; sourceTree = "<group>"; };
 		27BF505C2FE6D1F10038966E /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
-		27BF505E2FE6D1FE0038966E /* docs/CODE_WIKI_CN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/CODE_WIKI_CN.md; sourceTree = "<group>"; };
-		27BF50602FE6D2070038966E /* docs/CODE_WIKI.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/CODE_WIKI.md; sourceTree = "<group>"; };
-		27BF50622FE6D2160038966E /* docs/DESIGN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = docs/DESIGN.md; sourceTree = "<group>"; };
 		27BF50642FE6D2200038966E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		C0FFEE000000000000000002 /* StudyPulseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StudyPulseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -87,6 +81,7 @@
 		278CBE272FE778660035AA84 /* Exceptions for "StudyPulseWidget" folder in "StudyPulseWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Assets.xcassets,
 				Info.plist,
 			);
 			target = 278CBE102FE778660035AA84 /* StudyPulseWidgetExtension */;
@@ -156,7 +151,6 @@
 		270900382FEFBF4F00FAB5CE /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
-				27A00002FEFB900100FAB5C0 /* docs/CONTRIBUTING.json */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -169,16 +163,17 @@
 				278CBE172FE778660035AA84 /* StudyPulseWidget */,
 				C0FFEE000000000000000003 /* StudyPulseTests */,
 				278CBE122FE778660035AA84 /* Frameworks */,
-				278D45FD2FE7BA750073EB87 /* docs/SPEC.md */,
-				2709FD152FEFB8D000FAB5CE /* docs/FAQ.json */,
 				278D45FB2FE7BA6A0073EB87 /* README.md */,
-				278D45F92FE7BA650073EB87 /* docs/DESIGN.md */,
-				278D45F72FE7BA5C0073EB87 /* docs/AlgorithmIntroduction.md */,
-				278D45F52FE7BA560073EB87 /* docs/CODE_WIKI_CN.md */,
-				278D45F32FE7BA500073EB87 /* docs/CODE_WIKI.md */,
 				278D45F12FE7BA3E0073EB87 /* AGENTS.md */,
 				2743C83F2F6EAEA000CC1EED /* Products */,
 				270900382FEFBF4F00FAB5CE /* Recovered References */,
+				27B7B1CB3028A15400F02422 /* FAQ.json */,
+				27B7B1CD3028A18E00F02422 /* CONTRIBUTING.json */,
+				27B7B1CF3028A22D00F02422 /* CODE_WIKI.md */,
+				27B7B1D23028A23E00F02422 /* CODE_WIKI_CN.md */,
+				27B7B1D83028A29E00F02422 /* AlgorithmIntroduction.md */,
+				27B7B1DB3028A2ED00F02422 /* SPEC.md */,
+				27B7B1DF3028A39A00F02422 /* DESIGN.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -188,15 +183,9 @@
 				2743C83E2F6EAEA000CC1EED /* StudyPulse.app */,
 				278CBE112FE778660035AA84 /* StudyPulseWidgetExtension.appex */,
 				C0FFEE000000000000000002 /* StudyPulseTests.xctest */,
-				276CC9512FE6CEF3009F126C /* docs/SPEC.md */,
 				276CC94F2FE6CEE7009F126C /* README.md */,
-				27BF505A2FE6D1E50038966E /* docs/SPEC.md */,
 				27BF50642FE6D2200038966E /* README.md */,
-				278D45EE2FE7B9950073EB87 /* docs/AlgorithmIntroduction.md */,
 				27BF505C2FE6D1F10038966E /* AGENTS.md */,
-				27BF505E2FE6D1FE0038966E /* docs/CODE_WIKI_CN.md */,
-				27BF50622FE6D2160038966E /* docs/DESIGN.md */,
-				27BF50602FE6D2070038966E /* docs/CODE_WIKI.md */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -336,14 +325,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27BF50612FE6D2070038966E /* docs/CODE_WIKI.md in Resources */,
+				27B7B1D33028A23E00F02422 /* CODE_WIKI_CN.md in Resources */,
+				27B7B1CC3028A15400F02422 /* FAQ.json in Resources */,
 				27BF50652FE6D2200038966E /* README.md in Resources */,
-				278D45F62FE7BA560073EB87 /* docs/CODE_WIKI_CN.md in Resources */,
-				27BF505B2FE6D1E50038966E /* docs/SPEC.md in Resources */,
-				2709FD172FEFB8F900FAB5CE /* docs/FAQ.json in Resources */,
-				27A00001FEFB900000FAB5C0 /* docs/CONTRIBUTING.json in Resources */,
-				278D45F82FE7BA5C0073EB87 /* docs/AlgorithmIntroduction.md in Resources */,
-				27BF50632FE6D2160038966E /* docs/DESIGN.md in Resources */,
+				27B7B1CE3028A18E00F02422 /* CONTRIBUTING.json in Resources */,
+				27B7B1E13028A39A00F02422 /* DESIGN.md in Resources */,
+				27B7B1D03028A22D00F02422 /* CODE_WIKI.md in Resources */,
+				27B7B1D93028A29E00F02422 /* AlgorithmIntroduction.md in Resources */,
+				27B7B1DC3028A2ED00F02422 /* SPEC.md in Resources */,
 				27BF505D2FE6D1F10038966E /* AGENTS.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -539,12 +528,15 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = StudyPulse/StudyPulse.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D2G8858WRZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = StudyPulse/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "StudyPulse 需要将考试添加到您的日历中";
 				INFOPLIST_KEY_NSCameraUsageDescription = "StudyPulse 需要使用相机拍摄错题照片";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "StudyPulse reads Heart Rate Variability (HRV), heart rate, respiratory rate and sleep from Apple Health to tailor study suggestions. Your data stays on device and is never uploaded or shared.";
@@ -565,8 +557,9 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.142.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Gao.Chenkai.StudyPulse;
+				PRODUCT_BUNDLE_IDENTIFIER = chenkai.space.studypulse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -588,12 +581,15 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = StudyPulse/StudyPulse.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D2G8858WRZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = StudyPulse/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "StudyPulse 需要将考试添加到您的日历中";
 				INFOPLIST_KEY_NSCameraUsageDescription = "StudyPulse 需要使用相机拍摄错题照片";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "StudyPulse reads Heart Rate Variability (HRV), heart rate, respiratory rate and sleep from Apple Health to tailor study suggestions. Your data stays on device and is never uploaded or shared.";
@@ -614,8 +610,9 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.142.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Gao.Chenkai.StudyPulse;
+				PRODUCT_BUNDLE_IDENTIFIER = chenkai.space.studypulse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -635,8 +632,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = StudyPulseWidget/StudyPulseWidgetExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D2G8858WRZ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = StudyPulseWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = StudyPulseWidget;
@@ -648,8 +647,9 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.142.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Gao.Chenkai.StudyPulse.StudyPulseWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = chenkai.space.studypulse.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -666,8 +666,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = StudyPulseWidget/StudyPulseWidgetExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D2G8858WRZ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = StudyPulseWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = StudyPulseWidget;
@@ -679,8 +681,9 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.142.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Gao.Chenkai.StudyPulse.StudyPulseWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = chenkai.space.studypulse.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;

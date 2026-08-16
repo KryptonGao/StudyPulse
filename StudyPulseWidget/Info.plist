@@ -8,6 +8,6 @@
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
 	<key>WKAppBundleIdentifier</key>
-	<string>Gao.Chenkai.StudyPulse</string>
+	<string>chenkai.space.studypulse.widget</string>
 </dict>
 </plist>

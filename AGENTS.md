@@ -80,7 +80,7 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
     - `Health/`：
       - `HealthKitManager.swift`：HRV（SDNN）准备度、14 天基线、日级历史、BodyStatus、PersonalBaselines 30 天个人基线。
       - `HealthHistoryStore.swift`：`DailyHealthSnapshot` 30 天滚动持久化（NSLock 线程安全）。
-      - `StudyReadinessAlgorithm.swift`：多维学习准备度算法（5 强度 × 5 重点）。详细说明见 `docs/AlgorithmIntroduction.md`。
+      - `StudyReadinessAlgorithm.swift`：多维学习准备度算法（5 强度 × 5 重点）。详细说明见 `docs/algorithms/AlgorithmIntroduction.md`。
     - `Logging/`：
       - `Log.swift`：`LogLevel` / `LogEntry` / `LogStore`（actor 隔离并发安全，5000 条上限，超出丢最早条目）；`Log.app` / `Log.widget` / `Log.notification` / `Log.ui` / `Log.data` / `Log.study` / `Log.health` 等 subsystem category；`Log.record(_:category:message:)` 同时写 `os.Logger` 与 `LogStore`。
       - `LogDocument.swift`：`FileDocument` 包装内存日志。
@@ -166,6 +166,9 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
     - `DailyPlanEngine.swift`：今日 Top-3 计划生成器；从 exam / mistake SRS / routine / task 中按截止日期与紧迫度排序产生 3 条建议。
     - `QuoteProvider.swift`：每日金句；持有 `Color`，是唯一依赖 SwiftUI 的服务。
     - `TimeInvestmentEngine.swift`：`TimeInvestmentAggregator` 纯函数聚合器；按 `InvestmentTarget`（subject / subTask，含子任务后代汇总）从 `[StudySession]` 聚合直接 / 总投入秒数 + 连续打卡天数。
+    - `MemoryClimateEngine.swift`：记忆气候分类引擎（详见 7.14）。
+    - `ClimateInterleavingEngine.swift`：闪卡概念交错引擎（详见 7.14）。
+    - `RemediationTaskEngine.swift`：15 分钟补救任务生成器（详见 7.14）。
   - `ViewModels/`：22 个 ViewModel（5 主页面 + 1 子页面 + 独立 sheet / 流程 ViewModel）。
     - `HomeViewModel.swift`：`@MainActor ObservableObject`；SRS 概览 / 近期成绩 / 即将到来考试 / 未登记考试 / 图表选科（5 档 `SubjectSelectionRule`）；`recompute()` / `selectChartSubject(rule:)` / `gradesForSubject(_:)` / `generateSuggestions(limit:)`。
     - `TrendsViewModel.swift`：趋势图数据 + 关注科目聚合。
@@ -271,7 +274,7 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
   - `TestDoubles/`：10 个 Mock Repository（`MockDiaryRepository` / `MockExamRepository` / `MockGradeRepository` / `MockMistakeRepository` / `MockPhaseRepository` / `MockProfileRepository` / `MockRoutineInstanceRepository` / `MockRoutineRepository` / `MockSubjectRepository` / `MockTaskRepository`）。
   - 单元测试覆盖：`DailyPlanEngineTests` / `DateFormattersTests` / `DifficultyTagTests` / `ExamFilterTests` / `MistakeFilterTests` / `PlantStageTransitionsTests` / `QuoteProviderTests` / `RecoveryLevelTests` / `RepositoryContainerTests` / `SubjectAggregatorTests` / `SuggestionEngineTests`。
 - `en.lproj` / `zh-Hans.lproj` / `zh-Hant.lproj` / `ja.lproj` / `ko.lproj`：主应用各语言 Localizable.strings。
-- `AGENTS.md` / `docs/CODE_WIKI.md` / `docs/CODE_WIKI_CN.md` / `README.md` / `docs/AlgorithmIntroduction.md` / `docs/ScorePredictionAlgorithm.md` / `docs/STREAK_ACHIEVEMENT_PLAN.md` / `docs/SPEC.md` / `docs/DESIGN.md` / `docs/USER_AGREEMENT.md` / `docs/FAQ.json` / `docs/CONTRIBUTING.json` / `LICENSE`：文档、协议与许可。
+- `AGENTS.md` / `docs/architecture/CODE_WIKI.md` / `docs/architecture/CODE_WIKI_CN.md` / `README.md` / `docs/algorithms/AlgorithmIntroduction.md` / `docs/algorithms/ScorePredictionAlgorithm.md` / `docs/plans/STREAK_ACHIEVEMENT_PLAN.md` / `docs/product/SPEC.md` / `docs/product/DESIGN.md` / `docs/reference/USER_AGREEMENT.md` / `docs/reference/FAQ.json` / `docs/reference/CONTRIBUTING.json` / `LICENSE`：文档、协议与许可。
 - `scripts/build.sh`：构建辅助脚本（默认使用 `DerivedDataBuild/` 子目录以隔离）。
 
 ---
@@ -308,8 +311,8 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
 业务 / 服务层目录：
 - `RepositoryContainer`（`@Observable @MainActor`）聚合 16 个 Repository + ModelContainer 持有 + `isReady` + 3 个跨域编排子模块（`bulkOps` / `todoAggregator` / `phaseRefresher`，Phase 3 拆出独立文件）+ 跨域 facade（`addGrade` / `addGrades` / `addMistake` / `addMistakes` / `addExams` / `addTask` / `addTasks` / `addDiary` / `addRoutine` / `deleteGrade` / `deleteExam` / `deleteTask` / `activatePhase` / `bulkClearData` / `todoEntries`）；**注意：双实例陷阱——`StudyPulseApp` 写 `@State private var container = RepositoryContainer()`，不要写 `DataManager.shared` 之类的双实例**。ViewModel 通过 `DataManager.shared` 调用会拿到空数据（独立实例）；**自检：所有 ViewModel 都用 `container.xxxRepo.xxx` 路径访问，App 入口持有同一个 `RepositoryContainer` 单例**。
 - `AppEnvironmentManager`（`@MainActor ObservableObject` 单例）持有 `AppPreferences`（语言 / 主题 / 图表类型 / 主色 / glassEffect / Trends 热力图 / `activePhaseId`），提供 `effectiveColorScheme` / `effectiveAccentColor` / `setLanguage` / `setColorScheme` / `setAccent` / `setGlassEffect` / `setLearningHeatmapOnTrends` / `setActivePhase`。
-- `HealthKitManager`（`@MainActor ObservableObject` 单例）持有 `HRVReadiness`（Z-score / 分类 / 建议）、`dailyHRVHistory` / `lastSampleCount` / `hrvDetailLevel` / `BodyStatus` / `PersonalBaselines` 30 天个人基线 / `bodyStatusAuthorized` / `isReady`；`enable()` / `disable()` / `refreshReadiness()` / `refreshBodyStatus()` / `bootstrap()`。`StudyReadinessAlgorithm` 在 HRV 之外把多维身体信号（深睡 + REM、锻炼、心率、呼吸）归一化打分，合成 5 档强度 × 5 类重点建议。详见 `docs/AlgorithmIntroduction.md`。
-- `AchievementManager`（`@MainActor ObservableObject` 单例）持有 `AchievementsSnapshot`（`config` / `todayLog` / `streak` / `cumulativeProgress` / `unlockedAchievements` / `todayProgress`），对外暴露 `recordGradeRecorded` / `recordMistakeReviewed` / `recordFocusMinutes` 三个事件入口；`updateConfig` 改每日目标；`handleDayRolloverIfNeeded` 在 `scenePhase == .active` 时跨日滚动。`AchievementStore` 负责 `AchievementsSnapshot` 持久化 + 首次启动从 `grades.json` / `study_sessions.json` 反推 30 天历史。详见 `docs/STREAK_ACHIEVEMENT_PLAN.md`。
+- `HealthKitManager`（`@MainActor ObservableObject` 单例）持有 `HRVReadiness`（Z-score / 分类 / 建议）、`dailyHRVHistory` / `lastSampleCount` / `hrvDetailLevel` / `BodyStatus` / `PersonalBaselines` 30 天个人基线 / `bodyStatusAuthorized` / `isReady`；`enable()` / `disable()` / `refreshReadiness()` / `refreshBodyStatus()` / `bootstrap()`。`StudyReadinessAlgorithm` 在 HRV 之外把多维身体信号（深睡 + REM、锻炼、心率、呼吸）归一化打分，合成 5 档强度 × 5 类重点建议。详见 `docs/algorithms/AlgorithmIntroduction.md`。
+- `AchievementManager`（`@MainActor ObservableObject` 单例）持有 `AchievementsSnapshot`（`config` / `todayLog` / `streak` / `cumulativeProgress` / `unlockedAchievements` / `todayProgress`），对外暴露 `recordGradeRecorded` / `recordMistakeReviewed` / `recordFocusMinutes` 三个事件入口；`updateConfig` 改每日目标；`handleDayRolloverIfNeeded` 在 `scenePhase == .active` 时跨日滚动。`AchievementStore` 负责 `AchievementsSnapshot` 持久化 + 首次启动从 `grades.json` / `study_sessions.json` 反推 30 天历史。详见 `docs/plans/STREAK_ACHIEVEMENT_PLAN.md`。
 - `StudyTimerManager`（`@MainActor ObservableObject`）持有当前会话（强度 / 剩余时间 / 状态 idle / running / paused / completed），负责创建 / 更新 / 结束 `StudyTimerActivityAttributes` Live Activity；**完成会话时经 `sessionRepository.upsert(_:)` 持久化为 `StudySession`（绑定 `selectedInvestmentTarget`），老 `~/Documents/study_sessions.json` 由 `StudySessionRepository.refreshFromLegacyJSON()` 一次性合并导入**。`StudyTimerPalette` 提供主应用与 Live Activity 共享的色板。
 - `CalendarManager`：EventKit 单例。考试通过 `addExamToCalendar` 写入 `EKEvent`（可选 startTime/endTime，nil 时回退为全天事件）；作业 / 阅读材料通过 `addTaskToReminders` 写入 `EKReminder`（dueDateComponents + EKAlarm）。
 - `OCRManager`：Vision 文本识别（`recognitionLanguages = ["zh-Hans", "en"]`）。
@@ -428,8 +431,8 @@ ViewModel 到 RepositoryContainer 的调用示例：
 5. LLM：`LLMSettingsView`（BYOK 大模型配置：总开关 + Base URL + API Key + Model + Temperature + System Prompt + Test Connection）。
 6. Data Management：`DataManagementSettingsView`（顶部 `Phase Management` 入口 + CSV 导出 / 还原示例数据 / Developer Admin / Export Log）；`AchievementsView`（成就 / 连续打卡主页）+ `DailyGoalsConfigView`（每日目标配置 + 提醒时间）也从这里跳转。
 7. About：`AboutSettingsView`（关于 + 版权 + Test Notifications + `UserAgreementView` 全文）。
-8. FAQ：`QASettingsView`（高频问题，源数据 `docs/FAQ.json`）。
-9. Contribution：`ContributionSettingsView`（开源贡献指南，源数据 `docs/CONTRIBUTING.json`）。
+8. FAQ：`QASettingsView`（高频问题，源数据 `docs/reference/FAQ.json`）。
+9. Contribution：`ContributionSettingsView`（开源贡献指南，源数据 `docs/reference/CONTRIBUTING.json`）。
 
 `PhaseManagementView`：
 - 顶部 active list（可点击切换 + 跳转 `PhaseEditView`）。
@@ -548,7 +551,7 @@ PersonalBaselines 30 天个人基线：
 - 由 `HealthHistoryStore` 维护，过去 30 天 `DailyHealthSnapshot` 滚动窗口，存于 `~/Documents/health_history.json`（NSLock 线程安全）。
 - `StudyReadinessAlgorithm` 优先用个人 30 天均值 / 标准差对每个信号打分，至少 7 天样本时启用；样本不足时回退到 `AgeReference` 年龄段参考范围。
 - 每个信号最终归一化到 0~1，HRV 作为硬覆盖，其余信号合成 5 档学习强度 × 5 类学习重点（最多 25 种组合），未覆盖的组合回退到「steady / balanced」。
-- 完整输入 / 评分 / 决策细节见 `docs/AlgorithmIntroduction.md`。
+- 完整输入 / 评分 / 决策细节见 `docs/algorithms/AlgorithmIntroduction.md`。
 
 对外状态：hrvEnabled、hrvOnboardingCompleted、isAuthorized、isReady、readiness、dailyHRVHistory、lastSampleCount、hrvDetailLevel、bodyStatus、personalBaselines、bodyStatusAuthorized。
 `hrvDetailLevel` 决定 `HRVStatusCard` 呈现模式 suggestionOnly / dataAndSuggestion / chartAndData。
@@ -736,6 +739,24 @@ PersonalBaselines 30 天个人基线：
 
 ---
 
+## 7.14 Memory Climate (知识温度计) 子系统
+
+本地、确定性的记忆状态提示：从错题复习证据为每个科目生成五类天气状态（雷暴 / 冻结 / 雾 / 湿热 / 晴朗），回答「哪个科目需要我现在关注，以及原因」。产品需求见 `docs/product/MEMORY_CLIMATE_SPEC_CN.md`；不需要网络或 LLM 配置。
+
+**核心组件**：
+- `Models/MemoryClimate.swift`：`MemoryWeather`（5 状态 + `title` / `symbolName` / `riskRank`）/ `ConceptInterference`（概念干扰）/ `SubjectMemoryClimate` / `MemoryClimateSnapshot`（`dominantSubject` 取最高风险科目）+ `RemediationStrategy` / `RemediationTask`（15 分钟补救任务 value type，仅内存使用）。
+- `Services/MemoryClimateEngine.swift`：纯函数分类引擎。阈值集中定义：`negativeWindowDays = 30` / `humidWindowHours = 48` / `frozenDays = 21` / `overdueGraceDays = 7`；雷暴要求两概念各自有近期负向证据且总数 ≥ 3；晴朗要求平均掌握度 ≥ 0.70 + 最近两次稳定 + 逾期比例 < 0.2；**风险判定顺序按 riskRank：thunderstorm → frozen → southHumid → fog/clear**（冻结优先于湿热，避免刚答对掩盖大面积冻结）；证据不足（无错题 / 掌握历史 < 2 且未冻结）时返回 nil 而非低置信度状态。
+- `Services/RemediationTaskEngine.swift`：15 分钟补救任务生成器（纯函数）。`maxDurationMinutes = 15` / `estimatedMinutesPerCard = 2.0`（卡片上限 7）；仅最高风险 ∈ {雷暴 / 冻结 / 雾} 时生成；雷暴 → 干扰对两概念卡片交错（负向证据优先）；冻结 → 最早逾期其次最长未调用；雾 → 最近答错其次最低掌握度；空结果返回 nil（入口隐藏，保留普通复习按钮）。任务本身不写成绩 / 不计数成就，副作用全部由闪卡正常流程承担。
+- `Services/ClimateInterleavingEngine.swift`：闪卡队列交错引擎。到期卡优先（不跳过 SRS 到期卡），在到期卡之间插入同科目相关概念的非到期对照卡（≤ 到期卡数 25% 且 ≤ 3 张），来源标记 `FlashcardQueueSource.earlyContrast`（评分记录掌握历史但不移动 SRS 日期）；无匹配卡退化普通队列。
+- `Managers/Study/MemoryClimateHistoryStore.swift`：版本化 JSON 历史（`memory_climate_history.json`，Envelope v1）；同日同 phaseId 快照 upsert 覆盖、按 `retentionDays = 90` 裁剪、损坏静默降级（只写 `Log.data`，不影响其它功能）。
+- `Views/Home/HomeCards/MemoryClimateCard.swift`：主页卡片（无证据科目时整卡隐藏；Top-4 科目 chips）+ `MemoryClimateDetailView` 详情 sheet（今日状态 / 90 天热力图（每格带 a11y label）/ 证据与概念热点 / 15 分钟补救入口（仅任务非 nil）/ 开始复习 / 空态说明）。
+
+**数据流**：`HomeViewModel.recompute()` 用 `container.mistakeRepo.filteredMistakeSets`（当前 active phase）生成快照并 `upsert` 历史；`StudyPulseApp.refreshMemoryClimate()` 在 `scenePhase == .active` 时同样刷新；`FlashcardStudyViewModel` 每次评分后刷新。补救入口打开 `FlashcardStudyView(filter: .remediation(task.mistakes))`，卡片走正常 SM-2（`FlashcardFilter.remediation` 分支并入 `.dueQueue, .tag` 的 SRS 推进逻辑）。
+
+**本地化**：全部 `memory.climate.*` 前缀（23 个状态/摘要/空态 key + 7 个补救任务 key），五语言齐全。
+
+---
+
 ## 8. 可定制主页
 
 `HomeLayoutPreference` 为 Codable struct，持久化到 UserDefaults。`HomeView` 每一次 body 评估时都从 UserDefaults 读取，按启用顺序渲染启用的卡片。iPad 使用两栏 `LazyVGrid`，iPhone 使用单列 VStack。
@@ -757,6 +778,7 @@ PersonalBaselines 30 天个人基线：
 - upcomingExams：即将到来的考试。
 - dailyQuote：每日金句。
 - recentGrades：近期成绩。
+- memoryClimate：知识温度计卡（`MemoryClimateCard`，详见 7.14），无证据科目时隐藏。
 - habitInsight：习惯洞察卡（基于 90 天 `StudySession` 由 `HabitInsightEngine.computeInsights(...)` 派生 4 类 PatternKind：peakEfficiency / procrastination / streakDay / weakDay；默认 enabled = false）。
 
 `HomeLayoutSettingsView` 提供拖动重新排序与每项启用 / 禁用开关，然后保存回 UserDefaults。`HomeLayoutPreference.mergeWithDefault` 当未来版本新增卡片类型时保留用户的选择。
@@ -991,11 +1013,11 @@ AI 代理在本仓库工作时遵循以下规则：
 - 持久化图像作为文件而非 JSON 内联：使用 `profileRepo.saveAvatar` / `gradeRepo` 内部图片保存。
 - 优先使用 `iPadLayout` 辅助而不是在视图里内联写 size class 分支。
 - 不要手工修改 `StudyPulse.xcodeproj/project.pbxproj` —— 让 Xcode 管理。**Xcode 16+ 使用 `PBXFileSystemSynchronizedRootGroup` 自动收录 `StudyPulse/` 下的新 `.swift` 文件**。新增 Swift 文件后在 Xcode 中 Add Files to StudyPulse... / 拖入项目即可。
-- 涉及新功能 / 新增配置时同步检查 `docs/AlgorithmIntroduction.md` / `docs/ScorePredictionAlgorithm.md` / `docs/STREAK_ACHIEVEMENT_PLAN.md` / `docs/SPEC.md` / `docs/DESIGN.md` / `README.md` 是否需要更新：
-  - 修改 `StudyReadinessAlgorithm` 评分规则必须同步更新 `docs/AlgorithmIntroduction.md`。
-  - 修改 `ScorePredictionEngine` / `MistakeGapAnalyzer` / `ScorePredictorFactory` 必须同步更新 `docs/ScorePredictionAlgorithm.md`。
-  - 修改「每日目标 / 连续天数 / 成就」规则必须同步更新 `docs/STREAK_ACHIEVEMENT_PLAN.md`。
-  - 修改 phase / 主色 / glass / 背景图 / 热力图 / 错题 SRS / 考试清单 / Repository 等架构性规则时同步更新 `AGENTS.md` / `SPEC.md` / `README.md`。
+- 涉及新功能 / 新增配置时同步检查 `docs/algorithms/AlgorithmIntroduction.md` / `docs/algorithms/ScorePredictionAlgorithm.md` / `docs/plans/STREAK_ACHIEVEMENT_PLAN.md` / `docs/product/SPEC.md` / `docs/product/DESIGN.md` / `README.md` 是否需要更新：
+  - 修改 `StudyReadinessAlgorithm` 评分规则必须同步更新 `docs/algorithms/AlgorithmIntroduction.md`。
+  - 修改 `ScorePredictionEngine` / `MistakeGapAnalyzer` / `ScorePredictorFactory` 必须同步更新 `docs/algorithms/ScorePredictionAlgorithm.md`。
+  - 修改「每日目标 / 连续天数 / 成就」规则必须同步更新 `docs/plans/STREAK_ACHIEVEMENT_PLAN.md`。
+  - 修改 phase / 主色 / glass / 背景图 / 热力图 / 错题 SRS / 考试清单 / Repository 等架构性规则时同步更新 `AGENTS.md` / `docs/product/SPEC.md` / `README.md`。
 - 写入 widget 前确认 `container.isReady == true`，避免在主数据加载完成前写入空数据。
 - 启动 Live Activity 前检查 `Activity<StudyTimerActivityAttributes>.activities` 避免重复；更新 / 结束 Activity 需在主线程调用 `ActivityKit` API。
 - `AchievementManager.record*()` 是事件入口：业务逻辑层不要直接修改 `AchievementsSnapshot`，统一通过 `record*()` 触发。

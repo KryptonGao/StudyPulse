@@ -103,12 +103,14 @@ nonisolated enum MemoryClimateEngine {
         if !interferences.isEmpty {
             weather = .thunderstorm
             confidence = interferences[0].confidence
+        } else if isFrozen {
+            // 冻结优先于湿热：按规格 4.1 的风险序，长期未调用/严重逾期
+            // 比「近期答对但欠稳」风险更高，避免刚答对掩盖大面积冻结。
+            weather = .frozen
+            confidence = min(0.98, 0.65 + min(0.25, medianDays / 100) + overdueRatio * 0.15)
         } else if recentlySucceeded && (averageMastery < 0.7 || medianRepetitions < 2 || hadRecentLapse) {
             weather = .southHumid
             confidence = min(0.95, 0.62 + (0.7 - min(0.7, averageMastery)) * 0.4 + (hadRecentLapse ? 0.1 : 0))
-        } else if isFrozen {
-            weather = .frozen
-            confidence = min(0.98, 0.65 + min(0.25, medianDays / 100) + overdueRatio * 0.15)
         } else {
             let latestTwoStable = allHistory.prefix(2).count == 2 && allHistory.prefix(2).allSatisfy {
                 $0.quality == ReviewQuality.good.rawValue || $0.quality == ReviewQuality.easy.rawValue

@@ -109,6 +109,9 @@ final class FlashcardStudyViewModel {
         case .tag(let tag):
             let due = SRSAlgorithm.dueMistakes(from: container.mistakeRepo.mistakeSets)
             queue = MistakeFilter.tagged(due, tag: tag).map(FlashcardQueueItem.scheduled)
+        case .remediation(let notes):
+            // 补救任务卡片按给定顺序复习，走正常 SM-2，不绕过 SRS 规则。
+            queue = notes.map(FlashcardQueueItem.scheduled)
         }
         // 重置会话状态 / Reset all session-scoped state.
         currentIndex = 0
@@ -168,7 +171,7 @@ final class FlashcardStudyViewModel {
             break
         case .scheduled:
             switch filter {
-            case .dueQueue, .tag:
+            case .dueQueue, .tag, .remediation:
             // 队列模式:正常推进 SRS / Queue mode: run SRS progression.
                 if var state = current.reviewState {
                     state = SRSAlgorithm.apply(quality: quality, to: state, difficulty: current.difficulty)

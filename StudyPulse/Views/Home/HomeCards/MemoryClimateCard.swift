@@ -10,7 +10,10 @@ struct MemoryClimateCard: View {
     let history: [MemoryClimateSnapshot]
     let onStartReview: () -> Void
 
+    @Environment(RepositoryContainer.self) private var container
     @State private var showingDetail = false
+    @State private var remediationTask: RemediationTask?
+    @State private var showingRemediation = false
 
     var body: some View {
         if let dominant = snapshot.dominantSubject {
@@ -75,6 +78,7 @@ struct MemoryClimateCard: View {
                     MemoryClimateDetailView(
                         snapshot: snapshot,
                         history: history,
+                        remediationTask: remediationTask,
                         onStartReview: {
                             showingDetail = false
                             Task { @MainActor in
@@ -82,19 +86,56 @@ struct MemoryClimateCard: View {
                                 guard !Task.isCancelled else { return }
                                 onStartReview()
                             }
+                        },
+                        onStartRemediation: {
+                            showingDetail = false
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .milliseconds(250))
+                                guard !Task.isCancelled else { return }
+                                showingRemediation = true
+                            }
                         }
                     )
                 }
                 .presentationDetents([.large])
+                .onAppear { generateRemediationTask() }
+            }
+            .fullScreenCover(isPresented: $showingRemediation) {
+                if let task = remediationTask {
+                    NavigationStack {
+                        FlashcardStudyView(container: container, filter: .remediation(task.mistakes))
+                            .environment(container)
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarLeading) {
+                                    Button {
+                                        showingRemediation = false
+                                    } label: {
+                                        Image(systemName: "xmark")
+                                            .font(.subheadline.weight(.semibold))
+                                    }
+                                    .accessibilityLabel("Close".localized())
+                                }
+                            }
+                    }
+                }
             }
         }
+    }
+
+    private func generateRemediationTask() {
+        remediationTask = RemediationTaskEngine.generate(
+            snapshot: snapshot,
+            mistakes: container.mistakeRepo.filteredMistakeSets
+        )
     }
 }
 
 struct MemoryClimateDetailView: View {
     let snapshot: MemoryClimateSnapshot
     let history: [MemoryClimateSnapshot]
+    let remediationTask: RemediationTask?
     let onStartReview: () -> Void
+    let onStartRemediation: () -> Void
 
     @Environment(\.dismiss) private var dismiss
 
@@ -118,6 +159,9 @@ struct MemoryClimateDetailView: View {
                 } else {
                     todaySection
                     historyMap
+                    if remediationTask != nil {
+                        remediationSection
+                    }
                     evidenceSection
                     reviewButton
                 }
@@ -239,6 +283,53 @@ struct MemoryClimateDetailView: View {
                     .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var remediationSection: some View {
+        if let task = remediationTask {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Label("memory.climate.remediation.title".localized(), systemImage: "timer")
+                        .font(.headline)
+                    Spacer()
+                    Text(
+                        String(
+                            format: "memory.climate.remediation.estimatedMinutes".localized(),
+                            task.estimatedMinutes
+                        )
+                    )
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                }
+                Text(strategyDescription(task.strategy))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Button {
+                    onStartRemediation()
+                } label: {
+                    Label("memory.climate.remediation.button".localized(), systemImage: "play.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.orange)
+            }
+            .padding(16)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18))
+        }
+    }
+
+    private func strategyDescription(_ strategy: RemediationStrategy) -> String {
+        switch strategy {
+        case .interference:
+            return "memory.climate.remediation.strategy.interference".localized()
+        case .overdue:
+            return "memory.climate.remediation.strategy.overdue".localized()
+        case .weakSpot:
+            return "memory.climate.remediation.strategy.weakSpot".localized()
         }
     }
 

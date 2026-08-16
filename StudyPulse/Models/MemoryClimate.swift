@@ -120,3 +120,28 @@ nonisolated struct MemoryClimateSnapshot: Identifiable, Codable, Hashable, Senda
         )
     }
 }
+
+/// 15 分钟补救任务的策略类型。
+/// Strategy behind a 15-minute remediation task.
+nonisolated enum RemediationStrategy: String, Codable, Hashable, Sendable {
+    /// 雷暴：优先覆盖相关概念对照。
+    case interference
+    /// 冻结：优先覆盖最早逾期或最长未调用内容。
+    case overdue
+    /// 雾：优先覆盖最近答错或掌握度最低内容。
+    case weakSpot
+}
+
+/// 15 分钟最小补救任务。仅内存使用，不持久化。
+/// A bounded 15-minute remediation task. In-memory only.
+nonisolated struct RemediationTask: Identifiable, Codable, Hashable, Sendable {
+    let id: UUID
+    let subject: String
+    /// 触发任务的天气（仅 thunderstorm / frozen / fog）。
+    let weather: MemoryWeather
+    let strategy: RemediationStrategy
+    /// 任务卡片，按确定顺序排列；复习时走正常 SRS 流程。
+    let mistakes: [MistakeNote]
+    /// 预计时长（分钟），不超过 RemediationTaskEngine.maxDurationMinutes。
+    let estimatedMinutes: Int
+}
