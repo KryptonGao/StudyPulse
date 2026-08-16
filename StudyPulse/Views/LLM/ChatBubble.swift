@@ -128,13 +128,9 @@ struct ChatBubble: View {
                 if !attachments.isEmpty {
                     HStack(spacing: 6) {
                         ForEach(attachments) { attachment in
-                            if let image = UIImage(data: attachment.data) {
-                                Image(uiImage: image)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 72, height: 72)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
+                            CachedAsyncImage(data: attachment.data, maxDimension: 240)
+                                .frame(width: 72, height: 72)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                     }
                 }
