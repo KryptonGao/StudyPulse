@@ -44,11 +44,43 @@ struct StudySessionReviewSheet: View {
 
     // MARK: - Body
 
+    private var goalSection: some View {
+        Group {
+            if let goal = session.goal {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label(goal.title, systemImage: goal.source.icon)
+                        .font(.system(size: 14, weight: .semibold))
+                    HStack(spacing: 10) {
+                        Text(goal.progressText)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.secondary)
+                        if let rate = goal.completionRate {
+                            Text(String(format: "%.0f%%", rate*100))
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(rate>=1 ? .green : .accentColor)
+                            ProgressView(value: rate).frame(width: 60)
+                        }
+                    }
+                    if let diff = goal.difficulty {
+                        Label(diff.displayName, systemImage: diff.icon).font(.caption).foregroundStyle(.secondary)
+                    }
+                    if let reason = goal.interruptionReason, reason != .none {
+                        Label(reason.displayName, systemImage: reason.icon).font(.caption).foregroundColor(.orange)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color(.tertiarySystemFill)))
+            }
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     headerSection
+                    goalSection
                     chartSection
                     annotationListSection
                     aiSection

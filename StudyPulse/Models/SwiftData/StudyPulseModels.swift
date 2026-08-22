@@ -980,6 +980,12 @@ final class StudySessionRecord {
             let target = investmentTargetKindRaw.flatMap { kind in
                 investmentTargetID.flatMap { InvestmentTarget(kindRawValue: kind, id: $0) }
             }
+            // Goal lives only in payload (schema-frozen). Decode it lazily.
+            var goal: StudySessionGoal? = nil
+            if payload.range(of: Data("\"goal\"".utf8)) != nil,
+               let decoded = try? JSONDecoder().decode(StudySession.self, from: payload) {
+                goal = decoded.goal
+            }
             return StudySessionSummary(
                 id: id,
                 startDate: startDate,
@@ -989,6 +995,7 @@ final class StudySessionRecord {
                 heartRateSampleCount: heartRateSampleCount,
                 difficultyAnnotationCount: difficultyAnnotationCount,
                 investmentTarget: target,
+                goal: goal,
                 source: source,
                 timeZoneIdentifier: timeZoneIdentifier
             )

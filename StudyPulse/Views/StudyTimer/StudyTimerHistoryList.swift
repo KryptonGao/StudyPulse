@@ -50,9 +50,16 @@ struct StudyTimerHistoryList: View {
             .sorted { $0.date > $1.date }
     }
 
+    private var stats: FocusSessionStatsEngine.Stats {
+        FocusSessionStatsEngine.compute(summaries: timer.sessionSummaries)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             summaryRow
+            if stats.totalSessions > 0 {
+                FocusStatsCard(stats: stats)
+            }
 
             if recentSessions.isEmpty {
                 emptyState
@@ -135,19 +142,48 @@ struct StudyTimerHistoryList: View {
                     .background(Circle().fill(intensityColor(session.intensity).opacity(0.12)))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(session.intensity.displayName)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.primary)
+                    HStack(spacing: 6) {
+                        Text(session.intensity.displayName)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.primary)
+                        if let goal = session.goal {
+                            Label(goal.title, systemImage: goal.source.icon)
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    }
                     Text(timeLabel(for: session.startDate))
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
+                    if let goal = session.goal {
+                        HStack(spacing: 6) {
+                            Text(goal.progressText)
+                                .font(.caption2.weight(.medium))
+                                .foregroundColor(.secondary)
+                            if let rate = goal.completionRate {
+                                Text(String(format: "%.0f%%", rate * 100))
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundColor(rate >= 1 ? .green : .primary)
+                                ProgressView(value: rate)
+                                    .frame(width: 40)
+                            }
+                        }
+                    }
                 }
 
                 Spacer()
 
-                Text("\(session.durationSeconds / 60) min")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(session.completed ? .primary : .secondary)
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("\(session.durationSeconds / 60) min")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(session.completed ? .primary : .secondary)
+                    if let diff = session.goal?.difficulty {
+                        Text(diff.displayName)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
 
                 if session.heartRateSampleCount > 0 {
                     Image(systemName: "heart.fill")
@@ -159,6 +195,11 @@ struct StudyTimerHistoryList: View {
                     Image(systemName: "xmark.circle")
                         .font(.system(size: 12))
                         .foregroundColor(.red.opacity(0.7))
+                }
+                if let reason = session.goal?.interruptionReason, reason != .none {
+                    Image(systemName: reason.icon)
+                        .font(.system(size: 11))
+                        .foregroundColor(.orange)
                 }
             }
             .padding(.vertical, 8)

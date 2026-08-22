@@ -26,6 +26,7 @@ struct StudySessionDetailView: View {
     @State private var annotations: [DifficultyAnnotation] = []
     @State private var editingAnnotation: DifficultyAnnotation?
     @State private var pendingNewAnnotation: (timestamp: Date, heartRate: Double?)?
+    @State private var showGoalEdit = false
 
     // AI 解读状态
     @State private var aiOutput: String = ""
@@ -47,11 +48,21 @@ struct StudySessionDetailView: View {
         Group {
             if let s = session {
                 if samples.isEmpty {
-                    emptyHRState(session: s)
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 18) {
+                            headerSection(s)
+                            goalSection(for: s)
+                            annotationListSection
+                            aiSection
+                        }
+                        .padding(16)
+                    }
+                    .background(Color(.systemGroupedBackground))
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 18) {
                             headerSection(s)
+                            goalSection(for: s)
                             chartSection
                             annotationListSection
                             aiSection
@@ -101,6 +112,25 @@ struct StudySessionDetailView: View {
         }
         .onAppear { loadSession() }
         .onDisappear { aiTask?.cancel() }
+        .sheet(isPresented: $showGoalEdit) {
+            if let s = session {
+                SessionGoalDetailEditSheet(session: s) { updatedGoal in
+                    container.studySessionRepo.updateGoal(s.id, goal: updatedGoal)
+                    session = container.studySessionRepo.session(id: sessionId)
+                }
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if session?.goal != nil {
+                    Button {
+                        showGoalEdit = true
+                    } label: {
+                        Label("Edit Goal".localized(), systemImage: "target")
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Load
@@ -153,6 +183,92 @@ struct StudySessionDetailView: View {
             RoundedRectangle(cornerRadius: 14)
                 .fill(Color(.secondarySystemGroupedBackground))
         )
+    }
+
+    private func goalSection(for s: StudySession) -> some View {
+        Group {
+            if let goal = s.goal {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Label(goal.title, systemImage: goal.source.icon)
+                            .font(.system(size: 15, weight: .semibold))
+                        Spacer()
+                        Text(goal.source.displayName)
+                            .font(.caption2.weight(.medium))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Capsule().fill(Color(.tertiarySystemFill)))
+                    }
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Target".localized())
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            Text("\(goal.targetValue.truncatingRemainder(dividingBy: 1)==0 ? String(format:"%.0f", goal.targetValue) : String(format:"%.1f", goal.targetValue)) \(goal.unitLabel)")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Completed".localized())
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            if let cv = goal.completedValue {
+                                Text("\(cv.truncatingRemainder(dividingBy: 1)==0 ? String(format:"%.0f", cv) : String(format:"%.1f", cv)) \(goal.unitLabel)")
+                                    .font(.system(size: 14, weight: .semibold))
+                            } else {
+                                Text("--").font(.caption).foregroundStyle(.tertiary)
+                            }
+                        }
+                        Spacer()
+                        if let rate = goal.completionRate {
+                            VStack(spacing: 4) {
+                                Text(String(format: "%.0f%%", rate*100))
+                                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                                    .foregroundColor(rate >= 1 ? .green : .primary)
+                                ProgressView(value: rate)
+                                    .frame(width: 60)
+                            }
+                        }
+                    }
+                    if let diff = goal.difficulty {
+                        Label(diff.displayName, systemImage: diff.icon)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    if let reason = goal.interruptionReason, reason != .none {
+                        Label(reason.displayName, systemImage: reason.icon)
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                        if let note = goal.interruptionNote, !note.isEmpty {
+                            Text(note)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Button {
+                        showGoalEdit = true
+                    } label: {
+                        Label("Edit Goal Result".localized(), systemImage: "pencil")
+                            .font(.caption.weight(.medium))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.accentColor)
+                }
+                .padding(14)
+                .background(RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemGroupedBackground)))
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("No goal for this session".localized())
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Time + result view: this session only shows duration. Add a goal before starting next time to track completion.".localized())
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
+                .background(RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemGroupedBackground)))
+            }
+        }
     }
 
     // MARK: - Chart
@@ -320,6 +436,7 @@ struct StudySessionDetailView: View {
             heartRateSamples: current.heartRateSamples,
             difficultyAnnotations: annotations,
             investmentTarget: current.investmentTarget,
+            goal: current.goal,
             source: current.source,
             timeZoneIdentifier: current.timeZoneIdentifier
         )
@@ -351,6 +468,79 @@ struct StudySessionDetailView: View {
                 aiLoading = false
                 Log.llm.error("StudySessionStressLLM failed: \(error.localizedDescription, privacy: .public)")
             }
+        }
+    }
+}
+
+// MARK: - Goal edit sheet (detail re-review)
+
+private struct SessionGoalDetailEditSheet: View {
+    let session: StudySession
+    var onSave: (StudySessionGoal) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var completedText: String = ""
+    @State private var difficulty: StudySessionDifficulty?
+    @State private var reason: StudySessionInterruptionReason = .none
+    @State private var note: String = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Completion".localized()) {
+                    HStack {
+                        TextField("Completed".localized(), text: $completedText)
+                            .keyboardType(.decimalPad)
+                        Text("/ \(session.goal?.targetValue ?? 1, specifier: "%.0f") \(session.goal?.unitLabel ?? "")")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Section("Difficulty".localized()) {
+                    Picker("Difficulty".localized(), selection: $difficulty) {
+                        Text("Not set".localized()).tag(nil as StudySessionDifficulty?)
+                        ForEach(StudySessionDifficulty.allCases) { d in
+                            Text(d.displayName).tag(d as StudySessionDifficulty?)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                Section("Interruption".localized()) {
+                    Picker("Reason".localized(), selection: $reason) {
+                        ForEach(StudySessionInterruptionReason.allCases) { r in
+                            Text(r.displayName).tag(r)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    if reason != .none {
+                        TextField("Note".localized(), text: $note, axis: .vertical)
+                    }
+                }
+            }
+            .navigationTitle("Edit Goal".localized())
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel".localized()) { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save".localized()) {
+                        guard var g = session.goal else { return }
+                        let cv = Double(completedText.trimmingCharacters(in: .whitespaces))
+                        g.completedValue = cv
+                        g.difficulty = difficulty
+                        g.interruptionReason = reason == .none ? nil : reason
+                        g.interruptionNote = note.isEmpty ? nil : note
+                        onSave(g)
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+        .onAppear {
+            if let cv = session.goal?.completedValue {
+                completedText = cv.truncatingRemainder(dividingBy: 1)==0 ? String(format:"%.0f", cv) : String(format:"%.1f", cv)
+            }
+            difficulty = session.goal?.difficulty
+            reason = session.goal?.interruptionReason ?? .none
+            note = session.goal?.interruptionNote ?? ""
         }
     }
 }
