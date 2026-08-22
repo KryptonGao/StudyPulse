@@ -11,6 +11,7 @@ protocol StudySessionRepository: AnyObject, Sendable {
     func upsert(_ session: StudySession)
     func delete(_ id: UUID)
     func assign(_ ids: Set<UUID>, to target: InvestmentTarget?)
+    func updateGoal(_ id: UUID, goal: StudySessionGoal?)
     func session(id: UUID) -> StudySession?
     func sessions(from startDate: Date, to endDate: Date?) -> [StudySession]
     func allSessionsForBackup() -> [StudySession]

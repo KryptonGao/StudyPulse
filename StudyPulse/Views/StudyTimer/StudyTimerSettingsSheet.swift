@@ -32,6 +32,8 @@ struct StudyTimerSetupSheet: View {
 
     private var themeColor: Color { animation.primaryColor }
 
+    @State private var showGoalSheet = false
+
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
@@ -42,6 +44,7 @@ struct StudyTimerSetupSheet: View {
                 }
 
                 recommendationHeader
+                SessionGoalPickerRow(timer: timer) { showGoalSheet = true }
                 investmentTargetSection
                 presetsGrid
                 customDurationSection
@@ -52,6 +55,9 @@ struct StudyTimerSetupSheet: View {
                 HistorySummaryInline()
             }
             .padding(.horizontal, 24)
+        }
+        .sheet(isPresented: $showGoalSheet) {
+            SessionGoalSheet(timer: timer)
         }
     }
 
@@ -242,8 +248,6 @@ struct StudyTimerSetupSheet: View {
         }
         .buttonStyle(.plain)
         .padding(.top, 8)
-        .disabled(timer.selectedInvestmentTarget == nil)
-        .opacity(timer.selectedInvestmentTarget == nil ? 0.55 : 1)
     }
 
     // MARK: - Helpers

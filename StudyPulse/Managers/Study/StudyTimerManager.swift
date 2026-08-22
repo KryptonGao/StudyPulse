@@ -63,6 +63,9 @@ final class StudyTimerManager {
     var totalSessionCount: Int = 0
     var selectedInvestmentTarget: InvestmentTarget?
     private(set) var activeInvestmentTarget: InvestmentTarget?
+    /// Draft goal configured before starting a session (1–2 steps UI).
+    var draftGoal: StudySessionGoal?
+    private(set) var activeGoal: StudySessionGoal?
     private(set) var lastUnlockedRewards: [GoalReward] = []
 
     /// The current algorithm recommendation — read by the View layer
@@ -113,6 +116,7 @@ final class StudyTimerManager {
         sessionSummaries = sessionRepository.sessionSummaries
         totalSessionCount = sessionRepository.totalSessionCount
         restoreLastInvestmentTarget()
+        restoreDraftGoal()
     }
 
     func selectInvestmentTarget(_ target: InvestmentTarget?) {
@@ -126,6 +130,35 @@ final class StudyTimerManager {
         }
         UserDefaults.standard.set(target.kindRawValue, forKey: "studyPulse.lastInvestmentTargetKind")
         UserDefaults.standard.set(target.rawID.uuidString, forKey: "studyPulse.lastInvestmentTargetID")
+    }
+
+    func selectGoal(_ goal: StudySessionGoal?) {
+        guard timerState == .idle || timerState == .completed else { return }
+        draftGoal = goal
+        persistDraftGoal()
+        // Keep legacy investmentTarget in sync when goal originates from project.
+        if let goal, goal.source == .timeInvestment, let uuid = goal.sourceID.flatMap(UUID.init(uuidString:)),
+           let target = InvestmentTarget(kindRawValue: "subject", id: uuid) ?? InvestmentTarget(kindRawValue: "subTask", id: uuid),
+           isSelectable(target) {
+            selectedInvestmentTarget = target
+        }
+    }
+
+    func clearDraftGoal() { selectGoal(nil) }
+
+    private func persistDraftGoal() {
+        if let goal = draftGoal, let data = try? JSONEncoder().encode(goal) {
+            UserDefaults.standard.set(data, forKey: "studyPulse.lastFocusGoal")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "studyPulse.lastFocusGoal")
+        }
+    }
+
+    private func restoreDraftGoal() {
+        guard let data = UserDefaults.standard.data(forKey: "studyPulse.lastFocusGoal"),
+              let goal = try? JSONDecoder().decode(StudySessionGoal.self, from: data) else { return }
+        // Validate still selectable when linked to project/todo existence? Keep tolerant.
+        draftGoal = goal
     }
 
     // MARK: - Duration calculation
@@ -146,18 +179,29 @@ final class StudyTimerManager {
 
     /// Start a countdown timer for the given number of seconds.
     /// If `seconds` is nil, the recommended duration is used.
+    /// Goal is optional: prefers draftGoal, else synthesizes from investmentTarget if present, else nil.
     func start(seconds: Int? = nil) {
         let duration = seconds ?? recommendedDurationSeconds
-        guard duration > 0,
-              let selectedInvestmentTarget,
-              isSelectable(selectedInvestmentTarget) else {
-            self.selectedInvestmentTarget = nil
-            return
+        guard duration > 0 else { return }
+
+        // Resolve goal before mutating state.
+        var resolvedGoal: StudySessionGoal? = draftGoal
+        if resolvedGoal == nil, let t = selectedInvestmentTarget, isSelectable(t) {
+            let title: String = {
+                if case .subject(let id) = t {
+                    return timeInvestmentRepository?.subjects.first(where: { $0.id == id })?.name ?? "Project"
+                } else if case .subTask(let id) = t {
+                    return timeInvestmentRepository?.subTasks.first(where: { $0.id == id })?.name ?? "SubTask"
+                }
+                return "Focus"
+            }()
+            resolvedGoal = StudySessionGoal.fromInvestmentTarget(t, title: title, targetValue: 1, unit: .count)
         }
 
         let intensity = StudySession.fromAlgorithmIntensity(recommendedIntensity)
         currentIntensity = intensity
         activeInvestmentTarget = selectedInvestmentTarget
+        activeGoal = resolvedGoal
         totalSeconds = duration
         remainingSeconds = duration
         targetEndDate = Date().addingTimeInterval(TimeInterval(duration))
@@ -167,7 +211,7 @@ final class StudyTimerManager {
         startInternalTimer()
         startHeartRateStreaming()
 
-        Log.app.info("StudyTimer started: intensity=\(intensity.rawValue) duration=\(duration)s")
+        Log.app.info("StudyTimer started: intensity=\(intensity.rawValue) duration=\(duration)s goal=\(resolvedGoal?.title ?? "none")")
     }
 
     /// Pause the timer; keeps the Live Activity but shows "Paused".
@@ -209,7 +253,9 @@ final class StudyTimerManager {
                 durationSeconds: 0,
                 intensity: intensity,
                 completed: false,
-                investmentTarget: activeInvestmentTarget
+                investmentTarget: activeInvestmentTarget,
+                goal: activeGoal,
+                source: .timer
             )
             persist(session)
             Log.app.info("StudyTimer cancelled (recorded as incomplete)")
@@ -217,6 +263,7 @@ final class StudyTimerManager {
         endLiveActivity()
         currentIntensity = nil
         activeInvestmentTarget = nil
+        activeGoal = nil
         resetHeartRateBuffer()
     }
 
@@ -238,7 +285,9 @@ final class StudyTimerManager {
                 completed: true,
                 heartRateSamples: heartRateSamples.isEmpty ? nil : heartRateSamples,
                 difficultyAnnotations: nil,
-                investmentTarget: activeInvestmentTarget
+                investmentTarget: activeInvestmentTarget,
+                goal: activeGoal,
+                source: .timer
             )
             persist(session)
             lastUnlockedRewards = timeInvestmentRepository?.evaluateRewards(
@@ -246,11 +295,50 @@ final class StudyTimerManager {
                 now: .now
             ) ?? []
             AchievementManager.shared.recordFocusMinutes(totalSeconds / 60)
-            Log.app.info("StudyTimer completed: intensity=\(intensity.rawValue) duration=\(self.totalSeconds)s hrSamples=\(self.heartRateSamples.count)")
+            Log.app.info("StudyTimer completed: intensity=\(intensity.rawValue) duration=\(self.totalSeconds)s goal=\(self.activeGoal?.title ?? "none") hrSamples=\(self.heartRateSamples.count)")
         }
         endLiveActivity()
-        // 注意:complete 后不立即清空 heartRateSamples,留给回顾 sheet 读取;
+        // 注意:complete 后不立即清空 heartRateSamples/activeGoal,留给回顾 sheet 读取;
         // reset() 时再清空。
+    }
+
+    /// Update the most recent session's goal retro (completion / difficulty / interruption).
+    @discardableResult
+    func finalizeGoal(completedValue: Double?, difficulty: StudySessionDifficulty?, interruptionReason: StudySessionInterruptionReason?, interruptionNote: String?) -> StudySession? {
+        guard let last = sessions.first else { return nil }
+        guard var goal = last.goal ?? activeGoal else { return nil }
+        goal.completedValue = completedValue
+        goal.difficulty = difficulty
+        goal.interruptionReason = interruptionReason
+        goal.interruptionNote = interruptionNote?.isEmpty == false ? interruptionNote : nil
+        let updated = StudySession(
+            id: last.id,
+            startDate: last.startDate,
+            durationSeconds: last.durationSeconds,
+            intensity: last.intensity,
+            completed: last.completed,
+            heartRateSamples: last.heartRateSamples,
+            difficultyAnnotations: last.difficultyAnnotations,
+            investmentTarget: last.investmentTarget,
+            goal: goal,
+            source: last.source,
+            timeZoneIdentifier: last.timeZoneIdentifier
+        )
+        persist(updated)
+        activeGoal = goal
+        // keep draft for next session convenience
+        draftGoal = goal
+        persistDraftGoal()
+        return updated
+    }
+
+    /// Directly update any session's goal by id (used by detail view edits).
+    func updateSessionGoal(id: UUID, mutate: (inout StudySessionGoal) -> Void) {
+        guard let session = sessionRepository?.session(id: id), var goal = session.goal else { return }
+        mutate(&goal)
+        sessionRepository?.updateGoal(id, goal: goal)
+        refreshSessions()
+        if sessions.first?.id == id { activeGoal = goal }
     }
 
     /// Reset from completed state back to idle.
@@ -261,6 +349,7 @@ final class StudyTimerManager {
         targetEndDate = nil
         currentIntensity = nil
         activeInvestmentTarget = nil
+        activeGoal = nil
         resetHeartRateBuffer()
     }
 

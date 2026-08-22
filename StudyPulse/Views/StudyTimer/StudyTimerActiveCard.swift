@@ -659,6 +659,16 @@ struct StudyTimerActiveCard: View {
                     .foregroundColor(themeColor)
                     .opacity(0.9)
 
+                if let goal = timer.activeGoal ?? timer.draftGoal {
+                    Label(goal.title, systemImage: goal.source.icon)
+                        .font(.system(size: max(11, safeTimeFontSize * 0.20), weight: .medium))
+                        .foregroundColor(immersiveLandscapeMode ? Color.white.opacity(0.82) : .secondary)
+                        .lineLimit(1)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(immersiveLandscapeMode ? Color.white.opacity(0.10) : Color(.tertiarySystemFill)))
+                }
+
                 if timer.timerState == .paused {
                     HStack(spacing: 4) {
                         Circle()

@@ -56,6 +56,8 @@ nonisolated struct StudySession: Codable, Identifiable, Equatable, Sendable {
     let difficultyAnnotations: [DifficultyAnnotation]?
     /// Optional time-investment project. Legacy sessions decode as unassigned.
     let investmentTarget: InvestmentTarget?
+    /// Per-session learning goal (target / completed / difficulty / interruption).
+    let goal: StudySessionGoal?
     /// How this record was created.
     let source: StudySessionSource
     /// Time zone used for natural-day streak boundaries.
@@ -72,6 +74,7 @@ nonisolated struct StudySession: Codable, Identifiable, Equatable, Sendable {
         heartRateSamples: [HeartRateSample]? = nil,
         difficultyAnnotations: [DifficultyAnnotation]? = nil,
         investmentTarget: InvestmentTarget? = nil,
+        goal: StudySessionGoal? = nil,
         source: StudySessionSource = .timer,
         timeZoneIdentifier: String? = TimeZone.autoupdatingCurrent.identifier
     ) {
@@ -83,8 +86,20 @@ nonisolated struct StudySession: Codable, Identifiable, Equatable, Sendable {
         self.heartRateSamples = heartRateSamples
         self.difficultyAnnotations = difficultyAnnotations
         self.investmentTarget = investmentTarget
+        self.goal = goal
         self.source = source
         self.timeZoneIdentifier = timeZoneIdentifier
+    }
+
+    var completionRate: Double? { goal?.completionRate }
+
+    /// Effective goal — prefers `goal`, falls back to legacy `investmentTarget` as a count-1 goal for display.
+    var effectiveGoal: StudySessionGoal? {
+        if let goal { return goal }
+        if let investmentTarget {
+            return StudySessionGoal.fromInvestmentTarget(investmentTarget, title: investmentTarget.rawID.uuidString, targetValue: 1, unit: .count)
+        }
+        return nil
     }
 
     /// 自定义解码器:新字段用 decodeIfPresent 兜底,保证旧 JSON 兼容。
@@ -93,7 +108,7 @@ nonisolated struct StudySession: Codable, Identifiable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case id, startDate, durationSeconds, intensity, completed
         case heartRateSamples, difficultyAnnotations
-        case investmentTarget, source, timeZoneIdentifier
+        case investmentTarget, goal, source, timeZoneIdentifier
     }
 
     nonisolated init(from decoder: Decoder) throws {
@@ -106,6 +121,7 @@ nonisolated struct StudySession: Codable, Identifiable, Equatable, Sendable {
         heartRateSamples = try c.decodeIfPresent([HeartRateSample].self, forKey: .heartRateSamples)
         difficultyAnnotations = try c.decodeIfPresent([DifficultyAnnotation].self, forKey: .difficultyAnnotations)
         investmentTarget = try c.decodeIfPresent(InvestmentTarget.self, forKey: .investmentTarget)
+        goal = try c.decodeIfPresent(StudySessionGoal.self, forKey: .goal)
         source = try c.decodeIfPresent(StudySessionSource.self, forKey: .source) ?? .timer
         timeZoneIdentifier = try c.decodeIfPresent(String.self, forKey: .timeZoneIdentifier)
     }
@@ -120,6 +136,7 @@ nonisolated struct StudySession: Codable, Identifiable, Equatable, Sendable {
         try c.encodeIfPresent(heartRateSamples, forKey: .heartRateSamples)
         try c.encodeIfPresent(difficultyAnnotations, forKey: .difficultyAnnotations)
         try c.encodeIfPresent(investmentTarget, forKey: .investmentTarget)
+        try c.encodeIfPresent(goal, forKey: .goal)
         try c.encode(source, forKey: .source)
         try c.encodeIfPresent(timeZoneIdentifier, forKey: .timeZoneIdentifier)
     }
@@ -212,8 +229,12 @@ nonisolated struct StudySessionSummary: Codable, Identifiable, Equatable, Sendab
     let heartRateSampleCount: Int
     let difficultyAnnotationCount: Int
     let investmentTarget: InvestmentTarget?
+    let goal: StudySessionGoal?
     let source: StudySessionSource
     let timeZoneIdentifier: String?
+
+    var completionRate: Double? { goal?.completionRate }
+    var hasGoal: Bool { goal != nil }
 
     init(
         id: UUID,
@@ -224,6 +245,7 @@ nonisolated struct StudySessionSummary: Codable, Identifiable, Equatable, Sendab
         heartRateSampleCount: Int = 0,
         difficultyAnnotationCount: Int = 0,
         investmentTarget: InvestmentTarget? = nil,
+        goal: StudySessionGoal? = nil,
         source: StudySessionSource = .timer,
         timeZoneIdentifier: String? = nil
     ) {
@@ -235,6 +257,7 @@ nonisolated struct StudySessionSummary: Codable, Identifiable, Equatable, Sendab
         self.heartRateSampleCount = heartRateSampleCount
         self.difficultyAnnotationCount = difficultyAnnotationCount
         self.investmentTarget = investmentTarget
+        self.goal = goal
         self.source = source
         self.timeZoneIdentifier = timeZoneIdentifier
     }
@@ -249,6 +272,7 @@ nonisolated struct StudySessionSummary: Codable, Identifiable, Equatable, Sendab
             heartRateSampleCount: session.heartRateSamples?.count ?? 0,
             difficultyAnnotationCount: session.difficultyAnnotations?.count ?? 0,
             investmentTarget: session.investmentTarget,
+            goal: session.goal,
             source: session.source,
             timeZoneIdentifier: session.timeZoneIdentifier
         )
@@ -263,9 +287,29 @@ nonisolated struct StudySessionSummary: Codable, Identifiable, Equatable, Sendab
             intensity: intensity,
             completed: completed,
             investmentTarget: investmentTarget,
+            goal: goal,
             source: source,
             timeZoneIdentifier: timeZoneIdentifier
         )
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, startDate, durationSeconds, intensity, completed, heartRateSampleCount, difficultyAnnotationCount, investmentTarget, goal, source, timeZoneIdentifier
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        startDate = try c.decode(Date.self, forKey: .startDate)
+        durationSeconds = try c.decode(Int.self, forKey: .durationSeconds)
+        intensity = try c.decode(StudySession.SessionIntensity.self, forKey: .intensity)
+        completed = try c.decode(Bool.self, forKey: .completed)
+        heartRateSampleCount = try c.decodeIfPresent(Int.self, forKey: .heartRateSampleCount) ?? 0
+        difficultyAnnotationCount = try c.decodeIfPresent(Int.self, forKey: .difficultyAnnotationCount) ?? 0
+        investmentTarget = try c.decodeIfPresent(InvestmentTarget.self, forKey: .investmentTarget)
+        goal = try c.decodeIfPresent(StudySessionGoal.self, forKey: .goal)
+        source = try c.decodeIfPresent(StudySessionSource.self, forKey: .source) ?? .timer
+        timeZoneIdentifier = try c.decodeIfPresent(String.self, forKey: .timeZoneIdentifier)
     }
 }
 

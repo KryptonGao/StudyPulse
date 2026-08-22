@@ -29,6 +29,7 @@ struct StudyTimerView: View {
 
     // 会话结束心率回顾 sheet / Post-session HR review sheet
     @State private var showReviewSheet: Bool = false
+    @State private var showGoalRetroSheet: Bool = false
     @State private var reviewedSessionId: UUID?
 
     private var isActive: Bool {
@@ -107,13 +108,28 @@ struct StudyTimerView: View {
             exitImmersiveLandscapeMode()
         }
         .onChange(of: timer.timerState) { _, newState in
-            // 会话自然完成且心率样本 ≥3 时弹出回顾 sheet
+            // 会话自然完成：优先展示目标复盘（可跳过），无目标时回退到心率回顾
             if newState == .completed, let s = timer.sessions.first {
                 reviewedSessionId = s.id
-                if (s.heartRateSamples?.count ?? 0) >= 3 {
+                if s.goal != nil {
+                    showGoalRetroSheet = true
+                } else if (s.heartRateSamples?.count ?? 0) >= 3 {
                     showReviewSheet = true
                 }
             }
+        }
+        .sheet(isPresented: $showGoalRetroSheet) {
+            SessionGoalRetroSheet(timer: timer)
+                .onDisappear {
+                    // 目标复盘关闭后，若有心率数据则继续展示心率回顾
+                    if let s = timer.sessions.first(where: { $0.id == reviewedSessionId }),
+                       (s.heartRateSamples?.count ?? 0) >= 3 {
+                        // delay to avoid sheet collision
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            showReviewSheet = true
+                        }
+                    }
+                }
         }
         .sheet(isPresented: $showReviewSheet) {
             if let id = reviewedSessionId,
@@ -132,6 +148,7 @@ struct StudyTimerView: View {
                                 heartRateSamples: s.heartRateSamples,
                                 difficultyAnnotations: updated,
                                 investmentTarget: s.investmentTarget,
+                                goal: s.goal,
                                 source: s.source,
                                 timeZoneIdentifier: s.timeZoneIdentifier
                             )

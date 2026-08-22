@@ -95,11 +95,31 @@ final class DefaultStudySessionRepository: StudySessionRepository, PersistenceEx
                     heartRateSamples: session.heartRateSamples,
                     difficultyAnnotations: session.difficultyAnnotations,
                     investmentTarget: target,
+                    goal: session.goal,
                     source: session.source,
                     timeZoneIdentifier: session.timeZoneIdentifier
                 )
             )
         }
+    }
+
+    func updateGoal(_ id: UUID, goal: StudySessionGoal?) {
+        guard let session = session(id: id) else { return }
+        upsert(
+            StudySession(
+                id: session.id,
+                startDate: session.startDate,
+                durationSeconds: session.durationSeconds,
+                intensity: session.intensity,
+                completed: session.completed,
+                heartRateSamples: session.heartRateSamples,
+                difficultyAnnotations: session.difficultyAnnotations,
+                investmentTarget: session.investmentTarget,
+                goal: goal,
+                source: session.source,
+                timeZoneIdentifier: session.timeZoneIdentifier
+            )
+        )
     }
 
     func session(id: UUID) -> StudySession? {
