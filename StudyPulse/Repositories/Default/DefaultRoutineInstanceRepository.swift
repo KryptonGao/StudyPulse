@@ -83,7 +83,7 @@ final class DefaultRoutineInstanceRepository: RoutineInstanceRepository {
                 return false
             }
             context.insert(RoutineInstanceRecord(from: instance))
-            try? context.save()
+            guard context.saveOrRollback("RoutineInstanceRepository.spawnIfMissing") else { return false }
         }
         allInstances.append(instance)
         allInstances.sort { $0.date > $1.date }

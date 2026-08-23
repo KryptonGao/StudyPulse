@@ -102,7 +102,7 @@ final class DefaultDiaryRepository: DiaryRepository, PersistenceExecutorBacked {
         stored.updatedAt = .now
         if let context = modelContext {
             context.insert(DiaryEntryRecord(from: stored))
-            try? context.save()
+            guard context.saveOrRollback("DiaryRepository.add") else { return }
         }
         diaryEntries.append(stored)
         // 保持 date desc 顺序
@@ -220,6 +220,7 @@ final class DefaultDiaryRepository: DiaryRepository, PersistenceExecutorBacked {
                 try context.save()
             }
         } catch {
+            context.rollback()
             Log.data.error("DiaryRepository removeRecord failed: \(error.localizedDescription, privacy: .public)")
         }
     }
@@ -243,6 +244,7 @@ final class DefaultDiaryRepository: DiaryRepository, PersistenceExecutorBacked {
                 try context.save()
             }
         } catch {
+            context.rollback()
             Log.data.error("DiaryRepository updateRecord failed: \(error.localizedDescription, privacy: .public)")
         }
     }

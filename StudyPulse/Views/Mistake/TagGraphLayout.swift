@@ -78,7 +78,7 @@ enum TagGraphLayout {
 
         for iter in 0..<iterations {
             let temperature = initialTemperature * pow(cooling, Double(iter) / Double(max(1, iterations - 1)))
-            var forces: [String: CGPoint] = Dictionary(uniqueKeysWithValues: tags.map { ($0, .zero) })
+            var forces: [String: CGPoint] = Dictionary(tags.map { ($0, .zero) }, uniquingKeysWith: { first, _ in first })
 
             // 1) Repulsion between every pair.
             for i in 0..<tags.count {

@@ -126,7 +126,7 @@ final class DefaultProfileRepository: ProfileRepository {
         profile.targetScore = draft.targetScore
 
         // 同步选科:通过 SubjectRepository 间接持有 subjects 数组
-        let configByName = Dictionary(uniqueKeysWithValues: (region.subjects).map { ($0.name, $0) })
+        let configByName = Dictionary((region.subjects).map { ($0.name, $0) }, uniquingKeysWith: { first, _ in first })
         let newSubjects: [Subject] = selectedSubjectNames.compactMap { name in
             if let cfg = configByName[name] {
                 return Subject(

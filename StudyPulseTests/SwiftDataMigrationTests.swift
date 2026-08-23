@@ -55,6 +55,76 @@ final class SwiftDataMigrationTests: XCTestCase {
         )
     }
 
+    func testV4StoreMigratesToV5PreservingPayloadBackedRecords() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let storeURL = directory.appendingPathComponent("studypulse.store")
+
+        let now = Date(timeIntervalSince1970: 1_760_000_000)
+        let session = StudySession(
+            id: UUID(),
+            startDate: now,
+            durationSeconds: 1_800,
+            intensity: .deepFocus,
+            completed: true
+        )
+        let chat = CoachChat(
+            goalID: UUID(),
+            title: "V4 chat",
+            createdAt: now,
+            updatedAt: now
+        )
+
+        // Build a store whose physical schema matches what a pre-V5 build
+        // created: payload-backed records WITHOUT the V5 denormalized columns.
+        do {
+            let schema = Schema(versionedSchema: StudyPulseSchemaV4.self)
+            let configuration = ModelConfiguration(
+                "StudyPulse",
+                schema: schema,
+                url: storeURL,
+                cloudKitDatabase: .none
+            )
+            let container = try ModelContainer(for: schema, configurations: [configuration])
+            container.mainContext.insert(StudyPulseSchemaLegacy.StudySessionRecord(from: session))
+            container.mainContext.insert(StudyPulseSchemaLegacy.CoachChatRecord(from: chat))
+            try container.mainContext.save()
+        }
+
+        let schema = Schema(versionedSchema: StudyPulseSchemaV5.self)
+        let configuration = ModelConfiguration(
+            "StudyPulse",
+            schema: schema,
+            url: storeURL,
+            cloudKitDatabase: .none
+        )
+        let migrated = try ModelContainer(
+            for: schema,
+            migrationPlan: StudyPulseMigrationPlan.self,
+            configurations: [configuration]
+        )
+        let context = migrated.mainContext
+
+        let sessionRecord = try XCTUnwrap(
+            context.fetch(FetchDescriptor<StudySessionRecord>()).first
+        )
+        XCTAssertEqual(sessionRecord.id, session.id)
+        // The V5 columns exist and stay NULL for pre-V5 rows.
+        XCTAssertNil(sessionRecord.durationSeconds)
+        // The payload remains the compatibility source of truth.
+        XCTAssertEqual(sessionRecord.toSnapshot()?.durationSeconds, 1_800)
+        XCTAssertEqual(sessionRecord.toSummary()?.durationSeconds, 1_800)
+
+        let chatRecord = try XCTUnwrap(
+            context.fetch(FetchDescriptor<CoachChatRecord>()).first
+        )
+        XCTAssertEqual(chatRecord.id, chat.id)
+        XCTAssertNil(chatRecord.title)
+        XCTAssertEqual(chatRecord.toSnapshot()?.title, "V4 chat")
+    }
+
     func testV1StoreMigratesToV2WithoutChangingUserEntityCountsOrKeyFields() throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -395,8 +465,8 @@ final class SwiftDataMigrationTests: XCTestCase {
         context.insert(CoachGoalRecord(from: coachGoal))
         context.insert(CoachAnalysisRecord(from: coachAnalysis))
         context.insert(CoachProposalRecord(from: coachProposal))
-        context.insert(CoachChatRecord(from: coachChat))
-        context.insert(CoachConversationMessageRecord(from:
+        context.insert(StudyPulseSchemaLegacy.CoachChatRecord(from: coachChat))
+        context.insert(StudyPulseSchemaLegacy.CoachConversationMessageRecord(from:
             CoachConversationMessage(
                 goalID: coachGoal.id,
                 chatID: coachChat.id,
@@ -405,7 +475,7 @@ final class SwiftDataMigrationTests: XCTestCase {
                 createdAt: now
             )
         ))
-        context.insert(StudySessionRecord(from:
+        context.insert(StudyPulseSchemaLegacy.StudySessionRecord(from:
             StudySession(
                 id: UUID(),
                 startDate: now,
@@ -421,7 +491,7 @@ final class SwiftDataMigrationTests: XCTestCase {
                 lastError: nil
             )
         ))
-        context.insert(ExamSimulationRecord(from:
+        context.insert(StudyPulseSchemaLegacy.ExamSimulationRecord(from:
             ExamSimulation(
                 subject: "Mathematics",
                 createdAt: now,
@@ -456,11 +526,11 @@ final class SwiftDataMigrationTests: XCTestCase {
             "CoachGoalRecord": (try? context.fetchCount(FetchDescriptor<CoachGoalRecord>())) ?? -1,
             "CoachAnalysisRecord": (try? context.fetchCount(FetchDescriptor<CoachAnalysisRecord>())) ?? -1,
             "CoachProposalRecord": (try? context.fetchCount(FetchDescriptor<CoachProposalRecord>())) ?? -1,
-            "CoachConversationMessageRecord": (try? context.fetchCount(FetchDescriptor<CoachConversationMessageRecord>())) ?? -1,
-            "CoachChatRecord": (try? context.fetchCount(FetchDescriptor<CoachChatRecord>())) ?? -1,
-            "StudySessionRecord": (try? context.fetchCount(FetchDescriptor<StudySessionRecord>())) ?? -1,
+            "CoachConversationMessageRecord": (try? context.fetchCount(FetchDescriptor<StudyPulseSchemaLegacy.CoachConversationMessageRecord>())) ?? -1,
+            "CoachChatRecord": (try? context.fetchCount(FetchDescriptor<StudyPulseSchemaLegacy.CoachChatRecord>())) ?? -1,
+            "StudySessionRecord": (try? context.fetchCount(FetchDescriptor<StudyPulseSchemaLegacy.StudySessionRecord>())) ?? -1,
             "ExamAutopsyRecord": (try? context.fetchCount(FetchDescriptor<ExamAutopsyRecord>())) ?? -1,
-            "ExamSimulationRecord": (try? context.fetchCount(FetchDescriptor<ExamSimulationRecord>())) ?? -1,
+            "ExamSimulationRecord": (try? context.fetchCount(FetchDescriptor<StudyPulseSchemaLegacy.ExamSimulationRecord>())) ?? -1,
         ]
     }
 }

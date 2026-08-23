@@ -151,11 +151,20 @@ final class DefaultTimeInvestmentRepository: TimeInvestmentRepository, Persisten
     }
 
     func deleteReward(_ id: UUID) {
-        guard let context else { return }
-        if let record = try? context.fetch(FetchDescriptor<GoalRewardRecord>())
-            .first(where: { $0.id == id }) {
-            context.delete(record)
-            try? context.save()
+        guard let context else {
+            rewards.removeAll { $0.id == id }
+            return
+        }
+        do {
+            if let record = try context.fetch(FetchDescriptor<GoalRewardRecord>())
+                .first(where: { $0.id == id }) {
+                context.delete(record)
+                try context.save()
+            }
+        } catch {
+            context.rollback()
+            Log.data.error("TimeInvestmentRepository deleteReward failed: \(error.localizedDescription, privacy: .public)")
+            return
         }
         rewards.removeAll { $0.id == id }
     }
@@ -186,7 +195,7 @@ final class DefaultTimeInvestmentRepository: TimeInvestmentRepository, Persisten
         guard candidate.parentSubTaskID != candidate.id else {
             throw TimeInvestmentRepositoryError.invalidHierarchy
         }
-        var map = Dictionary(uniqueKeysWithValues: subTasks.map { ($0.id, $0) })
+        var map = Dictionary(subTasks.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         map[candidate.id] = candidate
         var depth = 1
         var seen: Set<UUID> = [candidate.id]

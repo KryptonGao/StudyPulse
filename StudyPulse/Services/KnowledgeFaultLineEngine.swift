@@ -113,7 +113,7 @@ nonisolated enum KnowledgeFaultLineEngine {
         mistakes: [MistakeNote],
         now: Date
     ) -> [KnowledgeFaultLine] {
-        let notesByID = Dictionary(uniqueKeysWithValues: mistakes.map { ($0.id, $0) })
+        let notesByID = Dictionary(mistakes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         var buckets: [String: (category: KnowledgeFaultCategory, prerequisite: String, foundation: String, ids: Set<UUID>)] = [:]
 
         for node in nodes {

@@ -33,7 +33,7 @@ final class DefaultExamSimulationRepository: ExamSimulationRepository {
             didBackfill = true
             return summary
         }
-        if didBackfill { try? context.save() }
+        if didBackfill { context.saveOrRollback("ExamSimulationRepository.loadAll(backfill)") }
     }
 
     func upsert(_ simulation: ExamSimulation) {
@@ -55,7 +55,7 @@ final class DefaultExamSimulationRepository: ExamSimulationRepository {
         } else {
             context.insert(ExamSimulationRecord(from: simulation))
         }
-        try? context.save()
+        context.saveOrRollback("ExamSimulationRepository.upsert")
 
         if let index = simulations.firstIndex(where: { $0.id == simulation.id }) {
             simulations[index] = simulation
@@ -134,6 +134,6 @@ final class DefaultExamSimulationRepository: ExamSimulationRepository {
                 predicate: #Predicate { $0.id == simulation.id }
               )))?.first else { return }
         context.delete(record)
-        try? context.save()
+        context.saveOrRollback("ExamSimulationRepository.delete")
     }
 }

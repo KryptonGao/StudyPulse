@@ -217,7 +217,7 @@ enum BackupImporter {
         _ incoming: [T],
         choose: (T, T) -> T
     ) -> [T] where T.ID == UUID {
-        var values = Dictionary(uniqueKeysWithValues: current.map { ($0.id, $0) })
+        var values = Dictionary(current.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         for value in incoming {
             values[value.id] = values[value.id].map { choose($0, value) } ?? value
         }

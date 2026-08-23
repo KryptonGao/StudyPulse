@@ -16,10 +16,10 @@ final class MistakePatternResolutionStore {
         self.defaults = defaults
         if let data = defaults.data(forKey: key),
            let encoded = try? JSONDecoder().decode([String: MistakePatternUserState].self, from: data) {
-            self.states = Dictionary(uniqueKeysWithValues: encoded.compactMap { key, value in
+            self.states = Dictionary(encoded.compactMap { key, value in
                 guard let id = UUID(uuidString: key) else { return nil }
                 return (id, value)
-            })
+            }, uniquingKeysWith: { first, _ in first })
         } else {
             self.states = [:]
         }
@@ -38,7 +38,7 @@ final class MistakePatternResolutionStore {
     }
 
     private func save() {
-        let encoded = Dictionary(uniqueKeysWithValues: states.map { ($0.key.uuidString, $0.value) })
+        let encoded = Dictionary(states.map { ($0.key.uuidString, $0.value) }, uniquingKeysWith: { first, _ in first })
         defaults.set(try? JSONEncoder().encode(encoded), forKey: key)
     }
 }

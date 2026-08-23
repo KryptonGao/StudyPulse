@@ -16,9 +16,13 @@
 //  - Each domain model has a corresponding @Model entity (SubjectEntity / GradeEntity / ...)
 //
 //  SCHEMA FREEZE:
-//  These record definitions are part of StudyPulseSchemaV1. Do not change their
-//  persisted properties in place. Introduce changed record types in a new
-//  VersionedSchema and add a stage to StudyPulseMigrationPlan instead.
+//  The top-level record classes in this file are the CURRENT schema's shapes
+//  (StudyPulseSchemaV5). The pre-V5 shapes of the payload-backed history
+//  records live in StudyPulseSchemaLegacy and are referenced by
+//  StudyPulseSchemaV1...V4. Never change persisted properties of an existing
+//  class in place: introduce the changed record class in a new VersionedSchema
+//  (swap it in via that schema's `models`) and add a stage to
+//  StudyPulseMigrationPlan instead.
 //  - Entity fields mirror the struct's; nested types (ExamTimeSlot / ReviewState / [Data])
 //    are flattened to primitive fields ([String] / Date / @Attribute(.externalStorage) Data)
 //  - Use toSnapshot() / init(from:) to convert

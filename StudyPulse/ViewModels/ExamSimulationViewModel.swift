@@ -199,9 +199,10 @@ final class ExamSimulationViewModel {
         do {
             if current.totalScore == nil {
                 let answers = Dictionary(
-                    uniqueKeysWithValues: current.questionRecords.map {
+                    current.questionRecords.map {
                         ($0.question.id, $0.finalAnswer ?? "")
-                    }
+                    },
+                    uniquingKeysWith: { first, _ in first }
                 )
                 let gradingPrompt = QuizGradingLLM.makePrompt(
                     subject: current.subject,
@@ -258,10 +259,11 @@ final class ExamSimulationViewModel {
         simulation = active
         recorder = ExamSimulationBehaviorRecorder(simulation: active)
         draftAnswers = Dictionary(
-            uniqueKeysWithValues: active.questionRecords.compactMap { record in
+            active.questionRecords.compactMap { record in
                 guard let answer = record.finalAnswer else { return nil }
                 return (record.question.id, answer)
-            }
+            },
+            uniquingKeysWith: { first, _ in first }
         )
         currentIndex = active.events.reversed()
             .first(where: { $0.kind == .questionEntered })?

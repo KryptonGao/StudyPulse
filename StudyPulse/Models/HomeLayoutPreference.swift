@@ -218,7 +218,7 @@ struct HomeLayoutPreference: Codable, Equatable {
     /// Merge saved config with default: preserve user choices for known types, add new ones.
     private static func mergeWithDefault(_ saved: HomeLayoutPreference) -> HomeLayoutPreference {
         var mergedItems: [HomeCardItem] = []
-        let savedMap = Dictionary(uniqueKeysWithValues: saved.items.map { ($0.type, $0.enabled) })
+        let savedMap = Dictionary(saved.items.map { ($0.type, $0.enabled) }, uniquingKeysWith: { first, _ in first })
         for defaultItem in HomeLayoutPreference.default.items {
             let enabled = savedMap[defaultItem.type] ?? defaultItem.enabled
             mergedItems.append(HomeCardItem(type: defaultItem.type, enabled: enabled))

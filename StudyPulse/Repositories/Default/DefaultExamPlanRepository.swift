@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import os
 
 @Observable @MainActor
 final class DefaultExamPlanRepository: ExamPlanRepository {
@@ -44,27 +45,43 @@ final class DefaultExamPlanRepository: ExamPlanRepository {
             didBackfill = true
             return summary
         }
-        if didBackfill { try? context.save() }
+        if didBackfill {
+            guard context.saveOrRollback("ExamPlanRepository.loadAll(backfill)") else { return }
+        }
     }
 
     func upsertGoal(_ goal: ExamGoal) {
-        guard let context else { return }
-        if let record = (try? context.fetch(FetchDescriptor<ExamGoalRecord>(
-            predicate: #Predicate { $0.id == goal.id }
-        )))?.first {
-            record.createdAt = goal.createdAt
-            record.examName = goal.examName
-            record.subject = goal.subject
-            record.examDate = goal.examDate
-            record.currentScore = goal.currentScore
-            record.targetScore = goal.targetScore
-            record.fullScore = goal.fullScore
-            record.phaseId = goal.phaseId
-            record.payload = (try? JSONEncoder().encode(goal)) ?? Data()
-        } else {
-            context.insert(ExamGoalRecord(from: goal))
+        guard let context else {
+            if let index = goals.firstIndex(where: { $0.id == goal.id }) {
+                goals[index] = goal
+            } else {
+                goals.append(goal)
+            }
+            goals.sort { $0.createdAt > $1.createdAt }
+            return
         }
-        try? context.save()
+        do {
+            if let record = try context.fetch(FetchDescriptor<ExamGoalRecord>(
+                predicate: #Predicate { $0.id == goal.id }
+            )).first {
+                record.createdAt = goal.createdAt
+                record.examName = goal.examName
+                record.subject = goal.subject
+                record.examDate = goal.examDate
+                record.currentScore = goal.currentScore
+                record.targetScore = goal.targetScore
+                record.fullScore = goal.fullScore
+                record.phaseId = goal.phaseId
+                record.payload = (try? JSONEncoder().encode(goal)) ?? Data()
+            } else {
+                context.insert(ExamGoalRecord(from: goal))
+            }
+            try context.save()
+        } catch {
+            context.rollback()
+            Log.data.error("ExamPlanRepository upsertGoal failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
 
         if let index = goals.firstIndex(where: { $0.id == goal.id }) {
             goals[index] = goal
@@ -75,36 +92,60 @@ final class DefaultExamPlanRepository: ExamPlanRepository {
     }
 
     func deleteGoal(_ goal: ExamGoal) {
+        guard let context else {
+            plans.removeAll { $0.examGoalID == goal.id }
+            goals.removeAll { $0.id == goal.id }
+            return
+        }
+        do {
+            let goalRecords = try context.fetch(FetchDescriptor<ExamGoalRecord>(
+                predicate: #Predicate { $0.id == goal.id }
+            ))
+            goalRecords.forEach(context.delete)
+            let planRecords = try context.fetch(FetchDescriptor<ExamPlanRecord>(
+                predicate: #Predicate { $0.examGoalID == goal.id }
+            ))
+            planRecords.forEach(context.delete)
+            try context.save()
+        } catch {
+            context.rollback()
+            Log.data.error("ExamPlanRepository deleteGoal failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
         plans.removeAll { $0.examGoalID == goal.id }
         goals.removeAll { $0.id == goal.id }
-        guard let context else { return }
-
-        let goalRecords = (try? context.fetch(FetchDescriptor<ExamGoalRecord>(
-            predicate: #Predicate { $0.id == goal.id }
-        ))) ?? []
-        goalRecords.forEach(context.delete)
-        let planRecords = (try? context.fetch(FetchDescriptor<ExamPlanRecord>(
-            predicate: #Predicate { $0.examGoalID == goal.id }
-        ))) ?? []
-        planRecords.forEach(context.delete)
-        try? context.save()
     }
 
     func upsertPlan(_ plan: ExamPlan) {
-        guard let context else { return }
-        if let record = (try? context.fetch(FetchDescriptor<ExamPlanRecord>(
-            predicate: #Predicate { $0.id == plan.id }
-        )))?.first {
-            record.examGoalID = plan.examGoalID
-            record.createdAt = plan.createdAt
-            record.improvementTarget = plan.improvementTarget
-            record.summary = plan.summary
-            record.modelInfo = plan.modelInfo
-            record.payload = (try? JSONEncoder().encode(plan)) ?? Data()
-        } else {
-            context.insert(ExamPlanRecord(from: plan))
+        guard let context else {
+            if let index = plans.firstIndex(where: { $0.id == plan.id }) {
+                plans[index] = plan
+            } else {
+                plans.append(plan)
+            }
+            plans.sort { $0.createdAt > $1.createdAt }
+            if plans.count > 50 { plans = Array(plans.prefix(50)) }
+            return
         }
-        try? context.save()
+        do {
+            if let record = try context.fetch(FetchDescriptor<ExamPlanRecord>(
+                predicate: #Predicate { $0.id == plan.id }
+            )).first {
+                record.examGoalID = plan.examGoalID
+                record.createdAt = plan.createdAt
+                record.improvementTarget = plan.improvementTarget
+                record.summary = plan.summary
+                record.modelInfo = plan.modelInfo
+                record.payload = (try? JSONEncoder().encode(plan)) ?? Data()
+            } else {
+                context.insert(ExamPlanRecord(from: plan))
+            }
+            try context.save()
+        } catch {
+            context.rollback()
+            Log.data.error("ExamPlanRepository upsertPlan failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
 
         if let index = plans.firstIndex(where: { $0.id == plan.id }) {
             plans[index] = plan
@@ -116,13 +157,23 @@ final class DefaultExamPlanRepository: ExamPlanRepository {
     }
 
     func deletePlan(_ plan: ExamPlan) {
-        plans.removeAll { $0.id == plan.id }
-        guard let context,
-              let record = (try? context.fetch(FetchDescriptor<ExamPlanRecord>(
+        guard let context else {
+            plans.removeAll { $0.id == plan.id }
+            return
+        }
+        do {
+            if let record = try context.fetch(FetchDescriptor<ExamPlanRecord>(
                 predicate: #Predicate { $0.id == plan.id }
-              )))?.first else { return }
-        context.delete(record)
-        try? context.save()
+            )).first {
+                context.delete(record)
+                try context.save()
+            }
+        } catch {
+            context.rollback()
+            Log.data.error("ExamPlanRepository deletePlan failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        plans.removeAll { $0.id == plan.id }
     }
 
     func plan(id: UUID) -> ExamPlan? {
