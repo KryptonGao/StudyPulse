@@ -187,43 +187,60 @@ final class RepositoryContainer {
     ///
     /// The successfully opened container is supplied by the launch coordinator
     /// and is the same instance injected into SwiftUI.
-    func asyncInit(using container: ModelContainer) async {
+    func asyncInit(using container: ModelContainer) async throws {
         let interval = Self.persistenceSignposter.beginInterval("RepositoryContainer.asyncInit")
         defer { Self.persistenceSignposter.endInterval("RepositoryContainer.asyncInit", interval) }
+        isReady = false
+        try Task.checkCancellation()
         self.modelContainer = container
         let context = container.mainContext
         attachPersistenceExecutor(to: container)
 
         // 一次性 SwiftData migration from JSON(老用户数据回填)
         ModelContainerFactory.migrateFromJSONIfNeeded(context: context)
+        try Task.checkCancellation()
 
         // Repository protocols are MainActor-isolated. Loading them in a task group
         // would capture actor-isolated state in @Sendable closures and cannot provide
         // real parallelism, so load in actor order instead.
-        await loadHighFrequencyRepositories(context: context)
+        try await loadHighFrequencyRepositories(context: context)
         await phaseRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await profileRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await subjectRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await routineRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await routineInstanceRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await diaryRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await self.coachRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await self.studySessionRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await self.timeInvestmentRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await self.examAutopsyRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await self.examSimulationRepo.loadAll(context: context)
+        try Task.checkCancellation()
         await self.examPlanRepo.loadAll(context: context)
+        try Task.checkCancellation()
 
         // 内嵌图片迁移(在 waitForAll 后,grades 已加载)
         let migrated = gradeRepo.migrateInlineImagesIfNeeded()
         if migrated > 0, let backed = gradeRepo as? any PersistenceExecutorBacked {
             await backed.flushPendingPersistence()
         }
+        try Task.checkCancellation()
 
         // SubjectRepo 默认科目(空库时)
         if subjectRepo.subjects.isEmpty {
             subjectRepo.initializeDefaultSubjects()
         }
+        try Task.checkCancellation()
 
         // PlantManager 首次播种 + 注入上下文 + 订阅 AchievementManager
         ModelContainerFactory.migratePlantStateIfNeeded(context: context)
@@ -248,11 +265,11 @@ final class RepositoryContainer {
 
     /// Reload every repository after an atomic backup restore, then rebuild
     /// phase caches and all external projections.
-    func reloadAllAfterBackupRestore() async {
+    func reloadAllAfterBackupRestore() async throws {
         guard let modelContainer else { return }
         let context = modelContainer.mainContext
         attachPersistenceExecutor(to: modelContainer)
-        await loadHighFrequencyRepositories(context: context)
+        try await loadHighFrequencyRepositories(context: context)
         await phaseRepo.loadAll(context: context)
         await profileRepo.loadAll(context: context)
         await subjectRepo.loadAll(context: context)
@@ -285,7 +302,11 @@ final class RepositoryContainer {
         let context = testContainer.mainContext
         attachPersistenceExecutor(to: testContainer)
 
-        await loadHighFrequencyRepositories(context: context)
+        do {
+            try await loadHighFrequencyRepositories(context: context)
+        } catch {
+            return
+        }
         await phaseRepo.loadAll(context: context)
         await profileRepo.loadAll(context: context)
         await subjectRepo.loadAll(context: context)
@@ -539,7 +560,7 @@ final class RepositoryContainer {
         (timeInvestmentRepo as? any PersistenceExecutorAttachable)?.attachPersistenceExecutor(executor)
     }
 
-    private func loadHighFrequencyRepositories(context: ModelContext) async {
+    private func loadHighFrequencyRepositories(context: ModelContext) async throws {
         guard let executor = persistenceExecutor,
               let grades = gradeRepo as? DefaultGradeRepository,
               let mistakes = mistakeRepo as? DefaultMistakeRepository,
@@ -549,6 +570,7 @@ final class RepositoryContainer {
             await mistakeRepo.loadAll(context: context)
             await examRepo.loadAll(context: context)
             await taskRepo.loadAll(context: context)
+            try Task.checkCancellation()
             return
         }
 
@@ -577,6 +599,7 @@ final class RepositoryContainer {
             )
         } catch is CancellationError {
             Log.data.debug("High-frequency repository startup load cancelled")
+            throw CancellationError()
         } catch {
             Log.data.error("High-frequency repository startup load failed: \(error.localizedDescription, privacy: .public)")
         }

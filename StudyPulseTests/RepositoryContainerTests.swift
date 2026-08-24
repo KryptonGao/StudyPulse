@@ -13,6 +13,25 @@ import SwiftData
 @MainActor
 final class RepositoryContainerTests: XCTestCase {
 
+    func test_cancelledProductionInitializationNeverMarksContainerReady() async throws {
+        let modelContainer = try TestModelContainerFactory.makeInMemoryContainer()
+        let container = RepositoryContainer()
+        let initialization = Task { @MainActor in
+            await Task.yield()
+            try await container.asyncInit(using: modelContainer)
+        }
+
+        initialization.cancel()
+        do {
+            try await initialization.value
+            XCTFail("Expected RepositoryContainer initialization cancellation")
+        } catch is CancellationError {
+            // Expected: cancellation propagates to the SwiftUI .task owner.
+        }
+
+        XCTAssertFalse(container.isReady)
+    }
+
     // MARK: - TestDataFixtures 验证
 
     func test_testDataFixtures_createsValidEntitiesWithDefaults() {

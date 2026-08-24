@@ -113,7 +113,15 @@ struct StudyPulseApp: App {
                           !container.isReady
                     else { return }
                     // 初始化 RepositoryContainer:JSON 迁移 + 7 个 repo 并行 loadAll
-                    await container.asyncInit(using: modelContainer)
+                    do {
+                        try await container.asyncInit(using: modelContainer)
+                    } catch is CancellationError {
+                        Log.data.debug("Repository initialization cancelled before readiness")
+                        return
+                    } catch {
+                        Log.data.error("Repository initialization failed: \(error.localizedDescription, privacy: .public)")
+                        return
+                    }
                     timerManager.attach(
                         sessionRepository: container.studySessionRepo,
                         timeInvestmentRepository: container.timeInvestmentRepo

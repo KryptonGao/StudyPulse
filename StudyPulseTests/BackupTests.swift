@@ -1,7 +1,39 @@
 import XCTest
+import SwiftData
 @testable import StudyPulse
 
 final class BackupTests: XCTestCase {
+    @MainActor
+    func testRestorePreflightFailureLeavesLiveStoreUntouched() async throws {
+        let archive = try makeEmptyArchive()
+        defer { try? FileManager.default.removeItem(at: archive) }
+        var validated = try await BackupValidator.validate(archiveURL: archive)
+        defer { validated.cleanup() }
+
+        let duplicate = Subject(name: "Duplicate ID")
+        validated.content.subjects = [duplicate, duplicate]
+
+        let container = try TestModelContainerFactory.makeInMemoryContainer()
+        let existing = Grade(subject: "Math", score: 88, examName: "Existing")
+        container.mainContext.insert(GradeRecord(from: existing))
+        try container.mainContext.save()
+
+        XCTAssertThrowsError(
+            try BackupImporter.validateInTemporaryStore(validated.content)
+        )
+
+        XCTAssertEqual(
+            try container.mainContext.fetchCount(
+                FetchDescriptor<GradeRecord>()
+            ),
+            1
+        )
+        XCTAssertEqual(
+            try container.mainContext.fetch(FetchDescriptor<GradeRecord>()).map(\.id),
+            [existing.id]
+        )
+    }
+
     func testManifestRoundTrip() throws {
         let source = BackupManifest(
             appVersion: "3.1",
