@@ -384,8 +384,9 @@ final class AppEnvironmentManager {
         AuthTokenStore.shared.pair != nil || (preferences.cloudSessionEmail != nil && cloudSessionToken != nil)
     }
 
-    func cloudSessionLogin(accessToken: String, refreshToken: String, email: String? = nil) throws {
-        try AuthTokenStore.shared.save(AuthTokenPair(accessToken: accessToken, refreshToken: refreshToken))
+    func cloudSessionLogin(accessToken: String, refreshToken: String, email: String? = nil,
+                           tokenStore: AuthTokenStore = .shared) throws {
+        try tokenStore.save(AuthTokenPair(accessToken: accessToken, refreshToken: refreshToken))
         preferences.cloudSessionEmail = email
         preferences.cloudMembershipType = nil
         preferences.cloudMembershipExpiresAt = nil
@@ -397,6 +398,18 @@ final class AppEnvironmentManager {
             preferences.llmProviders.append(provider)
             preferences.activeLLMProviderId = provider.id
         }
+    }
+
+    /// Applies a profile that was already validated by AuthClient. This method
+    /// deliberately does not perform network I/O or persist tokens, so callers
+    /// can validate a callback before any credential is written to Keychain.
+    func applyCloudProfile(_ profile: ProfileData) {
+        if let email = profile.email?.trimmingCharacters(in: .whitespacesAndNewlines), !email.isEmpty {
+            preferences.cloudSessionEmail = email
+        }
+        preferences.cloudMembershipType = profile.membership?.effective_type ?? profile.membership?.type
+        preferences.cloudMembershipExpiresAt = profile.membership?.expires_at
+        preferences.cloudAvailableModels = profile.plan?.available_models
     }
 
     /// 保存 Session Token 并记录登录邮箱和会员信息。
@@ -441,12 +454,7 @@ final class AppEnvironmentManager {
               !token.isEmpty, !workerURL.isEmpty else { return }
         do {
             let profile = try await AuthClient.shared.getProfile(sessionToken: token, workerURL: workerURL)
-            if let email = profile.email?.trimmingCharacters(in: .whitespacesAndNewlines), !email.isEmpty {
-                preferences.cloudSessionEmail = email
-            }
-            preferences.cloudMembershipType = profile.membership?.effective_type ?? profile.membership?.type
-            preferences.cloudMembershipExpiresAt = profile.membership?.expires_at
-            preferences.cloudAvailableModels = profile.plan?.available_models
+            applyCloudProfile(profile)
         } catch {
             Log.preferences.error("刷新 Cloud AI profile 失败: \(error.localizedDescription)")
         }

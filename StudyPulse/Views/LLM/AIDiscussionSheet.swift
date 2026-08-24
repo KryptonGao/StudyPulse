@@ -39,6 +39,8 @@ struct AIDiscussionSheet: View {
     /// 退出回调
     /// Dismiss callback.
     let onDismiss: () -> Void
+    /// Whether the context includes HealthKit/recovery data.
+    let containsHealthData: Bool
 
     @Environment(RepositoryContainer.self) private var container
     @State private var viewModel = AIDiscussionViewModel()
@@ -48,6 +50,20 @@ struct AIDiscussionSheet: View {
     /// 输入框焦点状态(键盘自动弹出)
     /// Focus state for the input field (drives keyboard auto-appearance).
     @FocusState private var inputFocused: Bool
+
+    init(
+        title: String,
+        context: String,
+        initialAssistantMessage: String?,
+        containsHealthData: Bool = false,
+        onDismiss: @escaping () -> Void
+    ) {
+        self.title = title
+        self.context = context
+        self.initialAssistantMessage = initialAssistantMessage
+        self.containsHealthData = containsHealthData
+        self.onDismiss = onDismiss
+    }
 
     var body: some View {
         NavigationStack {
@@ -94,7 +110,8 @@ struct AIDiscussionSheet: View {
             .onAppear {
                 viewModel.bootstrap(
                     context: context,
-                    initialAssistantMessage: initialAssistantMessage
+                    initialAssistantMessage: initialAssistantMessage,
+                    containsHealthData: containsHealthData
                 )
             }
             .onDisappear { viewModel.cancel() }
@@ -231,6 +248,7 @@ final class AIDiscussionViewModel {
     var messages: [Message] = []
     var isStreaming: Bool = false
     private var context: String = ""
+    private var containsHealthData = false
     /// 上一次的 AI 预测原文(只用于拼装 system prompt;不会作为 conversation history 发送,
     /// 因为 `assistant` 角色没有前导 user 消息会让部分 LLM 困惑 / 遗忘)。
     /// Previous AI prediction text (only used to assemble the system prompt;
@@ -245,9 +263,10 @@ final class AIDiscussionViewModel {
     /// initial assistant message (UI only) and stash the same text in
     /// `previousAIPrediction` so it is fed to the LLM as system context on
     /// every subsequent request.
-    func bootstrap(context: String, initialAssistantMessage: String?) {
+    func bootstrap(context: String, initialAssistantMessage: String?, containsHealthData: Bool = false) {
         guard messages.isEmpty else { return }
         self.context = context
+        self.containsHealthData = containsHealthData
         if let initial = initialAssistantMessage, !initial.isEmpty {
             previousAIPrediction = initial
             messages.append(
@@ -297,7 +316,11 @@ final class AIDiscussionViewModel {
             context: context,
             previousAIPrediction: previousAIPrediction
         )
-        let prompt = LLMPrompt(system: system, messages: history)
+        let prompt = LLMPrompt(
+            system: system,
+            messages: history,
+            sensitivity: containsHealthData ? .healthSensitive : .ordinary
+        )
 
         isStreaming = true
         currentTask = Task { [weak self] in

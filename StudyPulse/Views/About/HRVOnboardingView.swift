@@ -140,19 +140,27 @@ struct HRVOnboardingView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.top, 8)
 
-                Text("Your Data Stays on Your Device".localized())
+                Text("Health Data Controls".localized())
                     .font(.title2.bold())
 
-                VStack(alignment: .leading, spacing: 16) {
-                    privacyRow("lock.shield.fill", "HRV data is read directly from Apple Health".localized(), "We never see or store it ourselves".localized())
-                    privacyRow("iphone.gen3", "All processing happens on your device".localized(), "No data is sent to any server".localized())
-                    privacyRow("xmark.shield.fill", "You can disable HRV anytime in Settings".localized(), "Access is revoked instantly".localized())
-                }
+                Text("HealthKit signals are read with your permission and processed locally for recovery guidance. StudyPulse does not upload them unless you separately allow health data in AI requests.".localized())
+                    .foregroundColor(.secondary)
+
+                privacyRow(
+                    "lock.shield.fill",
+                    "HealthKit access is controlled by you".localized(),
+                    "You can disable HealthKit access in Settings at any time.".localized()
+                )
+                privacyRow(
+                    "brain.head.profile.fill",
+                    "Optional AI sharing is off by default".localized(),
+                    "If enabled, selected recovery and mood or energy summaries may be sent to your configured AI endpoint.".localized()
+                )
 
                 calloutBox(
                     icon: "checkmark.shield.fill",
                     color: .green,
-                    text: "StudyPulse only reads HRV from HealthKit with your explicit permission. We do not write any data.".localized()
+                    text: "StudyPulse may write a 1-minute Mindful Session when diary sync is enabled. Mood and energy values stay on-device.".localized()
                 )
             }
             .padding(24)

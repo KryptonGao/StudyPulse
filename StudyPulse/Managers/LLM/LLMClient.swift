@@ -76,9 +76,21 @@ nonisolated struct LLMCallDebugInfo: Equatable, Sendable {
     }
 
     func redacting(secret: String?) -> LLMCallDebugInfo {
-        guard let secret, !secret.isEmpty else { return self }
+        redacting(secrets: [secret])
+    }
+
+    /// Returns a copy with every supplied credential removed from every debug field.
+    /// This covers both BYOK API keys and Cloud session tokens.
+    func redacting(secrets: [String?]) -> LLMCallDebugInfo {
+        let usableSecrets: [String] = secrets.compactMap { secret -> String? in
+            guard let secret, !secret.isEmpty else { return nil }
+            return secret
+        }
+        guard !usableSecrets.isEmpty else { return self }
         func redact(_ value: String) -> String {
-            value.replacingOccurrences(of: secret, with: "<redacted>")
+            usableSecrets.reduce(value) { partial, secret in
+                partial.replacingOccurrences(of: secret, with: "<redacted>")
+            }
         }
         return LLMCallDebugInfo(
             startTime: startTime,
@@ -129,7 +141,7 @@ final class LLMClient: @unchecked Sendable {
     private(set) var recentCalls: [LLMCallDebugInfo] = []
     private let recentCallsLimit = 20  // 防止 LLM Debug 面板无限增长
 
-    private init(session: URLSession? = nil) {
+    init(session: URLSession? = nil) {
         if let session {
             self.session = session
         } else {
@@ -151,7 +163,7 @@ final class LLMClient: @unchecked Sendable {
         config: LLMConfig,
         caller: String = "complete"
     ) async throws -> String {
-        try validateConfig(config)
+        try validateConfig(config, prompt: prompt)
 
         // Cloud AI 网关:使用简化协议,响应格式不同。
         if config.isCloudProvider {
@@ -193,7 +205,7 @@ final class LLMClient: @unchecked Sendable {
                 response: nil, error: LLMError.timeout.errorDescription,
                 caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw LLMError.timeout
         } catch {
             let info = LLMCallDebugInfo(
@@ -205,11 +217,11 @@ final class LLMClient: @unchecked Sendable {
                 response: nil, error: error.localizedDescription,
                 caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw LLMError.network(error.localizedDescription)
         }
         do {
-            try validateHTTP(response: response, data: data, apiKey: config.apiKey)
+            try validateHTTP(response: response, data: data, secrets: [config.apiKey, config.sessionToken])
         } catch {
             let desc = (error as? LLMError)?.errorDescription ?? error.localizedDescription
             let info = LLMCallDebugInfo(
@@ -221,7 +233,7 @@ final class LLMClient: @unchecked Sendable {
                 response: String(data: data, encoding: .utf8),
                 error: desc, caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw error
         }
         let result = try await Task.detached(priority: .userInitiated) {
@@ -235,7 +247,7 @@ final class LLMClient: @unchecked Sendable {
             messages: prompt.messages, streaming: false,
             response: result, error: nil, caller: caller
         )
-        recordCall(info, apiKey: config.apiKey)
+        recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
         // 写入缓存:相同 prompt 在 TTL 内不重复请求网络。
         // Cache the response so the same prompt doesn't hit the network within TTL.
         await LLMResponseCache.shared.set(caller: caller, prompt: prompt, config: config, response: result)
@@ -282,7 +294,7 @@ final class LLMClient: @unchecked Sendable {
                 response: nil, error: LLMError.timeout.errorDescription,
                 caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw LLMError.timeout
         } catch {
             let info = LLMCallDebugInfo(
@@ -294,7 +306,7 @@ final class LLMClient: @unchecked Sendable {
                 response: nil, error: error.localizedDescription,
                 caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw LLMError.network(error.localizedDescription)
         }
 
@@ -320,7 +332,7 @@ final class LLMClient: @unchecked Sendable {
         }
         // Cloud AI 网关上 HTTP 200 但 body 可能包含 {"error":"..."}
         if !(200..<300).contains(httpResponse.statusCode) {
-            let cloudError = LLMError.cloudError(statusCode: httpResponse.statusCode, data: data)
+            let cloudError = LLMError.cloudError(statusCode: httpResponse.statusCode, data: data, secrets: [config.apiKey, config.sessionToken])
             let info = LLMCallDebugInfo(
                 startTime: startTime, endTime: Date(),
                 url: url.absoluteString, model: config.model ?? "MiniMax-M3",
@@ -329,14 +341,14 @@ final class LLMClient: @unchecked Sendable {
                 messages: prompt.messages, streaming: false,
                 response: nil, error: cloudError.errorDescription, caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw cloudError
         }
 
         let result: String
         do {
             result = try await Task.detached(priority: .userInitiated) {
-                try self.parseCloudResponse(data, httpResponse: httpResponse)
+                try self.parseCloudResponse(data, httpResponse: httpResponse, secrets: [config.apiKey, config.sessionToken])
             }.value
         } catch {
             let desc = (error as? LLMError)?.errorDescription ?? error.localizedDescription
@@ -349,7 +361,7 @@ final class LLMClient: @unchecked Sendable {
                 response: nil,
                 error: desc, caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw error
         }
 
@@ -361,7 +373,7 @@ final class LLMClient: @unchecked Sendable {
             messages: prompt.messages, streaming: false,
             response: result, error: nil, caller: caller
         )
-        recordCall(info, apiKey: config.apiKey)
+        recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
         await LLMResponseCache.shared.set(caller: caller, prompt: prompt, config: config, response: result)
         return result
     }
@@ -410,7 +422,7 @@ final class LLMClient: @unchecked Sendable {
                 response: nil, error: error.localizedDescription,
                 caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             if let urlErr = error as? URLError, urlErr.code == .timedOut {
                 throw LLMError.timeout
             }
@@ -441,7 +453,7 @@ final class LLMClient: @unchecked Sendable {
                     throw LLMError.unauthorized
                 }
             }
-            let cloudError = LLMError.cloudError(statusCode: http.statusCode, data: buffer)
+            let cloudError = LLMError.cloudError(statusCode: http.statusCode, data: buffer, secrets: [config.apiKey, config.sessionToken])
             let info = LLMCallDebugInfo(
                 startTime: startTime, endTime: Date(),
                 url: url.absoluteString, model: config.model ?? "MiniMax-M3",
@@ -450,7 +462,7 @@ final class LLMClient: @unchecked Sendable {
                 messages: prompt.messages, streaming: true,
                 response: nil, error: cloudError.errorDescription, caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw cloudError
         }
 
@@ -481,7 +493,7 @@ final class LLMClient: @unchecked Sendable {
                 response: accumulated.isEmpty ? nil : accumulated,
                 error: error.localizedDescription, caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw error
         }
 
@@ -495,7 +507,7 @@ final class LLMClient: @unchecked Sendable {
                 response: nil, error: LLMError.emptyResponse.errorDescription,
                 caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw LLMError.emptyResponse
         }
 
@@ -507,7 +519,7 @@ final class LLMClient: @unchecked Sendable {
             messages: prompt.messages, streaming: true,
             response: accumulated, error: nil, caller: caller
         )
-        recordCall(info, apiKey: config.apiKey)
+        recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
         await LLMResponseCache.shared.set(caller: caller, prompt: prompt, config: config, response: accumulated)
         return accumulated
     }
@@ -522,7 +534,7 @@ final class LLMClient: @unchecked Sendable {
         caller: String = "stream",
         onDelta: @MainActor (String) -> Void
     ) async throws -> String {
-        try validateConfig(config)
+        try validateConfig(config, prompt: prompt)
 
         // Cloud AI 网关 v0.5-beta 起支持 SSE 流式传输(透传 MiniMax 原始格式)。
         // Cloud AI gateway supports SSE streaming since v0.5-beta (proxies MiniMax raw format).
@@ -568,7 +580,7 @@ final class LLMClient: @unchecked Sendable {
                 response: nil, error: error.localizedDescription,
                 caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             if let urlErr = error as? URLError, urlErr.code == .timedOut {
                 throw LLMError.timeout
             }
@@ -582,7 +594,7 @@ final class LLMClient: @unchecked Sendable {
                 buffer.append(byte)
             }
             do {
-                try validateHTTP(response: response, data: buffer, apiKey: config.apiKey)
+                try validateHTTP(response: response, data: buffer, secrets: [config.apiKey, config.sessionToken])
             } catch {
                 let desc = (error as? LLMError)?.errorDescription ?? error.localizedDescription
                 let info = LLMCallDebugInfo(
@@ -594,11 +606,11 @@ final class LLMClient: @unchecked Sendable {
                     response: String(data: buffer, encoding: .utf8),
                     error: desc, caller: caller
                 )
-                recordCall(info, apiKey: config.apiKey)
+                recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
                 throw error
             }
         }
-        try validateHTTP(response: response, data: Data(), apiKey: config.apiKey)
+        try validateHTTP(response: response, data: Data(), secrets: [config.apiKey, config.sessionToken])
 
         var accumulated = ""
         var pending = ""
@@ -624,7 +636,7 @@ final class LLMClient: @unchecked Sendable {
                 response: accumulated.isEmpty ? nil : accumulated,
                 error: error.localizedDescription, caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw error
         }
         if accumulated.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -637,7 +649,7 @@ final class LLMClient: @unchecked Sendable {
                 response: nil, error: LLMError.emptyResponse.errorDescription,
                 caller: caller
             )
-            recordCall(info, apiKey: config.apiKey)
+            recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw LLMError.emptyResponse
         }
         let info = LLMCallDebugInfo(
@@ -648,7 +660,7 @@ final class LLMClient: @unchecked Sendable {
             messages: prompt.messages, streaming: true,
             response: accumulated, error: nil, caller: caller
         )
-        recordCall(info, apiKey: config.apiKey)
+        recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
         // 写入缓存:与 complete() 一致,使流式调用的结果也可被后续命中。
         // Cache the response so the same prompt doesn't hit the network within TTL.
         await LLMResponseCache.shared.set(caller: caller, prompt: prompt, config: config, response: accumulated)
@@ -675,8 +687,12 @@ final class LLMClient: @unchecked Sendable {
     private func testCloudConnection(config: LLMConfig) async throws {
         // 1. 健康检查:直接 GET 根路径,不通过 buildCloudURL(避免 deletingLastPathComponent 只删一层)
         guard let raw = config.baseURL else { throw LLMError.invalidURL }
-        let normalized = normalizeURL(raw)
-        guard let healthURL = URL(string: normalized) else { throw LLMError.invalidURL }
+        let healthURL: URL
+        do {
+            healthURL = try SecureEndpointURL.make(base: raw)
+        } catch {
+            throw LLMError.invalidURL
+        }
         var healthReq = URLRequest(url: healthURL)
         healthReq.httpMethod = "GET"
         let (healthData, healthResponse) = try await session.data(for: healthReq)
@@ -701,9 +717,9 @@ final class LLMClient: @unchecked Sendable {
             throw LLMError.network("Non-HTTP response")
         }
         guard httpResp.statusCode == 200 else {
-            throw LLMError.cloudError(statusCode: httpResp.statusCode, data: data)
+            throw LLMError.cloudError(statusCode: httpResp.statusCode, data: data, secrets: [config.apiKey, config.sessionToken])
         }
-        let reply = try parseCloudResponse(data, httpResponse: httpResp)
+        let reply = try parseCloudResponse(data, httpResponse: httpResp, secrets: [config.apiKey, config.sessionToken])
         guard !reply.isEmpty else {
             throw LLMError.emptyResponse
         }
@@ -721,7 +737,7 @@ final class LLMClient: @unchecked Sendable {
         return "Bearer \(config.apiKey ?? "")"
     }
 
-    private func validateConfig(_ config: LLMConfig) throws {
+    private func validateConfig(_ config: LLMConfig, prompt: LLMPrompt) throws {
         guard config.enabled else { throw LLMError.notConfigured }
         let hasAPIKey = !(config.apiKey?.isEmpty ?? true)
         let hasSessionToken = !(config.sessionToken?.isEmpty ?? true)
@@ -732,6 +748,12 @@ final class LLMClient: @unchecked Sendable {
         }
         guard let baseURL = config.baseURL, !baseURL.trimmingCharacters(in: .whitespaces).isEmpty else {
             throw LLMError.notConfigured
+        }
+        guard (try? SecureEndpointURL.make(base: baseURL)) != nil else {
+            throw LLMError.invalidURL
+        }
+        if prompt.sensitivity == .healthSensitive, !config.allowsHealthDataSharing {
+            throw LLMError.healthDataConsentRequired
         }
         // Cloud provider: model is fixed server-side, skip the model check.
         if !config.isCloudProvider {
@@ -767,36 +789,28 @@ final class LLMClient: @unchecked Sendable {
         // DEBUG 模式 verbose 开启时才进入 LogStore。
         // Route through the unified Log system at .debug level. Release builds
         // (minCaptureLevel=.info) drop it; DEBUG + verbose captures into LogStore.
-        let sanitized = redact(output, secret: config.apiKey)
+        let sanitized = redact(output, secrets: [config.apiKey, config.sessionToken])
         Log.llm.debug("\(sanitized, privacy: .public)")
-    }
-
-    /// 标准化 URL 字符串:自动补全 `https://` 如果缺少 scheme。
-    /// Normalize a URL string: auto-prepend `https://` when the scheme is missing.
-    nonisolated private func normalizeURL(_ raw: String) -> String {
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        let cleaned = trimmed.hasSuffix("/") ? String(trimmed.dropLast()) : trimmed
-        let lowered = cleaned.lowercased()
-        if lowered.hasPrefix("http://") || lowered.hasPrefix("https://") {
-            return cleaned
-        }
-        return "https://\(cleaned)"
     }
 
     nonisolated private func buildURL(baseURL: String?) throws -> URL {
         guard let raw = baseURL else { throw LLMError.invalidURL }
-        let normalized = normalizeURL(raw)
-        guard let base = URL(string: normalized) else { throw LLMError.invalidURL }
-        return base.appendingPathComponent("/v1/chat/completions")
+        do {
+            return try SecureEndpointURL.make(base: raw, appending: "v1/chat/completions")
+        } catch {
+            throw LLMError.invalidURL
+        }
     }
 
     /// Cloud AI 网关端点: `{workerURL}/v1/chat`
     /// Cloud AI gateway endpoint.
     nonisolated private func buildCloudURL(baseURL: String?) throws -> URL {
         guard let raw = baseURL else { throw LLMError.invalidURL }
-        let normalized = normalizeURL(raw)
-        guard let base = URL(string: normalized) else { throw LLMError.invalidURL }
-        return base.appendingPathComponent("/v1/chat")
+        do {
+            return try SecureEndpointURL.make(base: raw, appending: "v1/chat")
+        } catch {
+            throw LLMError.invalidURL
+        }
     }
 
     nonisolated private func buildBody(prompt: LLMPrompt, config: LLMConfig, stream: Bool) throws -> Data {
@@ -894,8 +908,8 @@ final class LLMClient: @unchecked Sendable {
 
     /// 把一次调用写入 `lastCallInfo` + `recentCalls`,并 log 到 `Log.llm`。
     /// Record a call into `lastCallInfo` and `recentCalls`, and emit a Log.llm entry.
-    private func recordCall(_ info: LLMCallDebugInfo, apiKey: String?) {
-        let sanitized = info.redacting(secret: apiKey)
+    private func recordCall(_ info: LLMCallDebugInfo, apiKey: String?, sessionToken: String?) {
+        let sanitized = info.redacting(secrets: [apiKey, sessionToken])
         lastCallInfo = sanitized
         recentCalls.append(sanitized)
         if recentCalls.count > recentCallsLimit {
@@ -906,7 +920,7 @@ final class LLMClient: @unchecked Sendable {
         Log.llm.info("LLM call [\(sanitized.caller, privacy: .public)] \(sanitized.url, privacy: .public) elapsed=\(elapsedStr, privacy: .public) status=\(okOrErr, privacy: .public)")
     }
 
-    private func validateHTTP(response: URLResponse, data: Data, apiKey: String?) throws {
+    private func validateHTTP(response: URLResponse, data: Data, secrets: [String?]) throws {
         guard let http = response as? HTTPURLResponse else {
             throw LLMError.network("Non-HTTP response")
         }
@@ -918,31 +932,32 @@ final class LLMClient: @unchecked Sendable {
             // 把响应体一并抛出,UI 才能看到 "Model not found" / "Invalid API key" 之类
             // Include the response body so the UI can show the server's real error message.
             let body = String(data: data, encoding: .utf8)
-                .map { redact($0, secret: apiKey) }
+                .map { redact($0, secrets: secrets) }
             throw LLMError.serverError(statusCode: http.statusCode, body: body)
         }
     }
 
-    nonisolated private func redact(_ text: String, secret: String?) -> String {
-        guard let secret, !secret.isEmpty else { return text }
-        return text.replacingOccurrences(of: secret, with: "<redacted>")
+    nonisolated private func redact(_ text: String, secrets: [String?]) -> String {
+        secrets.compactMap { $0 }.filter { !$0.isEmpty }.reduce(text) { partial, secret in
+            partial.replacingOccurrences(of: secret, with: "<redacted>")
+        }
     }
 
     // MARK: - Cloud AI Helpers
 
     /// 解析 Cloud AI 网关响应: `{"success": true, "data": {"reply": "..."}}`
     /// 或错误: `{"error": "..."}`。
-    nonisolated private func parseCloudResponse(_ data: Data, httpResponse: HTTPURLResponse) throws -> String {
+    nonisolated private func parseCloudResponse(_ data: Data, httpResponse: HTTPURLResponse, secrets: [String?] = []) throws -> String {
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw LLMError.malformedResponse
         }
         if let error = json["error"] as? String {
             let data = (try? JSONSerialization.data(withJSONObject: ["error": error])) ?? Data()
-            throw LLMError.cloudError(statusCode: httpResponse.statusCode, data: data)
+            throw LLMError.cloudError(statusCode: httpResponse.statusCode, data: data, secrets: secrets)
         }
         if let errorObject = json["error"] as? [String: Any] {
             let data = (try? JSONSerialization.data(withJSONObject: ["error": errorObject])) ?? Data()
-            throw LLMError.cloudError(statusCode: httpResponse.statusCode, data: data)
+            throw LLMError.cloudError(statusCode: httpResponse.statusCode, data: data, secrets: secrets)
         }
         guard let dataObj = json["data"] as? [String: Any],
               let reply = dataObj["reply"] as? String else {

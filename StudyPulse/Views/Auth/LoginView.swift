@@ -62,14 +62,7 @@ struct LoginView: View {
         defer { isWorking = false }
         do {
             let pair = try await webAuth.authenticate()
-            try container.envManager.cloudSessionLogin(
-                accessToken: pair.accessToken,
-                refreshToken: pair.refreshToken
-            )
-            // The OAuth callback intentionally contains tokens only. Fetch the
-            // signed-in profile so GitHub accounts (including private emails)
-            // can be displayed in the account row.
-            await container.envManager.refreshCloudProfile()
+            try await CloudAuthLoginCoordinator.login(pair: pair, container: container)
             dismiss()
         } catch WebAuthError.cancelled {
             // User cancellation is expected and does not need an error alert.

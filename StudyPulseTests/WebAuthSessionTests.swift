@@ -4,36 +4,66 @@ import XCTest
 @MainActor
 final class WebAuthSessionTests: XCTestCase {
     func testLoginURLUsesEncodedReturnToCallback() throws {
-        let components = try XCTUnwrap(URLComponents(url: WebAuthSession.loginURL, resolvingAgainstBaseURL: false))
+        let state = "test-state"
+        let loginURL = WebAuthSession.makeLoginURL(state: state)
+        let components = try XCTUnwrap(URLComponents(url: loginURL, resolvingAgainstBaseURL: false))
         XCTAssertEqual(components.scheme, "https")
         XCTAssertEqual(components.host, "auth.chenkai.space")
-        XCTAssertEqual(
-            components.queryItems?.first(where: { $0.name == "return_to" })?.value,
-            "studypulse://auth/callback"
-        )
-        XCTAssertTrue(WebAuthSession.loginURL.absoluteString.contains("return_to=studypulse%3A%2F%2Fauth%2Fcallback"))
+        let returnTo = try XCTUnwrap(components.queryItems?.first(where: { $0.name == "return_to" })?.value)
+        let callback = try XCTUnwrap(URLComponents(string: returnTo))
+        XCTAssertEqual(callback.scheme, "studypulse")
+        XCTAssertEqual(callback.host, "auth")
+        XCTAssertEqual(callback.path, "/callback")
+        XCTAssertEqual(callback.queryItems?.first(where: { $0.name == "state" })?.value, state)
     }
 
     func testCallbackParsesBothTokens() throws {
-        let url = try XCTUnwrap(URL(string: "studypulse://auth/callback?access_token=access%201&refresh_token=refresh%2B1"))
+        let url = try XCTUnwrap(URL(string: "studypulse://auth/callback?state=state-1&access_token=access%201&refresh_token=refresh%2B1"))
         XCTAssertEqual(
-            try WebAuthCallbackParser.parse(url),
+            try WebAuthCallbackParser.parse(url, expectedState: "state-1"),
             AuthTokenPair(accessToken: "access 1", refreshToken: "refresh+1")
         )
     }
 
     func testCallbackRejectsMissingRefreshToken() throws {
-        let url = try XCTUnwrap(URL(string: "studypulse://auth/callback?access_token=access"))
-        XCTAssertThrowsError(try WebAuthCallbackParser.parse(url)) { error in
+        let url = try XCTUnwrap(URL(string: "studypulse://auth/callback?state=state-1&access_token=access"))
+        XCTAssertThrowsError(try WebAuthCallbackParser.parse(url, expectedState: "state-1")) { error in
             XCTAssertEqual(error as? WebAuthError, .refreshTokenMissing)
         }
     }
 
     func testCallbackReportsOAuthFailure() throws {
-        let url = try XCTUnwrap(URL(string: "studypulse://auth/callback?error=access_denied&error_description=GitHub%20denied"))
-        XCTAssertThrowsError(try WebAuthCallbackParser.parse(url)) { error in
+        let url = try XCTUnwrap(URL(string: "studypulse://auth/callback?state=state-1&error=access_denied&error_description=GitHub%20denied"))
+        XCTAssertThrowsError(try WebAuthCallbackParser.parse(url, expectedState: "state-1")) { error in
             XCTAssertEqual(error as? WebAuthError, .oauthFailed("GitHub denied"))
         }
+    }
+
+    func testCallbackRejectsMissingAndMismatchedState() throws {
+        let missing = try XCTUnwrap(URL(string: "studypulse://auth/callback?access_token=a&refresh_token=r"))
+        XCTAssertThrowsError(try WebAuthCallbackParser.parse(missing, expectedState: "expected")) { error in
+            XCTAssertEqual(error as? WebAuthError, .stateMissing)
+        }
+
+        let mismatched = try XCTUnwrap(URL(string: "studypulse://auth/callback?state=other&access_token=a&refresh_token=r"))
+        XCTAssertThrowsError(try WebAuthCallbackParser.parse(mismatched, expectedState: "expected")) { error in
+            XCTAssertEqual(error as? WebAuthError, .stateMismatch)
+        }
+    }
+
+    func testCallbackStateIsConsumedOnceAndExpires() throws {
+        let suiteName = "StudyPulse.AuthStateTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        let store = AuthCallbackStateStore(defaults: defaults, keyPrefix: "test", lifetime: 60)
+        let start = Date(timeIntervalSince1970: 10_000)
+        let state = store.begin(now: start)
+        XCTAssertTrue(store.consumeIfMatches(state, now: start.addingTimeInterval(1)))
+        XCTAssertFalse(store.consumeIfMatches(state, now: start.addingTimeInterval(2)))
+
+        let expiredState = store.begin(now: start)
+        XCTAssertFalse(store.consumeIfMatches(expiredState, now: start.addingTimeInterval(61)))
+        XCTAssertNil(store.pendingState)
+        defaults.removePersistentDomain(forName: suiteName)
     }
 
     func testTokenPairIsStoredAndClearedOnlyInKeychain() throws {

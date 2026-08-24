@@ -67,12 +67,15 @@ final class HomeAskViewModel {
     var phase: Phase = .idle
     /// 用户正在输入的文本 / In-progress user text.
     var inputText: String = ""
+    /// The view presents the shared consent sheet when a body-data answer is blocked.
+    var shouldRequestHealthDataConsent: Bool = false
     /// 数据抓取器 / Data fetcher.
     var dataProvider: HomeAskDataProvider
     /// LLM 环境配置管理器 / LLM env config manager.
     let envManager: AppEnvironmentManager
     /// 当前正在运行的 LLM 任务 / Currently running LLM task.
     private var currentTask: Task<Void, Never>? = nil
+    private var pendingHealthConsentQuestion: String?
 
     init(container: RepositoryContainer, envManager: AppEnvironmentManager) {
         self.envManager = envManager
@@ -95,6 +98,8 @@ final class HomeAskViewModel {
         cancel()
         messages.removeAll()
         phase = .idle
+        shouldRequestHealthDataConsent = false
+        pendingHealthConsentQuestion = nil
     }
 
     // MARK: - 发送 / Sending
@@ -183,12 +188,37 @@ final class HomeAskViewModel {
             updateMessage(id: placeholderId) { $0.isStreaming = false }
         } catch is CancellationError {
             updateMessage(id: placeholderId) { $0.isStreaming = false; $0.error = "已取消".localized() }
-        } catch {
-            let desc = (error as? LLMError)?.errorDescription ?? error.localizedDescription
+        } catch let error as LLMError {
+            let desc = error.errorDescription ?? error.localizedDescription
             updateMessage(id: placeholderId) { $0.isStreaming = false; $0.error = desc }
+            if error == .healthDataConsentRequired {
+                pendingHealthConsentQuestion = userText
+                shouldRequestHealthDataConsent = true
+            }
             Log.llm.error("HomeAsk answer failed: \(error.localizedDescription, privacy: .public)")
+        } catch {
+            let desc = error.localizedDescription
+            updateMessage(id: placeholderId) { $0.isStreaming = false; $0.error = desc }
+            Log.llm.error("HomeAsk answer failed: \(desc, privacy: .public)")
         }
         phase = .idle
+    }
+
+    /// Re-runs the last blocked answer after the user grants health-data sharing.
+    /// The existing user message is retained while its failed assistant bubble is replaced.
+    func retryAfterHealthDataConsent() {
+        guard let question = pendingHealthConsentQuestion,
+              phase == .idle else { return }
+        pendingHealthConsentQuestion = nil
+        shouldRequestHealthDataConsent = false
+        if let index = messages.lastIndex(where: { $0.role == .assistant && $0.error != nil }) {
+            messages.remove(at: index)
+        }
+        let placeholder = Message(role: .assistant, content: "", isStreaming: true)
+        messages.append(placeholder)
+        currentTask = Task { [weak self] in
+            await self?.runPipeline(userText: question, placeholderId: placeholder.id)
+        }
     }
 
     /// 按 id 找到消息并 mutate / Find a message by id and mutate it.

@@ -18,7 +18,8 @@ enum BrainUsageQuotaLLM {
         let readiness = hrvManager.readiness
         let prompt = LLMPrompt(
             system: "You are a safe study-load planner. Return JSON only with integer fields fiveHour and sevenDay. Values are brain-usage points, not minutes. Keep fiveHour between 20 and 600 and sevenDay between 100 and 3000. Reduce load for poor sleep or low HRV. Never include markdown.",
-            messages: [.user("age=\(container.profileRepo.profile.age), averageScoreRate=\(average), readiness=\(readiness.category.rawValue), hrv=\(readiness.todayHRV ?? -1), sleep=\(body.lastNightSleepHours ?? -1), restingHeartRate=\(body.restingHeartRate ?? -1), respiratoryRate=\(body.respiratoryRate ?? -1), exerciseMinutes=\(body.exerciseMinutesToday ?? -1)")]
+            messages: [.user("age=\(container.profileRepo.profile.age), averageScoreRate=\(average), readiness=\(readiness.category.rawValue), hrv=\(readiness.todayHRV ?? -1), sleep=\(body.lastNightSleepHours ?? -1), restingHeartRate=\(body.restingHeartRate ?? -1), respiratoryRate=\(body.respiratoryRate ?? -1), exerciseMinutes=\(body.exerciseMinutesToday ?? -1)")],
+            sensitivity: .healthSensitive
         )
         do {
             let raw = try await LLMClient.shared.complete(prompt: prompt, config: container.envManager.llmConfig, caller: "BrainUsageQuota")

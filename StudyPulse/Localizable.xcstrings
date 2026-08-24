@@ -74421,6 +74421,246 @@
           }
         }
       }
+    },
+    "Health Data Controls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Health Data Controls" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ヘルスデータの管理" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "건강 데이터 관리" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "健康数据控制" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "健康資料控制" } }
+      }
+    },
+    "HealthKit signals are read with your permission and processed locally for recovery guidance. StudyPulse does not upload them unless you separately allow health data in AI requests." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit signals are read with your permission and processed locally for recovery guidance. StudyPulse does not upload them unless you separately allow health data in AI requests." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "HealthKitの信号は許可を得て読み取り、回復ガイダンスのため端末上で処理します。ヘルスデータのAI利用を別途許可しない限り、StudyPulseがアップロードすることはありません。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 신호는 사용자의 허가를 받아 읽고 회복 안내를 위해 기기에서 처리합니다. 건강 데이터의 AI 사용을 별도로 허용하지 않는 한 StudyPulse는 이를 업로드하지 않습니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 信号仅在获得许可后读取，并在设备上处理以提供恢复建议。除非你另外允许将健康数据用于 AI 请求，否则 StudyPulse 不会上传这些数据。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 訊號僅在取得許可後讀取，並在裝置上處理以提供恢復建議。除非你另外允許將健康資料用於 AI 請求，否則 StudyPulse 不會上傳這些資料。" } }
+      }
+    },
+    "HealthKit access is controlled by you" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit access is controlled by you" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "HealthKitへのアクセスはあなたが管理します" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 접근은 사용자가 관리합니다" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 访问由你控制" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 存取權由你控制" } }
+      }
+    },
+    "You can disable HealthKit access in Settings at any time." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You can disable HealthKit access in Settings at any time." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "設定からいつでもHealthKitへのアクセスを無効にできます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "설정에서 언제든지 HealthKit 접근을 끌 수 있습니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你可以随时在设置中关闭 HealthKit 访问。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你可以隨時在設定中關閉 HealthKit 存取權。" } }
+      }
+    },
+    "Optional AI sharing is off by default" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Optional AI sharing is off by default" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIへの共有はデフォルトでオフです" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선택적 AI 공유는 기본적으로 꺼져 있습니다" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "可选的 AI 分享默认关闭" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "可選的 AI 分享預設關閉" } }
+      }
+    },
+    "If enabled, selected recovery and mood or energy summaries may be sent to your configured AI endpoint." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "If enabled, selected recovery and mood or energy summaries may be sent to your configured AI endpoint." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "有効にすると、選択した回復情報や気分・エネルギーの概要が設定したAIエンドポイントに送信される場合があります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "허용하면 선택한 회복 정보와 기분 또는 에너지 요약이 설정한 AI 엔드포인트로 전송될 수 있습니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "启用后，选定的恢复信息以及心情或精力摘要可能会发送到你配置的 AI 端点。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "啟用後，選定的恢復資訊以及心情或精力摘要可能會傳送到你設定的 AI 端點。" } }
+      }
+    },
+    "StudyPulse may write a 1-minute Mindful Session when diary sync is enabled. Mood and energy values stay on-device." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulse may write a 1-minute Mindful Session when diary sync is enabled. Mood and energy values stay on-device." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "日記の同期を有効にすると、StudyPulseは1分間のマインドフルセッションを記録する場合があります。気分とエネルギーの値は端末上に留まります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "일기 동기화를 켜면 StudyPulse가 1분 마음챙김 세션을 기록할 수 있습니다. 기분과 에너지 값은 기기에만 저장됩니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "启用日记同步后，StudyPulse 可能会写入 1 分钟的正念会话。心情和精力数值仅保留在设备上。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "啟用日記同步後，StudyPulse 可能會寫入 1 分鐘的正念活動。心情和精力數值僅保留在裝置上。" } }
+      }
+    },
+    "Allow health data in AI requests?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow health data in AI requests?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIリクエストでヘルスデータを使用しますか？" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "AI 요청에 건강 데이터를 허용할까요?" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "允许在 AI 请求中使用健康数据？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "允許在 AI 請求中使用健康資料？" } }
+      }
+    },
+    "Allow health data in AI requests" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow health data in AI requests" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIリクエストでヘルスデータを許可" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "AI 요청에 건강 데이터 허용" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "允许在 AI 请求中使用健康数据" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "允許在 AI 請求中使用健康資料" } }
+      }
+    },
+    "StudyPulse can optionally include HealthKit-derived recovery signals and mood or energy summaries in requests to your selected AI endpoint. This is separate from Apple Health permission and is off by default." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulse can optionally include HealthKit-derived recovery signals and mood or energy summaries in requests to your selected AI endpoint. This is separate from Apple Health permission and is off by default." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulseは、選択したAIエンドポイントへのリクエストに、HealthKitから取得した回復信号や気分・エネルギーの概要を任意で含められます。これはApple Healthの許可とは別で、初期状態ではオフです。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulse는 선택한 AI 엔드포인트 요청에 HealthKit에서 얻은 회복 신호와 기분 또는 에너지 요약을 선택적으로 포함할 수 있습니다. Apple Health 권한과는 별개이며 기본값은 꺼짐입니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulse 可以选择将 HealthKit 派生的恢复信号以及心情或精力摘要包含在发送到所选 AI 端点的请求中。这与 Apple Health 权限分开管理，默认关闭。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulse 可以選擇將 HealthKit 衍生的恢復訊號以及心情或精力摘要包含在傳送到所選 AI 端點的請求中。這與 Apple Health 權限分開管理，預設關閉。" } }
+      }
+    },
+    "Local recovery algorithms continue to work if you decline." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local recovery algorithms continue to work if you decline." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "許可しなくても、端末上の回復アルゴリズムは引き続き動作します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "허용하지 않아도 기기의 회복 알고리즘은 계속 작동합니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "即使拒绝，本地恢复算法仍会继续工作。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "即使拒絕，裝置上的恢復演算法仍會繼續運作。" } }
+      }
+    },
+    "You can revoke access at any time; cached AI responses will be cleared." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You can revoke access at any time; cached AI responses will be cleared." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "いつでも許可を撤回でき、AIの応答キャッシュは消去されます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "언제든지 권한을 철회할 수 있으며 AI 응답 캐시는 삭제됩니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你可以随时撤回权限；缓存的 AI 响应也会被清除。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你可以隨時撤回權限；快取的 AI 回應也會被清除。" } }
+      }
+    },
+    "The selected endpoint processes the data under its own privacy policy." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The selected endpoint processes the data under its own privacy policy." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "選択したエンドポイントは独自のプライバシーポリシーに基づいてデータを処理します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선택한 엔드포인트는 자체 개인정보 보호정책에 따라 데이터를 처리합니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "所选端点会按照其自身的隐私政策处理这些数据。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "所選端點會依照其自身的隱私權政策處理這些資料。" } }
+      }
+    },
+    "Allow and continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow and continue" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "許可して続ける" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "허용하고 계속" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "允许并继续" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "允許並繼續" } }
+      }
+    },
+    "Not now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not now" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今は許可しない" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "나중에" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂不允许" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "暫不允許" } }
+      }
+    },
+    "AI health privacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "AI health privacy" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIヘルスプライバシー" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "AI 건강 개인정보" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "AI 健康隐私" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "AI 健康隱私" } }
+      }
+    },
+    "Reads HRV, resting heart rate, respiratory rate and last night's sleep from Apple Health with your permission. StudyPulse uses these signals locally unless you separately allow optional AI sharing below." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reads HRV, resting heart rate, respiratory rate and last night's sleep from Apple Health with your permission. StudyPulse uses these signals locally unless you separately allow optional AI sharing below." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "許可を得てApple HealthからHRV、安静時心拍数、呼吸数、昨夜の睡眠を読み取ります。下で任意のAI共有を別途許可しない限り、これらの信号は端末上で処理します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "권한을 받아 Apple Health에서 HRV, 안정시 심박수, 호흡수 및 지난밤 수면을 읽습니다. 아래에서 선택적 AI 공유를 별도로 허용하지 않는 한 이 신호는 기기에서 처리됩니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "经你许可后从 Apple Health 读取 HRV、静息心率、呼吸率和昨晚睡眠。除非你在下方另外允许可选的 AI 分享，否则这些信号仅在设备上处理。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "經你許可後從 Apple Health 讀取 HRV、靜息心率、呼吸率和昨晚睡眠。除非你在下方另外允許可選的 AI 分享，否則這些訊號僅在裝置上處理。" } }
+      }
+    },
+    "Off by default. If enabled, HealthKit-derived recovery signals and mood or energy summaries may be sent to your selected AI endpoint. Turning it off blocks future requests and clears the local LLM response cache." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Off by default. If enabled, HealthKit-derived recovery signals and mood or energy summaries may be sent to your selected AI endpoint. Turning it off blocks future requests and clears the local LLM response cache." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "デフォルトではオフです。有効にすると、HealthKit由来の回復信号や気分・エネルギーの概要が選択したAIエンドポイントに送信される場合があります。オフにすると今後のリクエストをブロックし、端末のLLM応答キャッシュを消去します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "기본값은 꺼짐입니다. 켜면 HealthKit에서 얻은 회복 신호와 기분 또는 에너지 요약이 선택한 AI 엔드포인트로 전송될 수 있습니다. 끄면 이후 요청을 차단하고 기기의 LLM 응답 캐시를 삭제합니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "默认关闭。启用后，HealthKit 派生的恢复信号以及心情或精力摘要可能会发送到所选 AI 端点。关闭后会阻止后续请求并清除本地 LLM 响应缓存。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "預設關閉。啟用後，HealthKit 衍生的恢復訊號以及心情或精力摘要可能會傳送到所選 AI 端點。關閉後會阻擋後續請求並清除本機 LLM 回應快取。" } }
+      }
+    },
+    "Health data sharing with AI is turned off. You can allow it in Health settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Health data sharing with AI is turned off. You can allow it in Health settings." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIとのヘルスデータ共有はオフです。ヘルス設定で許可できます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "AI와 건강 데이터 공유가 꺼져 있습니다. 건강 설정에서 허용할 수 있습니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "与 AI 分享健康数据的功能已关闭。你可以在健康设置中允许。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "與 AI 分享健康資料的功能已關閉。你可以在健康設定中允許。" } }
+      }
+    },
+    "Your learning data stays on device. HealthKit signals are processed locally unless you separately allow optional AI sharing; diary sync may write a 1-minute Mindful Session." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your learning data stays on device. HealthKit signals are processed locally unless you separately allow optional AI sharing; diary sync may write a 1-minute Mindful Session." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "学習データは端末に保存されます。HealthKitの信号は端末上で処理されますが、任意のAI共有を別途許可した場合を除きます。日記の同期を有効にすると、1分間のマインドフルセッションを記録する場合があります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "학습 데이터는 기기에 저장됩니다. HealthKit 신호는 선택적 AI 공유를 별도로 허용하지 않는 한 기기에서 처리됩니다. 일기 동기화를 켜면 1분 마음챙김 세션을 기록할 수 있습니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你的学习数据保留在设备上。除非你另外允许可选的 AI 分享，否则 HealthKit 信号仅在设备上处理；启用日记同步后可能会写入 1 分钟的正念会话。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的學習資料保留在裝置上。除非你另外允許可選的 AI 分享，否則 HealthKit 訊號僅在裝置上處理；啟用日記同步後可能會寫入 1 分鐘的正念活動。" } }
+      }
+    },
+    "Optional HealthKit integration: HRV, heart rate, respiratory rate, sleep, and exercise minutes are processed locally unless you separately allow optional AI sharing." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Optional HealthKit integration: HRV, heart rate, respiratory rate, sleep, and exercise minutes are processed locally unless you separately allow optional AI sharing." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "任意のHealthKit連携では、HRV、心拍数、呼吸数、睡眠、運動時間を、任意のAI共有を別途許可しない限り端末上で処理します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선택적 HealthKit 연동의 HRV, 심박수, 호흡수, 수면 및 운동 시간은 선택적 AI 공유를 별도로 허용하지 않는 한 기기에서 처리됩니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "可选的 HealthKit 集成会读取 HRV、心率、呼吸率、睡眠和锻炼时长；除非你另外允许可选的 AI 分享，否则这些数据仅在设备上处理。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "可選的 HealthKit 整合會讀取 HRV、心率、呼吸率、睡眠和運動時間；除非你另外允許可選的 AI 分享，否則這些資料僅在裝置上處理。" } }
+      }
+    },
+    "We take your privacy and data security very seriously. Your learning data (grades, mistake notes, exams, avatars) remains on your device unless you choose to share specific content through an AI feature. HealthKit data is read and processed locally unless you separately allow health data in AI requests. StudyPulse may write a 1-minute Mindful Session when diary sync is enabled; mood and energy values remain in the app." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "We take your privacy and data security very seriously. Your learning data (grades, mistake notes, exams, avatars) remains on your device unless you choose to share specific content through an AI feature. HealthKit data is read and processed locally unless you separately allow health data in AI requests. StudyPulse may write a 1-minute Mindful Session when diary sync is enabled; mood and energy values remain in the app." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プライバシーとデータセキュリティを大切にしています。学習データはAI機能で特定の内容を共有する場合を除き端末に保存されます。HealthKitデータはヘルスデータのAI利用を別途許可しない限り端末上で処理されます。日記の同期を有効にすると1分間のマインドフルセッションを記録する場合があります。気分とエネルギーの値はアプリ内に残ります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "개인정보와 데이터 보안을 중요하게 생각합니다. 학습 데이터는 AI 기능을 통해 특정 내용을 공유하기로 선택한 경우를 제외하고 기기에 남습니다. HealthKit 데이터는 건강 데이터의 AI 사용을 별도로 허용하지 않는 한 기기에서 처리됩니다. 일기 동기화를 켜면 1분 마음챙김 세션을 기록할 수 있으며 기분과 에너지 값은 앱에 남습니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我们非常重视隐私和数据安全。除非你选择通过 AI 功能分享特定内容，否则成绩、错题、考试和头像等学习数据会保留在设备上。除非你另外允许健康数据用于 AI 请求，否则 HealthKit 数据仅在设备上读取和处理。启用日记同步后，StudyPulse 可能会写入 1 分钟的正念会话；心情和精力数值保留在应用中。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "我們非常重視隱私和資料安全。除非你選擇透過 AI 功能分享特定內容，否則成績、錯題、考試和頭像等學習資料會保留在裝置上。除非你另外允許健康資料用於 AI 請求，否則 HealthKit 資料僅在裝置上讀取和處理。啟用日記同步後，StudyPulse 可能會寫入 1 分鐘的正念活動；心情和精力數值保留在應用程式中。" } }
+      }
+    },
+    "No cloud sync. Optional AI requests go only to the endpoint you configure and require separate consent for health data." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No cloud sync. Optional AI requests go only to the endpoint you configure and require separate consent for health data." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クラウド同期はありません。任意のAIリクエストは設定したエンドポイントにのみ送信され、ヘルスデータには別途同意が必要です。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "클라우드 동기화는 없습니다. 선택적 AI 요청은 설정한 엔드포인트로만 전송되며 건강 데이터에는 별도 동의가 필요합니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不提供云同步。可选的 AI 请求只会发送到你配置的端点，使用健康数据还需要单独同意。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "不提供雲端同步。可選的 AI 請求只會傳送到你設定的端點，使用健康資料還需要另外同意。" } }
+      }
+    },
+    "The App reads HealthKit data with your permission. When diary sync is enabled, it may write a 1-minute Mindful Session; it does not write HRV, heart rate, respiratory rate, sleep, or mood/energy values. The read data — HRV (SDNN), heart rate, respiratory rate, sleep, exercise minutes — is used locally to compute study readiness and personalized suggestions unless you separately allow health data in AI requests." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The App reads HealthKit data with your permission. When diary sync is enabled, it may write a 1-minute Mindful Session; it does not write HRV, heart rate, respiratory rate, sleep, or mood/energy values. The read data — HRV (SDNN), heart rate, respiratory rate, sleep, exercise minutes — is used locally to compute study readiness and personalized suggestions unless you separately allow health data in AI requests." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アプリは許可を得てHealthKitデータを読み取ります。日記の同期を有効にすると1分間のマインドフルセッションを記録する場合がありますが、HRV、心拍数、呼吸数、睡眠、気分・エネルギーの値は書き込みません。読み取ったデータは、ヘルスデータのAI利用を別途許可しない限り端末上で学習準備度と個別提案の計算に使われます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "앱은 권한을 받아 HealthKit 데이터를 읽습니다. 일기 동기화를 켜면 1분 마음챙김 세션을 기록할 수 있지만 HRV, 심박수, 호흡수, 수면 또는 기분/에너지 값은 쓰지 않습니다. 읽은 데이터는 건강 데이터의 AI 사용을 별도로 허용하지 않는 한 기기에서 학습 준비도와 맞춤 제안을 계산하는 데 사용됩니다." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "应用会经你许可读取 HealthKit 数据。启用日记同步后，应用可能会写入 1 分钟的正念会话，但不会写入 HRV、心率、呼吸率、睡眠或心情/精力数值。除非你另外允许健康数据用于 AI 请求，否则读取的数据仅在设备上用于计算学习准备度和个性化建议。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "應用程式會經你許可讀取 HealthKit 資料。啟用日記同步後，應用程式可能會寫入 1 分鐘的正念活動，但不會寫入 HRV、心率、呼吸率、睡眠或心情/精力數值。除非你另外允許健康資料用於 AI 請求，否則讀取的資料僅在裝置上用於計算學習準備度和個人化建議。" } }
+      }
     }
   },
   "version" : "1.0"

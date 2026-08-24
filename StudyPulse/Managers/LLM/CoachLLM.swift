@@ -129,7 +129,7 @@ enum CoachLLM {
         items contain title, subject, startDate as ISO-8601, objective, stopCondition, importance.
         Never create more work than the user's daily available time. If the target is not feasible,
         say so clearly and provide an alternative instead of pretending it is achievable.
-        """, messages: [.user(json)])
+        """, messages: [.user(json)], sensitivity: healthContext == nil ? .ordinary : .healthSensitive)
     }
 
     static func makeConversationPrompt(goal: CoachGoal?, analysis: CoachAnalysis?,
@@ -158,7 +158,7 @@ enum CoachLLM {
         or duplicate an existing Todo. Use the supplied local Todo list as ground truth. Never exceed the goal's daily
         available minutes. Treat the supplied timestamp and recovery-radar health context as authoritative for this
         turn. Do not invent health values, scores, or alter local analysis; if a value is unavailable, say so.
-        """, messages: [.user(json)])
+        """, messages: [.user(json)], sensitivity: .healthSensitive)
     }
 
     private static func languageInstruction(for languageCode: String?) -> String {

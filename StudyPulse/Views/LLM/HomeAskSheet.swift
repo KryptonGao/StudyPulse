@@ -30,10 +30,12 @@ import SwiftStreamingMarkdown
 /// then merges the context for the final answer.
 struct HomeAskSheet: View {
     @State private var viewModel: HomeAskViewModel
+    @Environment(RepositoryContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
     /// 输入框焦点状态(用于 example chip 点击后弹出键盘)
     /// Input focus state (used so tapping an example chip pops the keyboard).
     @FocusState private var inputFocused: Bool
+    @State private var showingHealthDataConsent = false
     
     /// 预设的初始提问内容
     /// Injected initial question.
@@ -99,6 +101,19 @@ struct HomeAskSheet: View {
         }
         .llmDebugButton(caller: "HomeAsk-Answer")
         .onDisappear { viewModel.cancel() }
+        .onChange(of: viewModel.shouldRequestHealthDataConsent) { _, newValue in
+            showingHealthDataConsent = newValue
+        }
+        .sheet(isPresented: $showingHealthDataConsent) {
+            HealthDataLLMConsentSheet { allowed in
+                if allowed {
+                    viewModel.retryAfterHealthDataConsent()
+                } else {
+                    viewModel.shouldRequestHealthDataConsent = false
+                }
+            }
+            .environment(container)
+        }
         .onAppear {
             // 如果传入了初始问题，且当前无对话记录，则自动触发发送
             // Automatically submit the initial question on appear if present and conversation is empty.
