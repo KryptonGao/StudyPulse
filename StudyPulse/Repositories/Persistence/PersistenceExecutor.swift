@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 import os
 
-/// Immutable startup payload produced entirely inside the SwiftData actor.
+/// Immutable startup payload produced entirely inside the persistence boundary.
 /// No `@Model` instance or `ModelContext` crosses this boundary.
 nonisolated struct HighFrequencySnapshots: Sendable {
     let grades: [Grade]
@@ -25,7 +25,7 @@ nonisolated struct HighFrequencySnapshots: Sendable {
 }
 
 /// Startup snapshots for the AI Coach history domain.
-/// No SwiftData model or `ModelContext` crosses the actor boundary.
+/// No SwiftData model or `ModelContext` crosses the repository boundary.
 nonisolated struct CoachSnapshots: Sendable {
     let goals: [CoachGoal]
     let analyses: [CoachAnalysis]
@@ -35,7 +35,7 @@ nonisolated struct CoachSnapshots: Sendable {
 }
 
 /// Startup snapshots for the long-term time-investment domain.
-/// No SwiftData model or `ModelContext` crosses the actor boundary.
+/// No SwiftData model or `ModelContext` crosses the repository boundary.
 nonisolated struct TimeInvestmentSnapshots: Sendable {
     let subjects: [TimeInvestmentSubject]
     let subTasks: [SubTask]
@@ -49,11 +49,16 @@ enum PersistenceDomain: String, Sendable {
     case tasks
 }
 
-/// The only execution context used by the high-frequency repositories for
-/// SwiftData fetches and mutations. Repositories and views only receive value
-/// snapshots.
-@ModelActor
-actor PersistenceExecutor {
+/// The write execution boundary used by the high-frequency repositories. It
+/// intentionally reuses `ModelContainer.mainContext` so every repository
+/// mutation is serialized with repositories that perform synchronous
+/// MainActor CRUD. A few low-frequency startup readers may still use private,
+/// read-only contexts.
+///
+/// Repositories and views only receive value snapshots; persistent models do
+/// not escape this boundary.
+@MainActor
+final class PersistenceExecutor {
     nonisolated static let defaultReadBatchSize = 500
     nonisolated static let defaultWriteBatchSize = 500
 
@@ -62,36 +67,42 @@ actor PersistenceExecutor {
         category: "Persistence"
     )
 
+    private let modelContext: ModelContext
+
+    init(modelContainer: ModelContainer) {
+        modelContext = modelContainer.mainContext
+    }
+
     // MARK: - Startup reads
 
     func loadHighFrequencySnapshots(
         activePhaseID: UUID? = nil,
         readBatchSize: Int = defaultReadBatchSize
-    ) throws -> HighFrequencySnapshots {
+    ) async throws -> HighFrequencySnapshots {
         let interval = Self.signposter.beginInterval("loadHighFrequencySnapshots")
         defer { Self.signposter.endInterval("loadHighFrequencySnapshots", interval) }
 
-        let grades = try fetchGrades(batchSize: readBatchSize)
-        let mistakes = try fetchMistakes(batchSize: readBatchSize)
-        let exams = try fetchExams(batchSize: readBatchSize)
-        let comprehensiveExams = try fetchComprehensiveExams(batchSize: readBatchSize)
-        let tasks = try fetchTasks(batchSize: readBatchSize)
+        let grades = try await fetchGrades(batchSize: readBatchSize)
+        let mistakes = try await fetchMistakes(batchSize: readBatchSize)
+        let exams = try await fetchExams(batchSize: readBatchSize)
+        let comprehensiveExams = try await fetchComprehensiveExams(batchSize: readBatchSize)
+        let tasks = try await fetchTasks(batchSize: readBatchSize)
 
         let filteredGrades = activePhaseID == nil
             ? grades
-            : try fetchGrades(activePhaseID: activePhaseID, batchSize: readBatchSize)
+            : try await fetchGrades(activePhaseID: activePhaseID, batchSize: readBatchSize)
         let filteredMistakes = activePhaseID == nil
             ? mistakes
-            : try fetchMistakes(activePhaseID: activePhaseID, batchSize: readBatchSize)
+            : try await fetchMistakes(activePhaseID: activePhaseID, batchSize: readBatchSize)
         let filteredExams = activePhaseID == nil
             ? exams
-            : try fetchExams(activePhaseID: activePhaseID, batchSize: readBatchSize)
+            : try await fetchExams(activePhaseID: activePhaseID, batchSize: readBatchSize)
         let filteredComprehensiveExams = activePhaseID == nil
             ? comprehensiveExams
-            : try fetchComprehensiveExams(activePhaseID: activePhaseID, batchSize: readBatchSize)
+            : try await fetchComprehensiveExams(activePhaseID: activePhaseID, batchSize: readBatchSize)
         let filteredTasks = activePhaseID == nil
             ? tasks
-            : try fetchTasks(activePhaseID: activePhaseID, batchSize: readBatchSize)
+            : try await fetchTasks(activePhaseID: activePhaseID, batchSize: readBatchSize)
 
         return HighFrequencySnapshots(
             grades: grades,
@@ -107,7 +118,7 @@ actor PersistenceExecutor {
         )
     }
 
-    func fetchGrades(batchSize: Int = defaultReadBatchSize) throws -> [Grade] {
+    func fetchGrades(batchSize: Int = defaultReadBatchSize) async throws -> [Grade] {
         try pagedFetch(
             FetchDescriptor<GradeRecord>(sortBy: [SortDescriptor(\.date, order: .reverse)]),
             batchSize: batchSize,
@@ -115,7 +126,7 @@ actor PersistenceExecutor {
         )
     }
 
-    func fetchGrades(activePhaseID: UUID?, batchSize: Int = defaultReadBatchSize) throws -> [Grade] {
+    func fetchGrades(activePhaseID: UUID?, batchSize: Int = defaultReadBatchSize) async throws -> [Grade] {
         var descriptor = FetchDescriptor<GradeRecord>(sortBy: [SortDescriptor(\.date, order: .reverse)])
         if let activePhaseID {
             descriptor.predicate = #Predicate { $0.phaseId == activePhaseID }
@@ -123,7 +134,7 @@ actor PersistenceExecutor {
         return try pagedFetch(descriptor, batchSize: batchSize, transform: { $0.toSnapshot() })
     }
 
-    func fetchMistakes(batchSize: Int = defaultReadBatchSize) throws -> [MistakeNote] {
+    func fetchMistakes(batchSize: Int = defaultReadBatchSize) async throws -> [MistakeNote] {
         try pagedFetch(
             FetchDescriptor<MistakeNoteRecord>(sortBy: [SortDescriptor(\.date, order: .reverse)]),
             batchSize: batchSize,
@@ -131,7 +142,7 @@ actor PersistenceExecutor {
         )
     }
 
-    func fetchMistakes(activePhaseID: UUID?, batchSize: Int = defaultReadBatchSize) throws -> [MistakeNote] {
+    func fetchMistakes(activePhaseID: UUID?, batchSize: Int = defaultReadBatchSize) async throws -> [MistakeNote] {
         var descriptor = FetchDescriptor<MistakeNoteRecord>(sortBy: [SortDescriptor(\.date, order: .reverse)])
         if let activePhaseID {
             descriptor.predicate = #Predicate { $0.phaseId == activePhaseID }
@@ -139,7 +150,7 @@ actor PersistenceExecutor {
         return try pagedFetch(descriptor, batchSize: batchSize, transform: { $0.toSnapshot() })
     }
 
-    func fetchExams(batchSize: Int = defaultReadBatchSize) throws -> [Exam] {
+    func fetchExams(batchSize: Int = defaultReadBatchSize) async throws -> [Exam] {
         try pagedFetch(
             FetchDescriptor<ExamRecord>(sortBy: [SortDescriptor(\.examDate, order: .reverse)]),
             batchSize: batchSize,
@@ -147,7 +158,7 @@ actor PersistenceExecutor {
         )
     }
 
-    func fetchExams(activePhaseID: UUID?, batchSize: Int = defaultReadBatchSize) throws -> [Exam] {
+    func fetchExams(activePhaseID: UUID?, batchSize: Int = defaultReadBatchSize) async throws -> [Exam] {
         var descriptor = FetchDescriptor<ExamRecord>(sortBy: [SortDescriptor(\.examDate, order: .reverse)])
         if let activePhaseID {
             descriptor.predicate = #Predicate { $0.phaseId == activePhaseID }
@@ -157,7 +168,7 @@ actor PersistenceExecutor {
 
     func fetchComprehensiveExams(
         batchSize: Int = defaultReadBatchSize
-    ) throws -> [comprehensiveExam] {
+    ) async throws -> [comprehensiveExam] {
         try pagedFetch(
             FetchDescriptor<ComprehensiveExamRecord>(
                 sortBy: [SortDescriptor(\.examDate, order: .reverse)]
@@ -170,7 +181,7 @@ actor PersistenceExecutor {
     func fetchComprehensiveExams(
         activePhaseID: UUID?,
         batchSize: Int = defaultReadBatchSize
-    ) throws -> [comprehensiveExam] {
+    ) async throws -> [comprehensiveExam] {
         var descriptor = FetchDescriptor<ComprehensiveExamRecord>(
             sortBy: [SortDescriptor(\.examDate, order: .reverse)]
         )
@@ -180,7 +191,7 @@ actor PersistenceExecutor {
         return try pagedFetch(descriptor, batchSize: batchSize, transform: { $0.toSnapshot() })
     }
 
-    func fetchTasks(batchSize: Int = defaultReadBatchSize) throws -> [TaskItem] {
+    func fetchTasks(batchSize: Int = defaultReadBatchSize) async throws -> [TaskItem] {
         try pagedFetch(
             FetchDescriptor<TaskItemRecord>(sortBy: [SortDescriptor(\.dueDate)]),
             batchSize: batchSize,
@@ -188,7 +199,7 @@ actor PersistenceExecutor {
         )
     }
 
-    func fetchTasks(activePhaseID: UUID?, batchSize: Int = defaultReadBatchSize) throws -> [TaskItem] {
+    func fetchTasks(activePhaseID: UUID?, batchSize: Int = defaultReadBatchSize) async throws -> [TaskItem] {
         var descriptor = FetchDescriptor<TaskItemRecord>(sortBy: [SortDescriptor(\.dueDate)])
         if let activePhaseID {
             descriptor.predicate = #Predicate { $0.phaseId == activePhaseID }
@@ -205,7 +216,7 @@ actor PersistenceExecutor {
     /// conversation when it is opened. Records from pre-V5 stores have no
     /// denormalized chat ID; only that compatibility subset is decoded once to
     /// complete the migration.
-    func loadCoachSnapshots() throws -> CoachSnapshots {
+    func loadCoachSnapshots() async throws -> CoachSnapshots {
         let goalRecords = try modelContext.fetch(FetchDescriptor<CoachGoalRecord>())
         let analysisRecords = try modelContext.fetch(
             FetchDescriptor<CoachAnalysisRecord>(
@@ -311,7 +322,7 @@ actor PersistenceExecutor {
     /// Merge the legacy JSON session store and load bounded session summaries.
     /// Full heart-rate/annotation payloads are hydrated by the repository's
     /// ID/date-window detail APIs only.
-    func loadStudySessionSnapshots(mergeLegacyJSONIfNeeded: Bool = true) throws -> [StudySessionSummary] {
+    func loadStudySessionSnapshots(mergeLegacyJSONIfNeeded: Bool = true) async throws -> [StudySessionSummary] {
         let migrationKey = "studyPulse.studySessionsLegacyMigrationV2"
         if mergeLegacyJSONIfNeeded && !UserDefaults.standard.bool(forKey: migrationKey) {
             let existing = try modelContext.fetch(FetchDescriptor<StudySessionRecord>())
@@ -360,7 +371,7 @@ actor PersistenceExecutor {
     }
 
     /// Fetch and decode all time-investment entities on the SwiftData actor.
-    func loadTimeInvestmentSnapshots() throws -> TimeInvestmentSnapshots {
+    func loadTimeInvestmentSnapshots() async throws -> TimeInvestmentSnapshots {
         let subjects = try modelContext.fetch(FetchDescriptor<TimeInvestmentSubjectRecord>())
             .map { $0.toSnapshot() }
         let subTasks = try modelContext.fetch(FetchDescriptor<SubTaskRecord>())
@@ -377,7 +388,7 @@ actor PersistenceExecutor {
 
     // MARK: - Phase-filtered routine and diary reads
 
-    func fetchRoutines(activePhaseID: UUID?, batchSize: Int = defaultReadBatchSize) throws -> [Routine] {
+    func fetchRoutines(activePhaseID: UUID?, batchSize: Int = defaultReadBatchSize) async throws -> [Routine] {
         var descriptor = FetchDescriptor<RoutineRecord>(
             sortBy: [SortDescriptor(\.createdAt, order: .forward)]
         )
@@ -390,7 +401,7 @@ actor PersistenceExecutor {
     func fetchDiaryEntries(
         activePhaseID: UUID?,
         limit: Int? = 365
-    ) throws -> [DiaryEntry] {
+    ) async throws -> [DiaryEntry] {
         var descriptor = FetchDescriptor<DiaryEntryRecord>(
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
@@ -409,7 +420,7 @@ actor PersistenceExecutor {
 
     // MARK: - Grade mutations
 
-    func insertGrades(_ values: [Grade]) throws {
+    func insertGrades(_ values: [Grade]) async throws {
         let interval = Self.signposter.beginInterval("insertGrades")
         defer { Self.signposter.endInterval("insertGrades", interval) }
         try insertInBatches(values, batchSize: Self.defaultWriteBatchSize) {
@@ -417,7 +428,7 @@ actor PersistenceExecutor {
         }
     }
 
-    func upsertGrade(_ value: Grade) throws {
+    func upsertGrade(_ value: Grade) async throws {
         let id = value.id
         let descriptor = FetchDescriptor<GradeRecord>(predicate: #Predicate { $0.id == id })
         if let existing = try modelContext.fetch(descriptor).first {
@@ -427,7 +438,7 @@ actor PersistenceExecutor {
         try saveIfNeeded()
     }
 
-    func deleteGrade(id: UUID) throws {
+    func deleteGrade(id: UUID) async throws {
         let descriptor = FetchDescriptor<GradeRecord>(predicate: #Predicate { $0.id == id })
         if let record = try modelContext.fetch(descriptor).first {
             modelContext.delete(record)
@@ -435,7 +446,7 @@ actor PersistenceExecutor {
         }
     }
 
-    func deleteAllGrades() throws -> Int {
+    func deleteAllGrades() async throws -> Int {
         let interval = Self.signposter.beginInterval("deleteAllGrades")
         defer { Self.signposter.endInterval("deleteAllGrades", interval) }
         return try deleteAll(GradeRecord.self)
@@ -443,7 +454,7 @@ actor PersistenceExecutor {
 
     // MARK: - Mistake mutations
 
-    func insertMistakes(_ values: [MistakeNote]) throws {
+    func insertMistakes(_ values: [MistakeNote]) async throws {
         let interval = Self.signposter.beginInterval("insertMistakes")
         defer { Self.signposter.endInterval("insertMistakes", interval) }
         try insertInBatches(values, batchSize: Self.defaultWriteBatchSize) {
@@ -451,7 +462,7 @@ actor PersistenceExecutor {
         }
     }
 
-    func upsertMistake(_ value: MistakeNote) throws {
+    func upsertMistake(_ value: MistakeNote) async throws {
         let id = value.id
         let descriptor = FetchDescriptor<MistakeNoteRecord>(predicate: #Predicate { $0.id == id })
         if let existing = try modelContext.fetch(descriptor).first {
@@ -461,7 +472,7 @@ actor PersistenceExecutor {
         try saveIfNeeded()
     }
 
-    func deleteMistakes(ids: Set<UUID>) throws {
+    func deleteMistakes(ids: Set<UUID>) async throws {
         guard !ids.isEmpty else { return }
         let ids = Array(ids)
         let records = try modelContext.fetch(
@@ -474,7 +485,7 @@ actor PersistenceExecutor {
         try saveIfNeeded()
     }
 
-    func deleteAllMistakes() throws -> Int {
+    func deleteAllMistakes() async throws -> Int {
         let interval = Self.signposter.beginInterval("deleteAllMistakes")
         defer { Self.signposter.endInterval("deleteAllMistakes", interval) }
         return try deleteAll(MistakeNoteRecord.self)
@@ -482,7 +493,7 @@ actor PersistenceExecutor {
 
     // MARK: - Exam mutations
 
-    func insertExams(single: [Exam], comprehensive: [comprehensiveExam]) throws {
+    func insertExams(single: [Exam], comprehensive: [comprehensiveExam]) async throws {
         let interval = Self.signposter.beginInterval("insertExams")
         defer { Self.signposter.endInterval("insertExams", interval) }
         do {
@@ -501,7 +512,7 @@ actor PersistenceExecutor {
         }
     }
 
-    func upsertExam(_ value: Exam) throws {
+    func upsertExam(_ value: Exam) async throws {
         let id = value.id
         let descriptor = FetchDescriptor<ExamRecord>(predicate: #Predicate { $0.id == id })
         if let existing = try modelContext.fetch(descriptor).first {
@@ -511,7 +522,7 @@ actor PersistenceExecutor {
         try saveIfNeeded()
     }
 
-    func upsertComprehensiveExam(_ value: comprehensiveExam) throws {
+    func upsertComprehensiveExam(_ value: comprehensiveExam) async throws {
         let id = value.id
         let descriptor = FetchDescriptor<ComprehensiveExamRecord>(
             predicate: #Predicate { $0.id == id }
@@ -523,7 +534,7 @@ actor PersistenceExecutor {
         try saveIfNeeded()
     }
 
-    func deleteExam(id: UUID) throws {
+    func deleteExam(id: UUID) async throws {
         let descriptor = FetchDescriptor<ExamRecord>(predicate: #Predicate { $0.id == id })
         if let record = try modelContext.fetch(descriptor).first {
             modelContext.delete(record)
@@ -531,7 +542,7 @@ actor PersistenceExecutor {
         }
     }
 
-    func deleteComprehensiveExam(id: UUID) throws {
+    func deleteComprehensiveExam(id: UUID) async throws {
         let descriptor = FetchDescriptor<ComprehensiveExamRecord>(
             predicate: #Predicate { $0.id == id }
         )
@@ -541,7 +552,7 @@ actor PersistenceExecutor {
         }
     }
 
-    func deleteAllExams() throws -> Int {
+    func deleteAllExams() async throws -> Int {
         let interval = Self.signposter.beginInterval("deleteAllExams")
         defer { Self.signposter.endInterval("deleteAllExams", interval) }
         let singleCount = try modelContext.fetchCount(FetchDescriptor<ExamRecord>())
@@ -557,7 +568,7 @@ actor PersistenceExecutor {
 
     // MARK: - Task mutations
 
-    func insertTasks(_ values: [TaskItem]) throws {
+    func insertTasks(_ values: [TaskItem]) async throws {
         let interval = Self.signposter.beginInterval("insertTasks")
         defer { Self.signposter.endInterval("insertTasks", interval) }
         try insertInBatches(values, batchSize: Self.defaultWriteBatchSize) {
@@ -565,7 +576,7 @@ actor PersistenceExecutor {
         }
     }
 
-    func upsertTask(_ value: TaskItem) throws {
+    func upsertTask(_ value: TaskItem) async throws {
         let id = value.id
         let descriptor = FetchDescriptor<TaskItemRecord>(predicate: #Predicate { $0.id == id })
         if let existing = try modelContext.fetch(descriptor).first {
@@ -575,7 +586,7 @@ actor PersistenceExecutor {
         try saveIfNeeded()
     }
 
-    func deleteTask(id: UUID) throws {
+    func deleteTask(id: UUID) async throws {
         let descriptor = FetchDescriptor<TaskItemRecord>(predicate: #Predicate { $0.id == id })
         if let record = try modelContext.fetch(descriptor).first {
             modelContext.delete(record)
@@ -583,7 +594,7 @@ actor PersistenceExecutor {
         }
     }
 
-    func deleteAllTasks() throws -> Int {
+    func deleteAllTasks() async throws -> Int {
         let interval = Self.signposter.beginInterval("deleteAllTasks")
         defer { Self.signposter.endInterval("deleteAllTasks", interval) }
         return try deleteAll(TaskItemRecord.self)
@@ -657,7 +668,7 @@ actor PersistenceExecutor {
     }
 }
 
-/// Internal capability for repositories that can share the SwiftData actor.
+/// Internal capability for repositories that share the persistence boundary.
 @MainActor
 protocol PersistenceExecutorAttachable: AnyObject {
     func attachPersistenceExecutor(_ executor: PersistenceExecutor)

@@ -17,6 +17,12 @@ enum BackupImporter {
         guard let context = container.modelContainer?.mainContext else {
             throw BackupError.restoreFailed("Persistent store is unavailable")
         }
+        // Stop deferred high-frequency writes before taking the restore
+        // snapshot. After C-03 all repositories share this main context, so no
+        // second ModelContext can race the replacement transaction.
+        container.cancelPendingPersistence()
+        await container.flushPendingPersistence()
+        try Task.checkCancellation()
         progress(0.08)
         var content = validated.content
         if mode == .merge {
@@ -30,18 +36,31 @@ enum BackupImporter {
             extractedDirectory: validated.extractedDirectory,
             includesMedia: validated.manifest.includesMedia
         )
+        defer { mediaResult.cleanup() }
         content = mediaResult.content
         progress(0.4)
 
         do {
+            // Phase 1: prove that every record can be inserted and saved into
+            // the production schema without touching the live store.
+            try validateInTemporaryStore(content)
+            try Task.checkCancellation()
+
+            // Phase 2: delete + insert + save is one SwiftData/SQLite
+            // transaction. A failed save rolls the live context back to the
+            // pre-restore state.
             try replacePersistentContent(content, context: context)
             progress(0.68)
+
+            // Media is prepared outside the live directories and only moved
+            // into place after the database commit succeeds.
+            try mediaResult.commit()
             AchievementStore.save(content.achievements)
             container.envManager.preferences = content.preferences.applying(to: container.envManager.preferences)
             if let health = content.healthHistory {
                 HealthHistoryStore.save(health)
             }
-            await container.reloadAllAfterBackupRestore()
+            try await container.reloadAllAfterBackupRestore()
             progress(0.9)
             let actual = currentContent(container: container, context: context)
             try verifyImported(content, actual: actual)
@@ -52,9 +71,71 @@ enum BackupImporter {
             )
         } catch {
             context.rollback()
-            for url in mediaResult.createdFiles { try? FileManager.default.removeItem(at: url) }
             throw error
         }
+    }
+
+    /// Preflight the decoded payload against an isolated production-schema
+    /// store. Internal visibility keeps this safety boundary directly
+    /// regression-testable without mutating a live RepositoryContainer.
+    static func validateInTemporaryStore(
+        _ content: BackupDecodedContent
+    ) throws {
+        try validateUniqueIdentifiers(content)
+        let schema = ModelContainerFactory.currentSchema
+        let configuration = ModelConfiguration(
+            "BackupRestoreValidation-\(UUID().uuidString)",
+            schema: schema,
+            isStoredInMemoryOnly: true
+        )
+        do {
+            let temporaryContainer = try ModelContainer(
+                for: schema,
+                migrationPlan: StudyPulseMigrationPlan.self,
+                configurations: [configuration]
+            )
+            try insertPersistentContent(content, context: temporaryContainer.mainContext)
+            try verifyPersistentCounts(content, context: temporaryContainer.mainContext)
+        } catch let error as BackupError {
+            throw error
+        } catch {
+            throw BackupError.restoreFailed(
+                "Temporary store validation failed: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    private static func validateUniqueIdentifiers(
+        _ c: BackupDecodedContent
+    ) throws {
+        func requireUnique<T: Identifiable>(
+            _ values: [T],
+            name: String
+        ) throws where T.ID == UUID {
+            guard Set(values.map(\.id)).count == values.count else {
+                throw BackupError.invalidRelationship("duplicate UUID in \(name)")
+            }
+        }
+
+        try requireUnique(c.subjects, name: "subjects")
+        try requireUnique(c.grades, name: "grades")
+        try requireUnique(c.mistakes, name: "mistakes")
+        try requireUnique(c.exams, name: "exams")
+        try requireUnique(c.comprehensiveExams, name: "comprehensive exams")
+        try requireUnique(c.tasks, name: "tasks")
+        try requireUnique(c.phases, name: "phases")
+        try requireUnique(c.routines, name: "routines")
+        try requireUnique(c.routineInstances, name: "routine instances")
+        try requireUnique(c.diaryEntries, name: "diary entries")
+        try requireUnique(c.studySessions, name: "study sessions")
+        try requireUnique(c.timeInvestmentSubjects, name: "time investment subjects")
+        try requireUnique(c.subTasks, name: "subtasks")
+        try requireUnique(c.goalRewards, name: "goal rewards")
+        try requireUnique(c.coachGoals, name: "coach goals")
+        try requireUnique(c.coachAnalyses, name: "coach analyses")
+        try requireUnique(c.coachProposals, name: "coach proposals")
+        try requireUnique(c.coachChats, name: "coach chats")
+        try requireUnique(c.coachMessages, name: "coach messages")
     }
 
     private static func replacePersistentContent(
@@ -87,6 +168,13 @@ enum BackupImporter {
         try deleteAll(ExamAutopsyRecord.self, context)
         try deleteAll(ExamSimulationRecord.self, context)
 
+        try insertPersistentContent(c, context: context)
+    }
+
+    private static func insertPersistentContent(
+        _ c: BackupDecodedContent,
+        context: ModelContext
+    ) throws {
         c.subjects.forEach { context.insert(SubjectRecord(from: $0)) }
         c.grades.forEach { context.insert(GradeRecord(from: $0)) }
         c.mistakes.forEach { context.insert(MistakeNoteRecord(from: $0)) }
@@ -111,7 +199,38 @@ enum BackupImporter {
         do {
             try context.save()
         } catch {
+            context.rollback()
             throw BackupError.restoreFailed(error.localizedDescription)
+        }
+    }
+
+    private static func verifyPersistentCounts(
+        _ c: BackupDecodedContent,
+        context: ModelContext
+    ) throws {
+        let counts: [(String, Int, Int)] = [
+            ("subjects", c.subjects.count, try context.fetchCount(FetchDescriptor<SubjectRecord>())),
+            ("grades", c.grades.count, try context.fetchCount(FetchDescriptor<GradeRecord>())),
+            ("mistakes", c.mistakes.count, try context.fetchCount(FetchDescriptor<MistakeNoteRecord>())),
+            ("exams", c.exams.count, try context.fetchCount(FetchDescriptor<ExamRecord>())),
+            ("comprehensiveExams", c.comprehensiveExams.count, try context.fetchCount(FetchDescriptor<ComprehensiveExamRecord>())),
+            ("tasks", c.tasks.count, try context.fetchCount(FetchDescriptor<TaskItemRecord>())),
+            ("phases", c.phases.count, try context.fetchCount(FetchDescriptor<StudyPhaseRecord>())),
+            ("routines", c.routines.count, try context.fetchCount(FetchDescriptor<RoutineRecord>())),
+            ("routineInstances", c.routineInstances.count, try context.fetchCount(FetchDescriptor<RoutineInstanceRecord>())),
+            ("diaryEntries", c.diaryEntries.count, try context.fetchCount(FetchDescriptor<DiaryEntryRecord>())),
+            ("studySessions", c.studySessions.count, try context.fetchCount(FetchDescriptor<StudySessionRecord>())),
+            ("timeInvestmentSubjects", c.timeInvestmentSubjects.count, try context.fetchCount(FetchDescriptor<TimeInvestmentSubjectRecord>())),
+            ("subTasks", c.subTasks.count, try context.fetchCount(FetchDescriptor<SubTaskRecord>())),
+            ("goalRewards", c.goalRewards.count, try context.fetchCount(FetchDescriptor<GoalRewardRecord>())),
+            ("coachGoals", c.coachGoals.count, try context.fetchCount(FetchDescriptor<CoachGoalRecord>())),
+            ("coachAnalyses", c.coachAnalyses.count, try context.fetchCount(FetchDescriptor<CoachAnalysisRecord>())),
+            ("coachProposals", c.coachProposals.count, try context.fetchCount(FetchDescriptor<CoachProposalRecord>())),
+            ("coachChats", c.coachChats.count, try context.fetchCount(FetchDescriptor<CoachChatRecord>())),
+            ("coachMessages", c.coachMessages.count, try context.fetchCount(FetchDescriptor<CoachConversationMessageRecord>())),
+        ]
+        if let mismatch = counts.first(where: { $0.1 != $0.2 }) {
+            throw BackupError.countMismatch(mismatch.0)
         }
     }
 
@@ -224,10 +343,55 @@ enum BackupImporter {
         return Array(values.values)
     }
 
+    private struct StagedMediaFile: @unchecked Sendable {
+        var stagedURL: URL
+        var destinationURL: URL
+    }
+
     private struct MediaStageResult: @unchecked Sendable {
         var content: BackupDecodedContent
-        var createdFiles: [URL]
+        var stagingDirectory: URL?
+        var files: [StagedMediaFile]
         var warnings: [String]
+
+        nonisolated func cleanup() {
+            guard let stagingDirectory else { return }
+            try? FileManager.default.removeItem(at: stagingDirectory)
+        }
+
+        @MainActor
+        func commit() throws {
+            var committed: [URL] = []
+            do {
+                for file in files {
+                    try FileManager.default.createDirectory(
+                        at: file.destinationURL.deletingLastPathComponent(),
+                        withIntermediateDirectories: true
+                    )
+                    if FileManager.default.fileExists(atPath: file.destinationURL.path) {
+                        let sourceHash = try BackupChecksum.sha256(fileURL: file.stagedURL)
+                        let destinationHash = try BackupChecksum.sha256(fileURL: file.destinationURL)
+                        guard sourceHash == destinationHash else {
+                            throw BackupError.restoreFailed(
+                                "Media destination changed during restore: \(file.destinationURL.lastPathComponent)"
+                            )
+                        }
+                        try FileManager.default.removeItem(at: file.stagedURL)
+                        continue
+                    }
+                    try FileManager.default.moveItem(
+                        at: file.stagedURL,
+                        to: file.destinationURL
+                    )
+                    committed.append(file.destinationURL)
+                }
+            } catch {
+                for url in committed.reversed() {
+                    try? FileManager.default.removeItem(at: url)
+                }
+                throw error
+            }
+        }
     }
 
     private static func stageMedia(
@@ -236,11 +400,26 @@ enum BackupImporter {
         includesMedia: Bool
     ) async throws -> MediaStageResult {
         guard includesMedia else {
-            return MediaStageResult(content: content, createdFiles: [], warnings: [])
+            return MediaStageResult(
+                content: content,
+                stagingDirectory: nil,
+                files: [],
+                warnings: []
+            )
         }
         return try await Task.detached(priority: .userInitiated) {
             var adjusted = content
-            var created: [URL] = []
+            let stagingDirectory = FileManager.default.temporaryDirectory
+                .appendingPathComponent("StudyPulseRestoreMedia-\(UUID().uuidString)", isDirectory: true)
+            var removeStagingOnExit = true
+            defer {
+                if removeStagingOnExit {
+                    try? FileManager.default.removeItem(at: stagingDirectory)
+                }
+            }
+            let stagedImages = stagingDirectory.appendingPathComponent("images", isDirectory: true)
+            let stagedAudio = stagingDirectory.appendingPathComponent("audio", isDirectory: true)
+            var files: [StagedMediaFile] = []
             var warnings: [String] = []
             var imageMapping: [String: String] = [:]
             var audioMapping: [String: String] = [:]
@@ -251,14 +430,26 @@ enum BackupImporter {
 
             let imageNames = Set(adjusted.grades.compactMap(\.imageFileName) + [adjusted.profile.avatarFileName].compactMap { $0 })
             for name in imageNames {
-                if let mapped = try importMedia(name, source: imageSource, destination: imageDestination, created: &created) {
+                if let mapped = try stageMediaFile(
+                    name,
+                    source: imageSource,
+                    destination: imageDestination,
+                    stagingDestination: stagedImages,
+                    files: &files
+                ) {
                     imageMapping[name] = mapped
                 } else {
                     warnings.append("Missing image: \(name)")
                 }
             }
             for name in Set(adjusted.mistakes.compactMap(\.audioFileName)) {
-                if let mapped = try importMedia(name, source: audioSource, destination: audioDestination, created: &created) {
+                if let mapped = try stageMediaFile(
+                    name,
+                    source: audioSource,
+                    destination: audioDestination,
+                    stagingDestination: stagedAudio,
+                    files: &files
+                ) {
                     audioMapping[name] = mapped
                 } else {
                     warnings.append("Missing audio: \(name)")
@@ -277,21 +468,27 @@ enum BackupImporter {
                 if let old = value.audioFileName { value.audioFileName = audioMapping[old] }
                 return value
             }
-            return MediaStageResult(content: adjusted, createdFiles: created, warnings: warnings)
+            removeStagingOnExit = false
+            return MediaStageResult(
+                content: adjusted,
+                stagingDirectory: stagingDirectory,
+                files: files,
+                warnings: warnings
+            )
         }.value
     }
 
-    private nonisolated static func importMedia(
+    private nonisolated static func stageMediaFile(
         _ name: String,
         source: URL,
         destination: URL?,
-        created: inout [URL]
+        stagingDestination: URL,
+        files: inout [StagedMediaFile]
     ) throws -> String? {
         guard BackupArchive.isSafeRelativePath(name), URL(fileURLWithPath: name).lastPathComponent == name,
               let destination else { return nil }
         let sourceURL = source.appendingPathComponent(name)
         guard FileManager.default.fileExists(atPath: sourceURL.path) else { return nil }
-        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
         var finalName = name
         var target = destination.appendingPathComponent(finalName)
         if FileManager.default.fileExists(atPath: target.path) {
@@ -301,8 +498,13 @@ enum BackupImporter {
             finalName = "\(UUID().uuidString)-\(name)"
             target = destination.appendingPathComponent(finalName)
         }
-        try FileManager.default.copyItem(at: sourceURL, to: target)
-        created.append(target)
+        try FileManager.default.createDirectory(
+            at: stagingDestination,
+            withIntermediateDirectories: true
+        )
+        let stagedURL = stagingDestination.appendingPathComponent(finalName)
+        try FileManager.default.copyItem(at: sourceURL, to: stagedURL)
+        files.append(StagedMediaFile(stagedURL: stagedURL, destinationURL: target))
         return finalName
     }
 

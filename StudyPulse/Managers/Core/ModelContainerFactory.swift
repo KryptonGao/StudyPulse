@@ -259,7 +259,10 @@ enum ModelContainerFactory {
         }
     }
 
-    nonisolated(unsafe) private static var _sharedContainer: ModelContainer?
+    /// The shared container is owned exclusively by the main actor. SwiftData's
+    /// `ModelContainer` is not `Sendable`; bypassing isolation here can race a
+    /// launch retry against the initial open/migration.
+    private static var _sharedContainer: ModelContainer?
 
     // MARK: - Debug Helpers
     // MARK: - 调试辅助 / Debug helpers

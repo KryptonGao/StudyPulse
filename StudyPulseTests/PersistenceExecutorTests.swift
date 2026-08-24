@@ -10,7 +10,38 @@ import Darwin
 
 @MainActor
 final class PersistenceExecutorTests: XCTestCase {
+    func testExecutorUsesTheContainerMainContext() async throws {
+        let container = try TestModelContainerFactory.makeInMemoryContainer()
+        let context = container.mainContext
+        let pending = Grade(
+            subject: "Shared Context",
+            score: 93,
+            examName: "Unsaved visibility"
+        )
+
+        // Deliberately leave the insert unsaved. A private executor context
+        // cannot observe this pending model; the unified main-context boundary
+        // can, proving that repository writes cannot race across contexts.
+        context.insert(GradeRecord(from: pending))
+        let executor = PersistenceExecutor(modelContainer: container)
+        let snapshots = try await executor.fetchGrades()
+
+        XCTAssertEqual(snapshots.map(\.id), [pending.id])
+        context.rollback()
+    }
+
     func testLowFrequencyStartupLoadsPublishValueSnapshots() async throws {
+        let coachMigrationKey = "studyPulse.coachMessageIndexMigrationV1"
+        let previousCoachMigrationValue = UserDefaults.standard.object(forKey: coachMigrationKey)
+        UserDefaults.standard.set(false, forKey: coachMigrationKey)
+        defer {
+            if let previousCoachMigrationValue {
+                UserDefaults.standard.set(previousCoachMigrationValue, forKey: coachMigrationKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: coachMigrationKey)
+            }
+        }
+
         let container = try TestModelContainerFactory.makeInMemoryContainer()
         let context = container.mainContext
         let now = Date(timeIntervalSince1970: 1_700_000_000)
