@@ -37,6 +37,7 @@ struct HRVStatusCard: View {
     @State private var lastAIFullText: String? = nil
     @State private var lastBodyReadinessContext: BodyReadinessContext? = nil
     @State private var showDiscussion: Bool = false
+    @State private var showingHealthDataConsent: Bool = false
 
     // 冷却时间由设置页控制;“立刻分析”仍可绕过冷却。
     /// Radar LLM cooldown in seconds, configured in LLM settings.
@@ -292,9 +293,18 @@ struct HRVStatusCard: View {
                 title: "雷达建议 · 深入探讨".localized(),
                 context: buildRadarDiscussionContext(),
                 initialAssistantMessage: lastAIFullText ?? localSuggestion?.description,
+                containsHealthData: true,
                 onDismiss: { showDiscussion = false }
             )
             .adaptiveSheet(detents: [.large])
+        }
+        .sheet(isPresented: $showingHealthDataConsent) {
+            HealthDataLLMConsentSheet { allowed in
+                if allowed {
+                    requestAIImmediately()
+                }
+            }
+            .environment(container)
         }
     }
 
@@ -480,6 +490,12 @@ struct HRVStatusCard: View {
                 }
             } catch is CancellationError {
                 // 正常取消
+            } catch let error as LLMError {
+                aiErrorMessage = "AI 建议不可用,显示本地版本".localized()
+                if error == .healthDataConsentRequired {
+                    showingHealthDataConsent = true
+                }
+                Log.llm.error("BodyRadarLLM stream failed: \(error.localizedDescription, privacy: .public)")
             } catch {
                 aiErrorMessage = "AI 建议不可用,显示本地版本".localized()
                 Log.llm.error("BodyRadarLLM stream failed: \(error.localizedDescription, privacy: .public)")

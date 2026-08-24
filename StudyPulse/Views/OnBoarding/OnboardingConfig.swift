@@ -97,7 +97,7 @@ extension OnboardingConfig {
             iconSymbol: "graduationcap.fill",
             primaryColor: .blue,
             continueButtonText: "Continue".localized(),
-            disclaimerText: "All your data stays on device — StudyPulse never uploads grades, mistakes, or health data to external servers.".localized(),
+            disclaimerText: "Your learning data stays on device. HealthKit signals are processed locally unless you separately allow optional AI sharing; diary sync may write a 1-minute Mindful Session.".localized(),
             pageType: .welcome,
             // 首次启动 welcome 流程附带 6 页基础信息填写
             profileFlow: OnboardingConfig.ProfileFlowConfig(

@@ -203,16 +203,7 @@ final class AuthClient: @unchecked Sendable {
     // MARK: - Helpers
 
     private func buildURL(base: String, path: String) throws -> URL {
-        let trimmed = base.trimmingCharacters(in: .whitespacesAndNewlines)
-        let cleaned = trimmed.hasSuffix("/") ? String(trimmed.dropLast()) : trimmed
-        let lowered = cleaned.lowercased()
-        let normalized: String
-        if lowered.hasPrefix("http://") || lowered.hasPrefix("https://") {
-            normalized = cleaned
-        } else {
-            normalized = "https://\(cleaned)"
-        }
-        guard let url = URL(string: normalized)?.appendingPathComponent(path) else {
+        guard let url = try? SecureEndpointURL.make(base: base, appending: path) else {
             throw AuthError.missingWorkerURL
         }
         return url

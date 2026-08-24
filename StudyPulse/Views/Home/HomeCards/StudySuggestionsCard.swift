@@ -51,6 +51,7 @@ struct StudySuggestionsCard: View {
     /// AI 加载中(用于显示 progress chip)
     /// Whether AI suggestions are currently loading (drives the progress chip).
     @State private var aiLoading: Bool = false
+    @State private var showingHealthDataConsent: Bool = false
 
     /// 冷却时长(秒):默认 40 分钟,跟雷达卡片同。
     /// Cooldown duration (seconds). Same 40-minute rate limit as the body-radar card.
@@ -133,6 +134,14 @@ struct StudySuggestionsCard: View {
         }
         .debugLayoutBoundsAuto()
         .onChange(of: healthManager.bodyStatus) { _, _ in reload() }
+        .sheet(isPresented: $showingHealthDataConsent) {
+            HealthDataLLMConsentSheet { allowed in
+                if allowed {
+                    aiTask = Task { await streamAI() }
+                }
+            }
+            .environment(container)
+        }
     }
 
     // MARK: - AI chip
@@ -222,6 +231,12 @@ struct StudySuggestionsCard: View {
             }
         } catch is CancellationError {
             // 正常取消,保持当前状态
+        } catch let error as LLMError {
+            aiSuggestions = nil
+            aiErrorMessage = "AI 建议不可用,显示本地版本".localized()
+            if error == .healthDataConsentRequired {
+                showingHealthDataConsent = true
+            }
         } catch {
             aiSuggestions = nil
             aiErrorMessage = "AI 建议不可用,显示本地版本".localized()

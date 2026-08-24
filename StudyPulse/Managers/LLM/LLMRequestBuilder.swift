@@ -80,7 +80,8 @@ enum StudySuggestionsLLM {
         let userJSON = encodeContext(context)
         return LLMPrompt(
             system: defaultSystem,
-            messages: [.user(userJSON)]
+            messages: [.user(userJSON)],
+            sensitivity: context.bodyStatusSuggestion == nil ? .ordinary : .healthSensitive
         )
     }
 
@@ -559,7 +560,11 @@ enum WeeklyReportLLM {
         }
 
         let user = userLines.joined(separator: "\n")
-        return LLMPrompt(system: systemPrompt, messages: [.user(user)])
+        return LLMPrompt(
+            system: systemPrompt,
+            messages: [.user(user)],
+            sensitivity: hasDiary ? .healthSensitive : .ordinary
+        )
     }
 }
 
@@ -955,7 +960,10 @@ enum HomeAskAnswerLLM {
         """
         return LLMPrompt(
             system: defaultSystem,
-            messages: [.user(user)]
+            messages: [.user(user)],
+            sensitivity: activeCategories.contains(.body) || activeCategories.contains(.trends)
+                ? .healthSensitive
+                : .ordinary
         )
     }
 }
@@ -999,7 +1007,7 @@ enum BodyRadarLLM {
     /// 构造 prompt。`context` 由 `StudyReadinessAlgorithm.buildBodyReadinessContext(...)` 给出。
     static func makePrompt(_ context: BodyReadinessContext) -> LLMPrompt {
         let user = encodeContext(context)
-        return LLMPrompt(system: defaultSystem, messages: [.user(user)])
+        return LLMPrompt(system: defaultSystem, messages: [.user(user)], sensitivity: .healthSensitive)
     }
 
     /// 解析 LLM 输出,合并到 `fallback`(保留 icon / priority / color)。
@@ -1289,7 +1297,7 @@ enum SubjectRadarLLM {
         }
         let system = systemBase + "\n" + outputLanguage
         let user = language.hasPrefix("zh") ? "最近 30 天数据：\n\(lines)" : "Data from the last 30 days:\n\(lines)"
-        return LLMPrompt(system: system, messages: [.user(user)])
+        return LLMPrompt(system: system, messages: [.user(user)], sensitivity: .healthSensitive)
     }
 
     static func clean(_ output: String) -> String {
@@ -1496,7 +1504,7 @@ enum StudySessionStressLLM {
         ===== 难题标注(\(annos.count) 条)=====
         \(annoLines)
         """
-        return LLMPrompt(system: defaultSystem, messages: [.user(userText)])
+        return LLMPrompt(system: defaultSystem, messages: [.user(userText)], sensitivity: .healthSensitive)
     }
 
     /// 解析输出:直接返回 Markdown 文本(不做结构化解析)。

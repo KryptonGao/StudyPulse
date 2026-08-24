@@ -54,6 +54,14 @@ nonisolated struct LLMMessage: Codable, Sendable, Equatable {
     }
 }
 
+/// Sensitivity classification for data included in an LLM prompt.
+/// Health-derived values and recovery/mood summaries require explicit sharing
+/// consent before they may be cached or sent to a configured endpoint.
+nonisolated enum LLMPromptSensitivity: String, Codable, Sendable, Equatable {
+    case ordinary
+    case healthSensitive
+}
+
 // MARK: - LLM Prompt (单次请求载荷)
 
 /// 一次完整请求 / A full LLM request payload.
@@ -67,9 +75,17 @@ nonisolated struct LLMPrompt: Sendable {
     /// 多轮对话或单条 user 消息 / Multi-turn dialog or a single user message.
     let messages: [LLMMessage]
 
-    init(system: String, messages: [LLMMessage]) {
+    /// Whether this prompt contains HealthKit-derived or recovery-sensitive data.
+    let sensitivity: LLMPromptSensitivity
+
+    init(
+        system: String,
+        messages: [LLMMessage],
+        sensitivity: LLMPromptSensitivity = .ordinary
+    ) {
         self.system = system
         self.messages = messages
+        self.sensitivity = sensitivity
     }
 
     /// 拼接 `system + appendix`(若 appendix 非空)。
