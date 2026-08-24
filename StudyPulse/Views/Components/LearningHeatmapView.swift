@@ -89,6 +89,13 @@ struct LearningHeatmapView: View {
     @State private var selectedCell: HeatmapCell? = nil
     @State private var showingManualActivitySheet = false
 
+    /// 缓存后的 91 格数组,仅在 `snapshot.logs` 变化时重算,避免 body 每帧重算。
+    /// Cached 91-cell array; recomputed only when `snapshot.logs` changes so the
+    /// body doesn't rebuild it on every render.
+    @State private var cells: [HeatmapCell] = []
+
+    private func recomputeCells() { cells = buildCells() }
+
     private var accent: Color { container.envManager.effectiveAccentColor }
     private var emptyColor: Color { Color(.tertiarySystemFill) }
 
@@ -97,7 +104,7 @@ struct LearningHeatmapView: View {
     /// Convert `AchievementManager`'s logs into a 91-cell array (including today).
     /// Iteration order: column-major (fill one column before moving to the next),
     /// which matches the GitHub "today is bottom-right" look.
-    private var cells: [HeatmapCell] {
+    private func buildCells() -> [HeatmapCell] {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
 
@@ -174,6 +181,9 @@ struct LearningHeatmapView: View {
             ManualActivitySheet()
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
+        }
+        .onChange(of: achievementManager.snapshot.logs, initial: true) {
+            recomputeCells()
         }
     }
 

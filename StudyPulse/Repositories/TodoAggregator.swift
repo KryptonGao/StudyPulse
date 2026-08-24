@@ -49,7 +49,8 @@ final class TodoAggregator {
         var entries: [TodoEntry] = []
         // 单科考试
         for e in examRepo.examSets {
-            if active != nil && e.phaseId != active { continue }
+            // 统一阶段语义:显式激活时才过滤,`nil phaseId` 旧数据始终纳入(与 Diary 谓词对齐)。
+            if active != nil && e.phaseId != nil && e.phaseId != active { continue }
             if !includeCompleted && e.examReview != nil { continue }
             entries.append(TodoEntry(
                 id: e.id,
@@ -69,7 +70,7 @@ final class TodoAggregator {
         }
         // 综合考试
         for c in examRepo.comprehensiveExamSets {
-            if active != nil && c.phaseId != active { continue }
+            if active != nil && c.phaseId != nil && c.phaseId != active { continue }
             entries.append(TodoEntry(
                 id: c.id,
                 kind: .comprehensiveExam,
@@ -88,7 +89,7 @@ final class TodoAggregator {
         }
         // 待办
         for t in taskRepo.taskItems {
-            if active != nil && t.phaseId != active { continue }
+            if active != nil && t.phaseId != nil && t.phaseId != active { continue }
             if !includeCompleted && t.isCompleted { continue }
             let kind: TodoEntryKind = t.type == .reading ? .reading : .homework
             entries.append(TodoEntry(

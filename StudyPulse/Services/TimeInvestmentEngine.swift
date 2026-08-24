@@ -85,7 +85,7 @@ nonisolated enum StudyStreakCalculator {
         now: Date = .now,
         calendar referenceCalendar: Calendar = .autoupdatingCurrent
     ) -> Int {
-        let active = activeDays(from: sessions)
+        let active = activeDays(from: sessions, calendar: referenceCalendar)
         guard !active.isEmpty else { return 0 }
 
         var calendar = referenceCalendar
@@ -116,17 +116,11 @@ nonisolated enum StudyStreakCalculator {
         return count
     }
 
-    private static func activeDays(from sessions: [StudySession]) -> Set<DayKey> {
+    private static func activeDays(from sessions: [StudySession], calendar: Calendar) -> Set<DayKey> {
         var days = Set<DayKey>()
         for session in sessions where session.completed && session.durationSeconds > 0 {
-            var calendar = Calendar(identifier: .gregorian)
-            if let identifier = session.timeZoneIdentifier,
-               let zone = TimeZone(identifier: identifier) {
-                calendar.timeZone = zone
-            } else {
-                calendar.timeZone = .autoupdatingCurrent
-            }
-
+            // 统一用传入的基准日历归一化到"日",与 `currentStreak` 的 today/yesterday
+            // 同一基准,避免跨时区后残留的会话日期与当前时区错配导致 streak 断裂(H-12)。
             var day = calendar.startOfDay(for: session.startDate)
             let end = session.startDate
                 .addingTimeInterval(TimeInterval(session.durationSeconds))
