@@ -98,7 +98,7 @@ final class DefaultRoutineRepository: RoutineRepository, PersistenceExecutorBack
         }
         if let context = modelContext {
             context.insert(RoutineRecord(from: stored))
-            try? context.save()
+            guard context.saveOrRollback("RoutineRepository.add") else { return }
         }
         routines.append(stored)
         routines.sort { $0.createdAt < $1.createdAt }
@@ -119,7 +119,7 @@ final class DefaultRoutineRepository: RoutineRepository, PersistenceExecutorBack
             for r in stored {
                 context.insert(RoutineRecord(from: r))
             }
-            try? context.save()
+            guard context.saveOrRollback("RoutineRepository.add(batch)") else { return }
         }
         routines.append(contentsOf: stored)
         routines.sort { $0.createdAt < $1.createdAt }
@@ -213,6 +213,7 @@ final class DefaultRoutineRepository: RoutineRepository, PersistenceExecutorBack
                 try context.save()
             }
         } catch {
+            context.rollback()
             Log.data.error("RoutineRepository removeRecord failed: \(error.localizedDescription, privacy: .public)")
         }
     }
@@ -238,6 +239,7 @@ final class DefaultRoutineRepository: RoutineRepository, PersistenceExecutorBack
                 try context.save()
             }
         } catch {
+            context.rollback()
             Log.data.error("RoutineRepository updateRecord failed: \(error.localizedDescription, privacy: .public)")
         }
     }

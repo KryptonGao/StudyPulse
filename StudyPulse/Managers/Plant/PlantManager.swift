@@ -185,7 +185,7 @@ final class PlantManager {
         guard let record = try? context.fetch(descriptor).first else { return }
 
         record.forceOverrideRaw = stage?.rawValue
-        try? context.save()
+        guard context.saveOrRollback("PlantManager.setForceOverride") else { return }
 
         if let stage {
             currentStage = stage
@@ -303,7 +303,7 @@ final class PlantManager {
             let initial = PlantState(currentStage: .seed, lastUpdated: Date())
             let record = PlantStateRecord(from: initial, previousStage: .seed)
             context.insert(record)
-            try? context.save()
+            context.saveOrRollback("PlantManager.bootstrap(seed)")
             self.currentStage = .seed
             self.history = []
             self.lastUpdated = Date()
@@ -330,7 +330,7 @@ final class PlantManager {
         record.lastUpdated = snapshot.lastUpdated
         record.lastActivityAt = snapshot.lastActivityAt
         record.previousStageRaw = lastDerivedStage.rawValue
-        try? context.save()
+        context.saveOrRollback("PlantManager.persist")
     }
 
     // MARK: - AchievementManager Subscription

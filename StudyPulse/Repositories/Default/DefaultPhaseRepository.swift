@@ -126,7 +126,7 @@ final class DefaultPhaseRepository: PhaseRepository {
     func add(_ phase: StudyPhase) {
         if let context = modelContext {
             context.insert(StudyPhaseRecord(from: phase))
-            try? context.save()
+            guard context.saveOrRollback("PhaseRepository.add") else { return }
         }
         phases.append(phase)
         phases.sort { $0.startDate > $1.startDate }
@@ -135,10 +135,12 @@ final class DefaultPhaseRepository: PhaseRepository {
     }
 
     func update(_ phase: StudyPhase) {
-        if let index = phases.firstIndex(where: { $0.id == phase.id }) {
-            phases[index] = phase
+        guard let context = modelContext else {
+            if let index = phases.firstIndex(where: { $0.id == phase.id }) {
+                phases[index] = phase
+            }
+            return
         }
-        guard let context = modelContext else { return }
         do {
             if let entity = try context.fetch(
                 FetchDescriptor<StudyPhaseRecord>(predicate: #Predicate { $0.id == phase.id })
@@ -155,7 +157,12 @@ final class DefaultPhaseRepository: PhaseRepository {
                 try context.save()
             }
         } catch {
+            context.rollback()
             Log.data.error("PhaseRepository update failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        if let index = phases.firstIndex(where: { $0.id == phase.id }) {
+            phases[index] = phase
         }
     }
 
@@ -163,7 +170,11 @@ final class DefaultPhaseRepository: PhaseRepository {
         // 1. 清空其它域对 phase 的引用
         clearPhaseReferences(phaseId: phase.id)
         // 2. 删 SwiftData
-        guard let context = modelContext else { return }
+        guard let context = modelContext else {
+            phases.removeAll { $0.id == phase.id }
+            if envManager.activePhaseId == phase.id { envManager.setActivePhaseId(nil) }
+            return
+        }
         do {
             if let entity = try context.fetch(
                 FetchDescriptor<StudyPhaseRecord>(predicate: #Predicate { $0.id == phase.id })
@@ -172,7 +183,9 @@ final class DefaultPhaseRepository: PhaseRepository {
                 try context.save()
             }
         } catch {
+            context.rollback()
             Log.data.error("PhaseRepository delete failed: \(error.localizedDescription, privacy: .public)")
+            return
         }
         // 3. 从内存列表中移除
         phases.removeAll { $0.id == phase.id }

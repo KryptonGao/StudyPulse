@@ -52,7 +52,7 @@ final class DefaultStudySessionRepository: StudySessionRepository, PersistenceEx
             record.difficultyAnnotationCount = session.difficultyAnnotations?.count ?? 0
             record.payload = (try? JSONEncoder().encode(session)) ?? Data()
         } else { context.insert(StudySessionRecord(from: session)) }
-        try? context.save()
+        guard context.saveOrRollback("StudySessionRepository.upsert") else { return }
         detailedSessions[session.id] = session
         let summary = StudySessionSummary(from: session)
         if let i = sessionSummaries.firstIndex(where: { $0.id == session.id }) {
@@ -73,7 +73,7 @@ final class DefaultStudySessionRepository: StudySessionRepository, PersistenceEx
             predicate: #Predicate { $0.id == id }
         )))?.first {
             context.delete(record)
-            try? context.save()
+            guard context.saveOrRollback("StudySessionRepository.delete") else { return }
         }
         sessions.removeAll { $0.id == id }
         sessionSummaries.removeAll { $0.id == id }
@@ -193,6 +193,7 @@ final class DefaultStudySessionRepository: StudySessionRepository, PersistenceEx
             try context.save()
             UserDefaults.standard.set(true, forKey: key)
         } catch {
+            context.rollback()
             Log.data.error("Legacy study-session merge failed: \(error.localizedDescription, privacy: .public)")
         }
     }

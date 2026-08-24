@@ -11,7 +11,7 @@ nonisolated struct TimeInvestmentAggregator: Sendable {
     let sessions: [StudySession]
 
     private var subTasksByID: [UUID: SubTask] {
-        Dictionary(uniqueKeysWithValues: subTasks.map { ($0.id, $0) })
+        Dictionary(subTasks.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
     }
 
     func directSeconds(for target: InvestmentTarget) -> Int {

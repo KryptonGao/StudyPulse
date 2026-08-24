@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import os
 // Persisted shape frozen as part of StudyPulseSchemaV1. Future changes require
 // a new versioned record type and migration stage.
 @Model final class ExamAutopsyRecord {
@@ -13,6 +14,37 @@ import SwiftData
     var records: [ExamAutopsy] = []; private var context: ModelContext?
     func loadAll(context: ModelContext) async { self.context=context; records=(try? context.fetch(FetchDescriptor<ExamAutopsyRecord>()))?.map { $0.snapshot() } ?? [] }
     func record(for examId: UUID) -> ExamAutopsy? { records.first { $0.examId == examId } }
-    func upsert(_ record: ExamAutopsy) { if let i=records.firstIndex(where:{$0.id==record.id}) { records[i]=record } else { records.append(record) }; guard let context else{return}; if let old=(try? context.fetch(FetchDescriptor<ExamAutopsyRecord>(predicate:#Predicate{$0.id==record.id})))?.first {context.delete(old)}; context.insert(ExamAutopsyRecord(from:record)); try? context.save() }
-    func delete(_ record: ExamAutopsy) { records.removeAll{$0.id==record.id}; guard let context else{return}; if let old=(try? context.fetch(FetchDescriptor<ExamAutopsyRecord>(predicate:#Predicate{$0.id==record.id})))?.first {context.delete(old); try? context.save()} }
+    func upsert(_ record: ExamAutopsy) {
+        guard let context else {
+            if let i=records.firstIndex(where:{$0.id==record.id}) { records[i]=record } else { records.append(record) }
+            return
+        }
+        do {
+            if let old = try context.fetch(FetchDescriptor<ExamAutopsyRecord>(predicate:#Predicate{$0.id==record.id})).first { context.delete(old) }
+            context.insert(ExamAutopsyRecord(from:record))
+            try context.save()
+        } catch {
+            context.rollback()
+            Log.data.error("ExamAutopsyRepository upsert failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        if let i=records.firstIndex(where:{$0.id==record.id}) { records[i]=record } else { records.append(record) }
+    }
+    func delete(_ record: ExamAutopsy) {
+        guard let context else {
+            records.removeAll{$0.id==record.id}
+            return
+        }
+        do {
+            if let old = try context.fetch(FetchDescriptor<ExamAutopsyRecord>(predicate:#Predicate{$0.id==record.id})).first {
+                context.delete(old)
+                try context.save()
+            }
+        } catch {
+            context.rollback()
+            Log.data.error("ExamAutopsyRepository delete failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        records.removeAll{$0.id==record.id}
+    }
 }

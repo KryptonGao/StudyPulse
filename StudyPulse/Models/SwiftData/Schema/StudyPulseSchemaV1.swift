@@ -11,6 +11,11 @@ import SwiftData
 ///
 /// Do not add, remove, rename, or otherwise change a model in this list. A
 /// persistent-model change must be introduced by a new `VersionedSchema`.
+///
+/// The payload-backed history records (coach chats / messages, study sessions,
+/// exam simulations) reference their frozen pre-V5 shapes in
+/// `StudyPulseSchemaLegacy`; V5 swaps in the current top-level records that
+/// add denormalized list/filter columns.
 enum StudyPulseSchemaV1: VersionedSchema {
     static let versionIdentifier = Schema.Version(1, 0, 0)
 
@@ -31,11 +36,11 @@ enum StudyPulseSchemaV1: VersionedSchema {
             CoachGoalRecord.self,
             CoachAnalysisRecord.self,
             CoachProposalRecord.self,
-            CoachConversationMessageRecord.self,
-            CoachChatRecord.self,
-            StudySessionRecord.self,
+            StudyPulseSchemaLegacy.CoachConversationMessageRecord.self,
+            StudyPulseSchemaLegacy.CoachChatRecord.self,
+            StudyPulseSchemaLegacy.StudySessionRecord.self,
             ExamAutopsyRecord.self,
-            ExamSimulationRecord.self,
+            StudyPulseSchemaLegacy.ExamSimulationRecord.self,
         ]
     }
 }

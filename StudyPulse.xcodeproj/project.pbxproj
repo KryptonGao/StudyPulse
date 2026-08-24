@@ -538,6 +538,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "StudyPulse 需要使用相机拍摄错题照片";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "StudyPulse reads Heart Rate Variability (HRV), heart rate, respiratory rate and sleep from Apple Health to tailor study suggestions. Your data stays on device and is never uploaded or shared.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "StudyPulse does not write any data to Apple Health.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "StudyPulse 需要使用麦克风录制错题语音备忘录";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "StudyPulse 需要访问相册以选择错题照片";
 				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "Add homework / reading tasks to the system Reminders app";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "Add homework / reading tasks to the system Reminders app";
@@ -587,6 +588,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "StudyPulse 需要使用相机拍摄错题照片";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "StudyPulse reads Heart Rate Variability (HRV), heart rate, respiratory rate and sleep from Apple Health to tailor study suggestions. Your data stays on device and is never uploaded or shared.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "StudyPulse does not write any data to Apple Health.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "StudyPulse 需要使用麦克风录制错题语音备忘录";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "StudyPulse 需要访问相册以选择错题照片";
 				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "Add homework / reading tasks to the system Reminders app";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "Add homework / reading tasks to the system Reminders app";

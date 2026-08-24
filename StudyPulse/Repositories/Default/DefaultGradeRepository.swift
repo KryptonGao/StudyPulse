@@ -74,7 +74,8 @@ final class DefaultGradeRepository: GradeRepository, PersistenceExecutorBacked {
                 try await executor.upsertGrade(grade)
             }
             var next = self.grades
-            let updates = Dictionary(uniqueKeysWithValues: migrated.map { ($0.id, $0) })
+            // 同 id 重复(损坏数据/竞态)时保留首条,避免 trap / Keep first on duplicate ids.
+            let updates = Dictionary(migrated.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
             for index in next.indices {
                 if let value = updates[next[index].id] { next[index] = value }
             }

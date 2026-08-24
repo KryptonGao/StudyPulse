@@ -41,25 +41,52 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
 
     func addGoal(_ goal: CoachGoal) {
         guard !goals.contains(where: { $0.id == goal.id }) else { return }
-        context?.insert(CoachGoalRecord(from: goal)); try? context?.save(); goals.append(goal)
+        if let context {
+            context.insert(CoachGoalRecord(from: goal))
+            guard context.saveOrRollback("CoachRepository.addGoal") else { return }
+        }
+        goals.append(goal)
     }
 
     func updateGoal(_ goal: CoachGoal) {
-        if let i = goals.firstIndex(where: { $0.id == goal.id }) { goals[i] = goal }
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachGoalRecord>(
-            predicate: #Predicate { $0.id == goal.id }
-        )))?.first {
-            record.payload = (try? JSONEncoder().encode(goal)) ?? Data(); record.updatedAt = goal.updatedAt
-            try? context.save()
+        guard let context else {
+            if let i = goals.firstIndex(where: { $0.id == goal.id }) { goals[i] = goal }
+            return
         }
+        do {
+            if let record = try context.fetch(FetchDescriptor<CoachGoalRecord>(
+                predicate: #Predicate { $0.id == goal.id }
+            )).first {
+                record.payload = (try? JSONEncoder().encode(goal)) ?? Data(); record.updatedAt = goal.updatedAt
+                try context.save()
+            }
+        } catch {
+            context.rollback()
+            Log.data.error("CoachRepository updateGoal failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        if let i = goals.firstIndex(where: { $0.id == goal.id }) { goals[i] = goal }
     }
 
     func deleteGoal(_ goal: CoachGoal) {
         chats(for: goal.id).forEach(deleteChat)
         deleteMessages(for: goal.id)
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachGoalRecord>(
-            predicate: #Predicate { $0.id == goal.id }
-        )))?.first { context.delete(record); try? context.save() }
+        guard let context else {
+            goals.removeAll { $0.id == goal.id }
+            return
+        }
+        do {
+            if let record = try context.fetch(FetchDescriptor<CoachGoalRecord>(
+                predicate: #Predicate { $0.id == goal.id }
+            )).first {
+                context.delete(record)
+                try context.save()
+            }
+        } catch {
+            context.rollback()
+            Log.data.error("CoachRepository deleteGoal failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
         goals.removeAll { $0.id == goal.id }
     }
 
@@ -73,54 +100,95 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
 
     func addChat(_ chat: CoachChat) {
         guard !chats.contains(where: { $0.id == chat.id }) else { return }
+        if let context {
+            context.insert(CoachChatRecord(from: chat))
+            guard context.saveOrRollback("CoachRepository.addChat") else { return }
+        }
         chats.append(chat)
-        context?.insert(CoachChatRecord(from: chat)); try? context?.save()
     }
 
     func updateChat(_ chat: CoachChat) {
-        if let index = chats.firstIndex(where: { $0.id == chat.id }) { chats[index] = chat }
-        if let context, let record = (try? context.fetch(
-            FetchDescriptor<CoachChatRecord>(predicate: #Predicate { $0.id == chat.id })
-        ))?.first {
-            record.goalID = chat.goalID
-            record.title = chat.title
-            record.isArchived = chat.isArchived
-            record.createdAt = chat.createdAt
-            record.payload = (try? JSONEncoder().encode(chat)) ?? Data(); record.updatedAt = chat.updatedAt
-            try? context.save()
+        guard let context else {
+            if let index = chats.firstIndex(where: { $0.id == chat.id }) { chats[index] = chat }
+            return
         }
+        do {
+            if let record = try context.fetch(
+                FetchDescriptor<CoachChatRecord>(predicate: #Predicate { $0.id == chat.id })
+            ).first {
+                record.goalID = chat.goalID
+                record.title = chat.title
+                record.isArchived = chat.isArchived
+                record.createdAt = chat.createdAt
+                record.payload = (try? JSONEncoder().encode(chat)) ?? Data(); record.updatedAt = chat.updatedAt
+                try context.save()
+            }
+        } catch {
+            context.rollback()
+            Log.data.error("CoachRepository updateChat failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        if let index = chats.firstIndex(where: { $0.id == chat.id }) { chats[index] = chat }
     }
 
     func deleteChat(_ chat: CoachChat) {
         deleteMessages(forChatID: chat.id)
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachChatRecord>(
-            predicate: #Predicate { $0.id == chat.id }
-        )))?.first {
-            context.delete(record); try? context.save()
+        guard let context else {
+            chats.removeAll { $0.id == chat.id }
+            return
+        }
+        do {
+            if let record = try context.fetch(FetchDescriptor<CoachChatRecord>(
+                predicate: #Predicate { $0.id == chat.id }
+            )).first {
+                context.delete(record)
+                try context.save()
+            }
+        } catch {
+            context.rollback()
+            Log.data.error("CoachRepository deleteChat failed: \(error.localizedDescription, privacy: .public)")
+            return
         }
         chats.removeAll { $0.id == chat.id }
     }
 
     func saveAnalysis(_ analysis: CoachAnalysis) {
         // Keep every successful run so Coach history can show a trend.
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachAnalysisRecord>(
-            predicate: #Predicate { $0.id == analysis.id }
-        )))?.first {
-            record.payload = (try? JSONEncoder().encode(analysis)) ?? Data(); record.calculatedAt = analysis.calculatedAt
-        } else { context?.insert(CoachAnalysisRecord(from: analysis)) }
+        if let context {
+            do {
+                if let record = try context.fetch(FetchDescriptor<CoachAnalysisRecord>(
+                    predicate: #Predicate { $0.id == analysis.id }
+                )).first {
+                    record.payload = (try? JSONEncoder().encode(analysis)) ?? Data(); record.calculatedAt = analysis.calculatedAt
+                } else { context.insert(CoachAnalysisRecord(from: analysis)) }
+                try context.save()
+            } catch {
+                context.rollback()
+                Log.data.error("CoachRepository saveAnalysis failed: \(error.localizedDescription, privacy: .public)")
+                return
+            }
+        }
         analyses.removeAll { $0.id == analysis.id }
-        try? context?.save(); analyses.insert(analysis, at: 0)
+        analyses.insert(analysis, at: 0)
     }
 
     func saveProposal(_ proposal: CoachProposal) {
+        if let context {
+            do {
+                if let record = try context.fetch(FetchDescriptor<CoachProposalRecord>(
+                    predicate: #Predicate { $0.id == proposal.id }
+                )).first {
+                    record.payload = (try? JSONEncoder().encode(proposal)) ?? Data(); record.statusRaw = proposal.status.rawValue
+                } else { context.insert(CoachProposalRecord(from: proposal)) }
+                try context.save()
+            } catch {
+                context.rollback()
+                Log.data.error("CoachRepository saveProposal failed: \(error.localizedDescription, privacy: .public)")
+                return
+            }
+        }
         if let i = proposals.firstIndex(where: { $0.id == proposal.id }) { proposals[i] = proposal }
         else { proposals.insert(proposal, at: 0) }
-        if let context, let record = (try? context.fetch(FetchDescriptor<CoachProposalRecord>(
-            predicate: #Predicate { $0.id == proposal.id }
-        )))?.first {
-            record.payload = (try? JSONEncoder().encode(proposal)) ?? Data(); record.statusRaw = proposal.status.rawValue
-        } else { context?.insert(CoachProposalRecord(from: proposal)) }
-        try? context?.save()
     }
 
     func proposal(id: UUID) -> CoachProposal? { proposals.first { $0.id == id } }
@@ -183,37 +251,66 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
 
     func addMessage(_ message: CoachConversationMessage) {
         guard !messages.contains(where: { $0.id == message.id }) else { return }
-        messages.append(message); context?.insert(CoachConversationMessageRecord(from: message)); try? context?.save()
+        if let context {
+            context.insert(CoachConversationMessageRecord(from: message))
+            guard context.saveOrRollback("CoachRepository.addMessage") else { return }
+        }
+        messages.append(message)
     }
 
     func updateMessage(_ message: CoachConversationMessage) {
-        if let index = messages.firstIndex(where: { $0.id == message.id }) { messages[index] = message }
-        if let context, let record = (try? context.fetch(
-            FetchDescriptor<CoachConversationMessageRecord>(predicate: #Predicate { $0.id == message.id })
-        ))?.first {
-            record.goalID = message.goalID
-            record.chatID = message.chatID
-            record.payload = (try? JSONEncoder().encode(message)) ?? Data(); record.roleRaw = message.role.rawValue
-            record.createdAt = message.createdAt; try? context.save()
+        guard let context else {
+            if let index = messages.firstIndex(where: { $0.id == message.id }) { messages[index] = message }
+            return
         }
+        do {
+            if let record = try context.fetch(
+                FetchDescriptor<CoachConversationMessageRecord>(predicate: #Predicate { $0.id == message.id })
+            ).first {
+                record.goalID = message.goalID
+                record.chatID = message.chatID
+                record.payload = (try? JSONEncoder().encode(message)) ?? Data(); record.roleRaw = message.role.rawValue
+                record.createdAt = message.createdAt
+                try context.save()
+            }
+        } catch {
+            context.rollback()
+            Log.data.error("CoachRepository updateMessage failed: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        if let index = messages.firstIndex(where: { $0.id == message.id }) { messages[index] = message }
     }
 
     func deleteMessages(for goalID: UUID) {
         if let context {
-            let records = (try? context.fetch(FetchDescriptor<CoachConversationMessageRecord>(
-                predicate: #Predicate { $0.goalID == goalID }
-            ))) ?? []
-            records.forEach(context.delete); try? context.save()
+            do {
+                let records = try context.fetch(FetchDescriptor<CoachConversationMessageRecord>(
+                    predicate: #Predicate { $0.goalID == goalID }
+                ))
+                records.forEach(context.delete)
+                try context.save()
+            } catch {
+                context.rollback()
+                Log.data.error("CoachRepository deleteMessages(for goal) failed: \(error.localizedDescription, privacy: .public)")
+                return
+            }
         }
         messages.removeAll { $0.goalID == goalID }
     }
 
     func deleteMessages(forChatID chatID: UUID) {
         if let context {
-            let records = (try? context.fetch(FetchDescriptor<CoachConversationMessageRecord>(
-                predicate: #Predicate { $0.chatID == chatID }
-            ))) ?? []
-            records.forEach(context.delete); try? context.save()
+            do {
+                let records = try context.fetch(FetchDescriptor<CoachConversationMessageRecord>(
+                    predicate: #Predicate { $0.chatID == chatID }
+                ))
+                records.forEach(context.delete)
+                try context.save()
+            } catch {
+                context.rollback()
+                Log.data.error("CoachRepository deleteMessages(forChat) failed: \(error.localizedDescription, privacy: .public)")
+                return
+            }
         }
         messages.removeAll { $0.chatID == chatID }
     }

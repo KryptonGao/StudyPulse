@@ -44,7 +44,7 @@ nonisolated enum ImageStorage {
         }
         let url = dir.appendingPathComponent(filename)
         do {
-            try data.write(to: url)
+            try data.write(to: url, options: .atomic)
             Log.data.debug("ImageStorage save OK / saved: \(filename, privacy: .public) bytes=\(data.count, privacy: .public)")
             return true
         } catch {

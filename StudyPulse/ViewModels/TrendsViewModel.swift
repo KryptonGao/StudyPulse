@@ -139,11 +139,11 @@ final class TrendsViewModel {
         let recentGrades = grades.filter { $0.date >= cutoff }
         let mistakes = container.mistakeRepo.filteredMistakeSets.filter { $0.date >= cutoff }
         let subjectRecords = container.subjectRepo.subjects
-        let fullScores = Dictionary(uniqueKeysWithValues: subjectRecords.map { ($0.name, $0.fullScore) })
+        let fullScores = Dictionary(subjectRecords.map { ($0.name, $0.fullScore) }, uniquingKeysWith: { first, _ in first })
         let sessions = container.studySessionRepo
             .sessions(from: cutoff, to: now)
             .filter(\.completed)
-        let subjectIDs = Dictionary(uniqueKeysWithValues: subjectRecords.map { ($0.id, $0.name) })
+        let subjectIDs = Dictionary(subjectRecords.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
         let calendar = Calendar.current
 
         var minutesBySubject: [String: Double] = [:]
@@ -160,9 +160,9 @@ final class TrendsViewModel {
             }
         }
         let hrvHistory = HealthHistoryStore.load().filter { $0.date >= cutoff }
-        let hrvByDay = Dictionary(uniqueKeysWithValues: hrvHistory.compactMap { snapshot in
+        let hrvByDay = Dictionary(hrvHistory.compactMap { snapshot in
             snapshot.hrv.map { (calendar.startOfDay(for: snapshot.date).ISO8601Format(), $0) }
-        })
+        }, uniquingKeysWith: { first, _ in first })
         let hrvValues = hrvHistory.compactMap(\.hrv)
         let overallHRV = hrvValues.isEmpty ? 0 : hrvValues.reduce(0, +) / Double(hrvValues.count)
         let maxMinutes = max(minutesBySubject.values.max() ?? 0, 1)

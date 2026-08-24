@@ -263,7 +263,8 @@ nonisolated enum BackupValidator {
         guard c.subTasks.allSatisfy({ investmentSubjectIDs.contains($0.subjectID) }) else {
             throw BackupError.invalidRelationship("unknown time investment subject UUID")
         }
-        let subTaskMap = Dictionary(uniqueKeysWithValues: c.subTasks.map { ($0.id, $0) })
+        // 重复 id 的备份不 trap;后续层级校验仍会按首条展开 / Duplicate ids must not trap here.
+        let subTaskMap = Dictionary(c.subTasks.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         for task in c.subTasks {
             var seen: Set<UUID> = [task.id]
             var parentID = task.parentSubTaskID
