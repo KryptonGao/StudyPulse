@@ -217,7 +217,9 @@ enum DataExportManager {
             ))
         }
         let header = rows[0]
-        let dataRows = Array(rows.dropFirst())
+        // 行数上限:超限部分跳过,防止恶意超大行数 DoS
+        // Row cap: skip rows beyond the limit to guard against huge imports.
+        let dataRows = Array(rows.dropFirst().prefix(maxImportDataRows))
         guard dataRows.count > 0 else {
             return ([], ImportDiagnostics.failure(
                 code: .E003, message: "Header only, no data rows", fileName: fileName,
@@ -289,7 +291,9 @@ enum DataExportManager {
             ))
         }
         let header = rows[0]
-        let dataRows = Array(rows.dropFirst())
+        // 行数上限:超限部分跳过,防止恶意超大行数 DoS
+        // Row cap: skip rows beyond the limit to guard against huge imports.
+        let dataRows = Array(rows.dropFirst().prefix(maxImportDataRows))
         guard dataRows.count > 0 else {
             return ([], ImportDiagnostics.failure(
                 code: .E003, message: "Header only, no data rows", fileName: fileName,
@@ -344,7 +348,9 @@ enum DataExportManager {
             ))
         }
         let header = rows[0]
-        let dataRows = Array(rows.dropFirst())
+        // 行数上限:超限部分跳过,防止恶意超大行数 DoS
+        // Row cap: skip rows beyond the limit to guard against huge imports.
+        let dataRows = Array(rows.dropFirst().prefix(maxImportDataRows))
         guard dataRows.count > 0 else {
             return ([], [], ImportDiagnostics.failure(
                 code: .E003, message: "Header only, no data rows", fileName: fileName,
@@ -402,7 +408,9 @@ enum DataExportManager {
             ))
         }
         let header = rows[0]
-        let dataRows = Array(rows.dropFirst())
+        // 行数上限:超限部分跳过,防止恶意超大行数 DoS
+        // Row cap: skip rows beyond the limit to guard against huge imports.
+        let dataRows = Array(rows.dropFirst().prefix(maxImportDataRows))
         guard dataRows.count > 0 else {
             return ([], ImportDiagnostics.failure(
                 code: .E003, message: "Header only, no data rows", fileName: fileName,
@@ -448,11 +456,25 @@ enum DataExportManager {
         ))
     }
 
+    /// 导入文件大小上限(5MB):防止恶意超大 CSV 撑爆内存
+    /// Import file-size cap (5 MB) to guard against OOM from huge CSVs.
+    static let maxImportFileSizeBytes = 5 * 1024 * 1024
+    /// 导入数据行上限:超过部分跳过(计入 skippedRowCount 诊断)
+    /// Import row cap: rows beyond this are skipped (reported as skippedRowCount).
+    static let maxImportDataRows = 10_000
+
     /// 读取 CSV 文本，依次尝试多种编码。
     /// 失败时返回 (.failure, nil)；成功时返回 (.success, encodingName, content)
     /// Read CSV text by trying several encodings in order.
-    /// On failure returns (.failure, nil); on success (.success, encodingName, content).
+    /// On failure returns (.failure, nil); on success (.success, encodingName, content)
     static func readCSV(from fileURL: URL) -> (result: ReadResult, encoding: String?, content: String?) {
+        // 先校验文件大小,超限直接拒绝,避免读入超大文件
+        // Reject oversized files before reading anything into memory.
+        if let size = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize,
+           size > maxImportFileSizeBytes {
+            Log.export.warning("CSV 文件超过大小上限,拒绝导入 / CSV exceeds size cap: \(size, privacy: .public) bytes")
+            return (.failure, nil, nil)
+        }
         let encodings: [(String.Encoding, String)] = [
             (.utf8, "utf-8"),
             (.utf16, "utf-16"),
@@ -491,7 +513,7 @@ enum DataExportManager {
         guard rows.count > 1 else { return [] }
 
         var grades: [Grade] = []
-        for row in rows.dropFirst() {
+        for row in rows.dropFirst().prefix(maxImportDataRows) {
             if let grade = parseGradeRow(row, subjects: subjects) {
                 grades.append(grade)
             }
@@ -510,7 +532,7 @@ enum DataExportManager {
         }
 
         var mistakes: [MistakeNote] = []
-        for row in rows.dropFirst() {
+        for row in rows.dropFirst().prefix(maxImportDataRows) {
             if let mistake = parseMistakeRow(row) {
                 mistakes.append(mistake)
                 Log.export.debug("解析成功 / Parsed mistake: title=\(mistake.title, privacy: .public)")
@@ -531,7 +553,7 @@ enum DataExportManager {
         var singleExams: [Exam] = []
         var comprehensiveExams: [comprehensiveExam] = []
 
-        for row in rows.dropFirst() {
+        for row in rows.dropFirst().prefix(maxImportDataRows) {
             switch parseExamRow(row) {
             case .single(let exam):
                 singleExams.append(exam)
@@ -554,7 +576,7 @@ enum DataExportManager {
         guard rows.count > 1 else { return [] }
 
         var tasks: [TaskItem] = []
-        for row in rows.dropFirst() {
+        for row in rows.dropFirst().prefix(maxImportDataRows) {
             if let task = parseTaskRow(row) {
                 tasks.append(task)
             }
@@ -650,6 +672,12 @@ enum DataExportManager {
                   let data = raw.data(using: .utf8),
                   let decoded = try? JSONDecoder().decode([MasteryHistoryEntry].self, from: data)
             else { return [] }
+            // 上限 200 条:恶意超大数组直接整段丢弃(截断会破坏时间序列语义)
+            // Cap at 200 entries: oversized payloads are dropped whole.
+            guard decoded.count <= 200 else {
+                Log.export.warning("masteryHistory 超过 200 条,已丢弃 / masteryHistory exceeds 200 entries, dropped: count=\(decoded.count, privacy: .public)")
+                return []
+            }
             return decoded
         }()
 
@@ -911,12 +939,23 @@ enum DataExportManager {
     }
 
     /// RFC 4180 转义：包含 , " 换行的字段用 " 包起来，内部 " 变 ""
-    /// RFC 4180 escape: fields containing `,` `"` or newlines are wrapped in `"`, and inner `"` becomes `""`.
+    /// 另外做 CSV 公式注入防护:首字符为 = + - @ 时加 \t 前缀,
+    /// 防止 Excel/Numbers 打开导出文件时执行公式(OWASP 惯例)。
+    /// 导入侧所有字段均会 trim 掉 \t,导出→再导入 roundtrip 无损。
+    /// RFC 4180 escape: fields containing `,` `"` or newlines are wrapped in `"`,
+    /// and inner `"` becomes `""`.
+    /// Also guards against CSV formula injection: a leading `= + - @` gets a
+    /// `\t` prefix so Excel/Numbers won't execute it (OWASP convention).
+    /// The importer trims `\t`, so export→import round-trips losslessly.
     private static func escapeCSV(_ string: String) -> String {
-        if string.contains(",") || string.contains("\"") || string.contains("\n") || string.contains("\r") {
-            return "\"" + string.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        var field = string
+        if let first = field.first, "=+-@".contains(first) {
+            field = "\t" + field
         }
-        return string
+        if field.contains(",") || field.contains("\"") || field.contains("\n") || field.contains("\r") {
+            return "\"" + field.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        }
+        return field
     }
 
     private static func formatDate(_ date: Date) -> String {

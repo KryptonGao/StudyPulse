@@ -135,11 +135,50 @@ enum ModelContainerFactory {
             url: storeURL,
             cloudKitDatabase: .none
         )
-        return try ModelContainer(
+        let container = try ModelContainer(
             for: schema,
             migrationPlan: StudyPulseMigrationPlan.self,
             configurations: [config]
         )
+        // Store 含全量 PII:锁屏后不可读(best-effort,含 -wal/-shm 变体)
+        // Store holds full PII: complete protection (incl. -wal/-shm siblings).
+        applyCompleteFileProtection(
+            to: storeURL,
+            in: storeURL.deletingLastPathComponent(),
+            baseName: storeURL.lastPathComponent
+        )
+        return container
+    }
+
+    /// 给 store 主文件及其 `-wal`/`-shm` 变体设置 complete 保护。
+    /// best-effort:失败仅记日志,不影响打开/备份/恢复流程。
+    /// Apply `.complete` file protection to the store file and its
+    /// `-wal`/`-shm` siblings. Best-effort: failures are logged and ignored.
+    private static func applyCompleteFileProtection(
+        to storeURL: URL,
+        in directory: URL,
+        baseName: String
+    ) {
+        let fm = FileManager.default
+        var targets = [storeURL]
+        if let siblings = try? fm.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ) {
+            targets += siblings.filter {
+                let name = $0.lastPathComponent
+                return name != baseName
+                    && (name.hasPrefix(baseName + "-") || name.hasPrefix(baseName + "_"))
+            }
+        }
+        for url in targets where fm.fileExists(atPath: url.path) {
+            do {
+                try fm.setAttributes([.protectionKey: FileProtectionType.complete], ofItemAtPath: url.path)
+            } catch {
+                Log.data.warning("Store 文件保护设置失败 / File protection failed: \(url.lastPathComponent, privacy: .public)")
+            }
+        }
     }
 
     struct StoreBackup {
@@ -211,6 +250,14 @@ enum ModelContainerFactory {
         }
 
         Log.data.warning("原 Store 已备份用于灾难恢复 / Original store backed up: \(backupDirectory.path, privacy: .public)")
+        // 备份目录同样含全量 PII,保持 complete 保护
+        // The backup copy holds the same full PII; keep it protected.
+        for name in movedNames {
+            try? fm.setAttributes(
+                [.protectionKey: FileProtectionType.complete],
+                ofItemAtPath: backupDirectory.appendingPathComponent(name).path
+            )
+        }
         return StoreBackup(directory: backupDirectory, fileNames: movedNames)
     }
 
@@ -255,6 +302,14 @@ enum ModelContainerFactory {
             try fm.moveItem(
                 at: backup.directory.appendingPathComponent(name),
                 to: storeDir.appendingPathComponent(name)
+            )
+        }
+        // 恢复回来的 store 同样保持 complete 保护(best-effort)
+        // Restored store files keep complete protection (best-effort).
+        for name in backup.fileNames {
+            try? fm.setAttributes(
+                [.protectionKey: FileProtectionType.complete],
+                ofItemAtPath: storeDir.appendingPathComponent(name).path
             )
         }
     }

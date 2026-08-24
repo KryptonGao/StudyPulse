@@ -248,22 +248,33 @@ enum SuggestionEngine {
     // MARK: - 7 个独立 find*(全部纯函数,可单独被 ViewModel 调用) / 7 standalone find* helpers (all pure, callable from any view model)
 
     /// 平均分最低的科目(样本数 >= 2 才有意义)
+    /// 同分时按科目名字典序取首个,保证确定性。
     /// Lowest-average subject (only with >= 2 samples).
+    /// Ties break by subject name (ascending) for determinism.
     static func findWeakSubject(aggregates: [String: SubjectAggregate]) -> String? {
         let qualified = SubjectAggregator.qualifiedAggregates(aggregates, minCount: 2)
-        return qualified.min { $0.value.average < $1.value.average }?.key
+        return qualified.min {
+            ($0.value.average, $0.key) < ($1.value.average, $1.key)
+        }?.key
     }
 
     /// 平均分最高的科目(样本数 >= 2)
+    /// 同分时按科目名字典序取首个,保证确定性。
     /// Highest-average subject (only with >= 2 samples).
+    /// Ties break by subject name (ascending) for determinism.
     static func findStrongSubject(aggregates: [String: SubjectAggregate]) -> String? {
         let qualified = SubjectAggregator.qualifiedAggregates(aggregates, minCount: 2)
-        return qualified.max { $0.value.average < $1.value.average }?.key
+        return qualified.min {
+            ($1.value.average, $0.key) < ($0.value.average, $1.key)
+        }?.key
     }
 
     /// 最近 3 次成绩严格下滑 ≥ 5 分
+    /// 多候选时取降幅最大者,同幅按科目名字典序,保证确定性。
     /// Subject whose last 3 scores strictly decline by >= 5 points.
+    /// Picks the largest drop; ties break by subject name (ascending).
     static func findDecliningTrend(aggregates: [String: SubjectAggregate]) -> String? {
+        var candidates: [(subject: String, drop: Double)] = []
         for (subject, agg) in aggregates where agg.sortedAsc.count >= 3 {
             let last3 = Array(agg.sortedAsc.suffix(3))
             // last3.count 已知 == 3(外层 guard 保证),仍用 guard 防御未来改逻辑时退化
@@ -271,29 +282,36 @@ enum SuggestionEngine {
                   let s1 = last3.dropFirst(1).first?.score,
                   let s2 = last3.dropFirst(2).first?.score else { continue }
             if s0 > s1, s1 > s2, s0 - s2 >= 5 {
-                return subject
+                candidates.append((subject, s0 - s2))
             }
         }
-        return nil
+        return candidates.min {
+            ($1.drop, $0.subject) < ($0.drop, $1.subject)
+        }?.subject
     }
 
     /// 最近 3 次成绩严格进步 ≥ 5 分
+    /// 多候选时取涨幅最大者,同幅按科目名字典序,保证确定性。
     /// Subject whose last 3 scores strictly improve by >= 5 points.
+    /// Picks the largest gain; ties break by subject name (ascending).
     static func findImprovingTrend(aggregates: [String: SubjectAggregate]) -> String? {
+        var candidates: [(subject: String, gain: Double)] = []
         for (subject, agg) in aggregates where agg.sortedAsc.count >= 3 {
             let last3 = Array(agg.sortedAsc.suffix(3))
             guard let s0 = last3.dropFirst(0).first?.score,
                   let s1 = last3.dropFirst(1).first?.score,
                   let s2 = last3.dropFirst(2).first?.score else { continue }
             if s0 < s1, s1 < s2, s2 - s0 >= 5 {
-                return subject
+                candidates.append((subject, s2 - s0))
             }
         }
-        return nil
+        return candidates.min {
+            ($1.gain, $0.subject) < ($0.gain, $1.subject)
+        }?.subject
     }
 
-    /// 错题 ≥ 3 但成绩为 0 的科目(前 2 个)
-    /// Subjects with >= 3 mistakes but 0 recorded grades (top 2).
+    /// 错题 ≥ 3 但成绩为 0 的科目(前 2 个,按科目名字典序,保证确定性)
+    /// Subjects with >= 3 mistakes but 0 recorded grades (top 2, name-sorted).
     static func findUnreviewedMistakeSubjects(
         aggregates: [String: SubjectAggregate],
         mistakeCounts: [String: Int]
@@ -305,37 +323,44 @@ enum SuggestionEngine {
                 unreviewed.append(subject)
             }
         }
-        return Array(unreviewed.prefix(2))
+        return Array(unreviewed.sorted().prefix(2))
     }
 
     /// 错题 ≥ 5 且错题数 > 成绩数 × 2 的科目
+    /// 多候选时按科目名字典序取首个,保证确定性。
     /// Subject where mistakes >= 5 AND mistakes > grades × 2.
+    /// Ties break by subject name (ascending) for determinism.
     static func findMistakeHeavySubject(
         aggregates: [String: SubjectAggregate],
         mistakeCounts: [String: Int]
     ) -> String? {
         let allSubjects = Set(mistakeCounts.keys).union(aggregates.keys)
-        for subject in allSubjects {
+        let matched = allSubjects.filter { subject in
             let mc = mistakeCounts[subject] ?? 0
             let gc = aggregates[subject]?.count ?? 0
-            if mc >= 5 && mc > gc * 2 {
-                return subject
-            }
+            return mc >= 5 && mc > gc * 2
         }
-        return nil
+        return matched.min()
     }
 
     /// 学科失衡:某科成绩数 > 其余科目平均的 3 倍
+    /// 同数量时按科目名字典序取首个,保证确定性。
     /// Subject imbalance: a subject's grade count > 3 × the average of the rest.
+    /// Ties break by subject name (ascending) for determinism.
     static func findImbalancedStudy(aggregates: [String: SubjectAggregate]) -> String? {
         guard aggregates.count >= 3 else { return nil }
-        let sorted = aggregates.map { ($0.key, $0.value.count) }.sorted { $0.1 > $1.1 }
+        let sorted = aggregates
+            .map { (subject: $0.key, count: $0.value.count) }
+            .sorted { lhs, rhs in
+                if lhs.count != rhs.count { return lhs.count > rhs.count }
+                return lhs.subject < rhs.subject
+            }
         guard let max = sorted.first else { return nil }
         let others = Array(sorted.dropFirst())
-        let total = others.reduce(0) { $0 + $1.1 }
+        let total = others.reduce(0) { $0 + $1.count }
         let avgOthers = others.isEmpty ? 0 : total / others.count
-        guard max.1 > avgOthers * 3 else { return nil }
-        return max.0
+        guard max.count > avgOthers * 3 else { return nil }
+        return max.subject
     }
 
     // MARK: - Exam-window helpers

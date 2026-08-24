@@ -75,6 +75,11 @@ enum HealthHistoryStore {
         do {
             let data = try JSONEncoder().encode(trimmed)
             try data.write(to: url, options: .atomic)
+            // 健康数据敏感:锁屏后不可读(best-effort 加固,失败不影响保存结果)
+            // Health data is sensitive: complete protection after unlock only.
+            try? FileManager.default.setAttributes(
+                [.protectionKey: FileProtectionType.complete], ofItemAtPath: url.path
+            )
             Log.healthHistory.debug("保存健康历史成功 / Saved health history: count=\(trimmed.count, privacy: .public) bytes=\(data.count, privacy: .public)")
         } catch {
             Log.healthHistory.error("健康历史保存失败 / Health history save failed: \(error.localizedDescription, privacy: .public)")

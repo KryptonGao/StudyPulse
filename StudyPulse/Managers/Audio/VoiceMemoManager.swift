@@ -132,6 +132,15 @@ final class VoiceMemoManager: NSObject, AVAudioRecorderDelegate, AVAudioPlayerDe
         // Tear down the audio session to release hardware.
         let session = AVAudioSession.sharedInstance()
         try? session.setActive(false)
+
+        // 录音文件敏感:锁屏后不可读(best-effort 加固,失败不影响保存结果)
+        // Voice memos are sensitive: complete protection after unlock only.
+        if let filename = currentFileName {
+            let url = AudioStorage.url(for: filename)
+            try? FileManager.default.setAttributes(
+                [.protectionKey: FileProtectionType.complete], ofItemAtPath: url.path
+            )
+        }
     }
 
     /// 取消录音并删除已生成的文件。

@@ -116,6 +116,12 @@ nonisolated struct SRSOverview: Equatable {
 nonisolated enum SRSAlgorithm {
     /// 最小难度系数（Anki 规定 1.3）
     static let minEaseFactor: Double = 1.3
+    /// intervalDays 硬上限(2 年):防止连续 easy 指数增长溢出,
+    /// 保证 nextReviewDate 的日期加法不会回退。
+    /// Hard cap for intervalDays (2 years): prevents unbounded exponential
+    /// growth from repeated `easy` reviews, which would overflow
+    /// `date(byAdding:)` and collapse nextReviewDate to `now`.
+    static let maxIntervalDays: Int = 730
     /// 默认初始难度系数
     static let defaultEaseFactor: Double = 2.5
     /// 「未来 7 天」窗口，用于 upcoming 统计
@@ -215,6 +221,10 @@ nonisolated enum SRSAlgorithm {
         if multiplier != 1.0 {
             newState.intervalDays = max(1, Int((Double(newState.intervalDays) * multiplier).rounded()))
         }
+
+        // 统一硬上限:good/easy/难度乘子全路径封顶,防止间隔无界增长。
+        // Unified hard cap across good/easy/difficulty-multiplier paths.
+        newState.intervalDays = min(Self.maxIntervalDays, max(1, newState.intervalDays))
 
         // 计算下次复习日期（基于今天的 09:00，避免深夜推送）
         let baseDate = Calendar.current.startOfDay(for: now)

@@ -138,6 +138,104 @@ final class SuggestionEngineTests: XCTestCase {
         XCTAssertEqual(SuggestionEngine.findImbalancedStudy(aggregates: aggregates), "Math")
     }
 
+    // MARK: - Determinism (M-06): tie-breaks must be stable
+
+    func test_findWeakAndStrongSubject_tieBreaksByName() {
+        // 同平均分:weak/strong 均应返回科目名字典序较小者
+        // Equal averages: both helpers must pick the lexicographically
+        // smaller subject name.
+        let aggregates: [String: SubjectAggregate] = [
+            "Math": SubjectAggregate(subject: "Math", average: 70, count: 3, recentCount: 3, sortedAsc: []),
+            "English": SubjectAggregate(subject: "English", average: 70, count: 3, recentCount: 3, sortedAsc: []),
+            "Art": SubjectAggregate(subject: "Art", average: 90, count: 3, recentCount: 3, sortedAsc: []),
+            "Band": SubjectAggregate(subject: "Band", average: 90, count: 3, recentCount: 3, sortedAsc: [])
+        ]
+        XCTAssertEqual(SuggestionEngine.findWeakSubject(aggregates: aggregates), "English")
+        XCTAssertEqual(SuggestionEngine.findStrongSubject(aggregates: aggregates), "Art")
+    }
+
+    func test_findDecliningTrend_picksLargestDrop_andTieBreaksByName() {
+        // Math 降 25,Chemistry 降 9 → 取降幅更大的 Math;
+        // Math/Physics 同降 20 → 取字典序更小的 Math。
+        // Math drops 25 vs Chemistry 9 → Math; equal drops (20) → name order.
+        let mathDrop25: [Grade] = [
+            makeGrade(subject: "Math", score: 90, daysAgo: 30),
+            makeGrade(subject: "Math", score: 80, daysAgo: 15),
+            makeGrade(subject: "Math", score: 65, daysAgo: 1)
+        ]
+        let chemistryDrop9: [Grade] = [
+            makeGrade(subject: "Chemistry", score: 80, daysAgo: 30),
+            makeGrade(subject: "Chemistry", score: 76, daysAgo: 15),
+            makeGrade(subject: "Chemistry", score: 71, daysAgo: 1)
+        ]
+        var aggregates: [String: SubjectAggregate] = [
+            "Math": SubjectAggregate(subject: "Math", average: 78, count: 3, recentCount: 3, sortedAsc: mathDrop25),
+            "Chemistry": SubjectAggregate(subject: "Chemistry", average: 75, count: 3, recentCount: 3, sortedAsc: chemistryDrop9)
+        ]
+        XCTAssertEqual(SuggestionEngine.findDecliningTrend(aggregates: aggregates), "Math")
+
+        let physicsDrop25: [Grade] = [
+            makeGrade(subject: "Physics", score: 95, daysAgo: 30),
+            makeGrade(subject: "Physics", score: 85, daysAgo: 15),
+            makeGrade(subject: "Physics", score: 70, daysAgo: 1)
+        ]
+        aggregates["Physics"] = SubjectAggregate(
+            subject: "Physics", average: 83, count: 3, recentCount: 3, sortedAsc: physicsDrop25
+        )
+        // Math 与 Physics 均降 25 → 字典序取 Math
+        // Equal drops (25) → Math by name order.
+        XCTAssertEqual(SuggestionEngine.findDecliningTrend(aggregates: aggregates), "Math")
+    }
+
+    func test_findImprovingTrend_picksLargestGain_andTieBreaksByName() {
+        let englishGain28: [Grade] = [
+            makeGrade(subject: "English", score: 60, daysAgo: 30),
+            makeGrade(subject: "English", score: 75, daysAgo: 15),
+            makeGrade(subject: "English", score: 88, daysAgo: 1)
+        ]
+        let germanGain28: [Grade] = [
+            makeGrade(subject: "German", score: 55, daysAgo: 30),
+            makeGrade(subject: "German", score: 70, daysAgo: 15),
+            makeGrade(subject: "German", score: 83, daysAgo: 1)
+        ]
+        let artGain6: [Grade] = [
+            makeGrade(subject: "Art", score: 80, daysAgo: 30),
+            makeGrade(subject: "Art", score: 82, daysAgo: 15),
+            makeGrade(subject: "Art", score: 86, daysAgo: 1)
+        ]
+        let aggregates: [String: SubjectAggregate] = [
+            "English": SubjectAggregate(subject: "English", average: 74, count: 3, recentCount: 3, sortedAsc: englishGain28),
+            "German": SubjectAggregate(subject: "German", average: 69, count: 3, recentCount: 3, sortedAsc: germanGain28),
+            "Art": SubjectAggregate(subject: "Art", average: 82, count: 3, recentCount: 3, sortedAsc: artGain6)
+        ]
+        // English/German 均涨 28 → 字典序取 English;Art 涨 6 落选
+        // Equal gains (28) → English by name order; Art (6) loses.
+        XCTAssertEqual(SuggestionEngine.findImprovingTrend(aggregates: aggregates), "English")
+    }
+
+    func test_findMistakeHeavySubject_tieBreaksByName() {
+        // Math/Physics 均满足 mc>=5 && mc>gc*2 → 字典序取 Math
+        // Both qualify → Math by name order.
+        let aggregates: [String: SubjectAggregate] = [:]
+        XCTAssertEqual(
+            SuggestionEngine.findMistakeHeavySubject(
+                aggregates: aggregates,
+                mistakeCounts: ["Physics": 6, "Math": 6]
+            ),
+            "Math"
+        )
+    }
+
+    func test_findUnreviewedMistakeSubjects_returnsSortedPrefix() {
+        // 错题 ≥ 3 且无成绩:返回字典序前 2 个
+        // >= 3 mistakes, no grades: first 2 by name order.
+        let subjects = SuggestionEngine.findUnreviewedMistakeSubjects(
+            aggregates: [:],
+            mistakeCounts: ["Physics": 4, "Art": 3, "Math": 5]
+        )
+        XCTAssertEqual(subjects, ["Art", "Math"])
+    }
+
     // MARK: - upcomingExamsCount
 
     func test_upcomingExamsCount_countsWithinWindow() {
