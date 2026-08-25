@@ -3,6 +3,7 @@ import SwiftUI
 struct BrainUsageCard: View {
     @Environment(RepositoryContainer.self) private var container
     @Environment(HealthKitManager.self) private var hrvManager: HealthKitManager
+    @Environment(\.scenePhase) private var scenePhase
     @State private var events: [BrainUsageEvent] = []
     @State private var now = Date()
     @State private var showSettings = false
@@ -65,10 +66,13 @@ struct BrainUsageCard: View {
         }
         .task {
             while !Task.isCancelled {
+                // 仅在 App 活跃时更新时间与评估通知,后台/失焦不做任何主线程工作,避免空转(H-13)。
+                if scenePhase == .active {
+                    let value = Date()
+                    now = value
+                    BrainUsageNotifications.shared.evaluate(snapshot: snapshot, preferences: preferences, now: value)
+                }
                 try? await Task.sleep(for: .seconds(30))
-                let value = Date()
-                now = value
-                BrainUsageNotifications.shared.evaluate(snapshot: snapshot, preferences: preferences, now: value)
             }
         }
         .sheet(isPresented: $showSettings) { BrainUsageSettingsView().environment(container).environment(hrvManager) }

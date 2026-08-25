@@ -38,6 +38,8 @@ enum LLMError: Error, LocalizedError, Equatable {
     case emptyResponse
     /// 整个请求超时
     case timeout
+    /// The prompt contains health-sensitive data and sharing has not been approved.
+    case healthDataConsentRequired
 
     var errorDescription: String? {
         switch self {
@@ -67,12 +69,14 @@ enum LLMError: Error, LocalizedError, Equatable {
             return "LLM returned empty content.".localized()
         case .timeout:
             return "LLM request timed out.".localized()
+        case .healthDataConsentRequired:
+            return "Health data sharing with AI is turned off. You can allow it in Health settings.".localized()
         }
     }
 
     /// Converts the documented Cloud AI error envelope into a user-facing message.
     /// The raw response is intentionally not retained in this error case.
-    nonisolated static func cloudError(statusCode: Int, data: Data) -> LLMError {
+    nonisolated static func cloudError(statusCode: Int, data: Data, secrets: [String?] = []) -> LLMError {
         var code: String?
         var message: String?
 
@@ -85,7 +89,10 @@ enum LLMError: Error, LocalizedError, Equatable {
             }
         }
 
-        return .cloudServerError(statusCode: statusCode, code: code, message: message)
+        let redacted = secrets.compactMap { $0 }.filter { !$0.isEmpty }.reduce(message) { partial, secret in
+            partial?.replacingOccurrences(of: secret, with: "<redacted>")
+        }
+        return .cloudServerError(statusCode: statusCode, code: code, message: redacted)
     }
 
     private nonisolated static func cloudUserMessage(statusCode: Int, code: String?, message: String?) -> String {

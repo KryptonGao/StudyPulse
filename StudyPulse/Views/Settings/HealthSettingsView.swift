@@ -9,6 +9,7 @@ struct HealthSettingsView: View {
     @Environment(HealthKitManager.self) var hrvManager: HealthKitManager
     @Environment(RepositoryContainer.self) private var container
     @State private var showingHRVOnboarding = false
+    @State private var showingHealthDataConsent = false
 
   var body: some View {
          @Bindable var hrvManager = hrvManager
@@ -37,7 +38,24 @@ struct HealthSettingsView: View {
                             }
                     }
                 } footer: {
-                    Text("Reads HRV, resting heart rate, respiratory rate and last night's sleep from Apple Health with your permission. Your data stays on device and is never uploaded.".localized())
+                    Text("Reads HRV, resting heart rate, respiratory rate and last night's sleep from Apple Health with your permission. StudyPulse uses these signals locally unless you separately allow optional AI sharing below.".localized())
+                }
+
+                Section {
+                    Toggle(isOn: Binding(
+                        get: { container.envManager.preferences.healthDataLLMSharingEnabled },
+                        set: { newValue in
+                            if newValue {
+                                showingHealthDataConsent = true
+                            } else {
+                                HealthDataLLMConsentManager.revoke(container: container)
+                            }
+                        }
+                    )) {
+                        Label("Allow health data in AI requests".localized(), systemImage: "lock.open.display")
+                    }
+                } footer: {
+                    Text("Off by default. If enabled, HealthKit-derived recovery signals and mood or energy summaries may be sent to your selected AI endpoint. Turning it off blocks future requests and clears the local LLM response cache.".localized())
                 }
 
                 if hrvManager.hrvEnabled && hrvManager.hrvOnboardingCompleted {
@@ -100,6 +118,10 @@ struct HealthSettingsView: View {
             HRVOnboardingView()
                 .environment(hrvManager)
                 .adaptiveSheet()
+        }
+        .sheet(isPresented: $showingHealthDataConsent) {
+            HealthDataLLMConsentSheet { _ in }
+                .environment(container)
         }
     }
 

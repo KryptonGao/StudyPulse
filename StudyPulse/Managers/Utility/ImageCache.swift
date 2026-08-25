@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CryptoKit
 
 // MARK: - Image Cache Manager (图片缓存管理器)
 
@@ -30,13 +31,23 @@ nonisolated final class ImageCache: @unchecked Sendable {
     }
     
     /// 根据图片 Data 生成缓存 Key（使用哈希值）
+    static func dataCacheKey(_ data: Data) -> String {
+        let digest = SHA256.hash(data: data)
+        let hex = digest.map { String(format: "%02x", $0) }.joined()
+        return "d:\(hex)"
+    }
+
     private func makeKey(_ data: Data) -> NSString {
-        NSString(string: String(data.hashValue, radix: 16))
+        NSString(string: Self.dataCacheKey(data))
     }
 
     /// 按文件名缓存的 Key(头像 / 成绩图片,文件名稳定)
     private func makeFilenameKey(_ filename: String) -> NSString {
-        NSString(string: "f:\(filename)")
+        NSString(string: Self.filenameCacheKey(filename))
+    }
+
+    static func filenameCacheKey(_ filename: String) -> String {
+        "f:\(filename)"
     }
 
     /// 从 Data 缓存获取

@@ -230,6 +230,10 @@ nonisolated struct AppPreferences: Codable {
     /// Last LLM request timestamp for the Study Suggestions card; same 40-minute cooldown as BodyRadar.
     var lastStudySuggestionsAIRequestTime: Date? = nil
 
+    /// Whether HealthKit-derived/recovery data may be included in an LLM request.
+    /// Default-off privacy gate. Mood and energy summaries are covered as well.
+    var healthDataLLMSharingEnabled: Bool = false
+
     // MARK: - Habit Insight
     var habitInsightEnabled: Bool = false
     var habitInsightNotificationEnabled: Bool = true
@@ -285,7 +289,7 @@ nonisolated struct AppPreferences: Codable {
         case cardSkinId, timerAnimationId
         case plantCardEnabled, plantPetalColorId
         case debugModeEnabled, debugVerboseLogging, debugFPSOverlay, debugLayoutBounds, debugLongPressInspect
-        case llmEnabled, coachEnabled, coachNotificationEnabled, coachNotificationHour, coachAdaptivePlanEnabled, coachHealthBaselineCategory, coachHealthBaselineZScore, coachHealthBaselineSleepHours, coachHealthBaselineRestingHeartRate, coachHealthBaselineRestorativeSleepHours, lastCoachAdaptivePlanRequestTime, llmBaseURL, llmAPIKey, llmModel, llmSystemPromptAppendix, llmTemperature, llmProviders, activeLLMProviderId, cloudAIWorkerURL, cloudSessionEmail, cloudMembershipType, cloudMembershipExpiresAt, cloudAvailableModels, radarAICooldownMinutes, lastRadarAIRequestTime, debugOverrideSystemPrompt, lastStudySuggestionsAIRequestTime
+        case llmEnabled, coachEnabled, coachNotificationEnabled, coachNotificationHour, coachAdaptivePlanEnabled, coachHealthBaselineCategory, coachHealthBaselineZScore, coachHealthBaselineSleepHours, coachHealthBaselineRestingHeartRate, coachHealthBaselineRestorativeSleepHours, lastCoachAdaptivePlanRequestTime, llmBaseURL, llmAPIKey, llmModel, llmSystemPromptAppendix, llmTemperature, llmProviders, activeLLMProviderId, cloudAIWorkerURL, cloudSessionEmail, cloudMembershipType, cloudMembershipExpiresAt, cloudAvailableModels, radarAICooldownMinutes, lastRadarAIRequestTime, debugOverrideSystemPrompt, lastStudySuggestionsAIRequestTime, healthDataLLMSharingEnabled
         case habitInsightEnabled, habitInsightNotificationEnabled, habitInsightNotificationHour, habitInsightCooldownMinutes, lastHabitInsightAIRequestTime, lastHabitInsightNotificationBody, lastHabitInsightNotificationDate
         case heartRateStreamingEnabled
         case diaryEnabled, diaryDailyReminderEnabled, diaryDailyReminderHour, diarySyncToHealthEnabled, diaryLLMReflectionEnabled
@@ -357,6 +361,7 @@ nonisolated struct AppPreferences: Codable {
         self.lastRadarAIRequestTime = try c.decodeIfPresent(Date.self, forKey: .lastRadarAIRequestTime)
         self.debugOverrideSystemPrompt = try c.decodeIfPresent(String.self, forKey: .debugOverrideSystemPrompt)
         self.lastStudySuggestionsAIRequestTime = try c.decodeIfPresent(Date.self, forKey: .lastStudySuggestionsAIRequestTime)
+        self.healthDataLLMSharingEnabled = try c.decodeIfPresent(Bool.self, forKey: .healthDataLLMSharingEnabled) ?? false
         self.habitInsightEnabled = try c.decodeIfPresent(Bool.self, forKey: .habitInsightEnabled) ?? false
         self.habitInsightNotificationEnabled = try c.decodeIfPresent(Bool.self, forKey: .habitInsightNotificationEnabled) ?? true
         let habitHour = try c.decodeIfPresent(Int.self, forKey: .habitInsightNotificationHour) ?? 7

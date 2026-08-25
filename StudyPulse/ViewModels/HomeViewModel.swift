@@ -243,9 +243,13 @@ final class HomeViewModel {
         }
         hasher.combine(container.envManager.activePhaseId)
         hasher.combine(exams.count)
-        for e in exams { hasher.combine(e.id) }
+        // 整体 combine(合成 Hashable 覆盖全部字段):编辑 checklist/examReview/
+        // location*/countdownNotifyDays/examDate 等不改 id 的更新也能触发重算。
+        // Whole-struct combine (synthesized Hashable covers all fields) so
+        // in-place edits (checklist/review/location/dates) still change the signature.
+        for e in exams { hasher.combine(e) }
         hasher.combine(tasks.count)
-        for t in tasks { hasher.combine(t.id) }
+        for t in tasks { hasher.combine(t) }
         hasher.combine(instances.count)
         for i in instances { hasher.combine(i.id) }
         hasher.combine(sessions.count)

@@ -39,6 +39,9 @@ nonisolated struct LLMConfig: Sendable, Equatable {
     /// Cloud AI Session Token (from email login). When non-nil, takes precedence
     /// over apiKey for Cloud AI authentication.
     var sessionToken: String? = nil
+    /// Explicit user consent to send HealthKit-derived/recovery data to an LLM endpoint.
+    /// Defaults to false and is copied from AppPreferences.
+    var allowsHealthDataSharing: Bool = false
     /// 自定义系统 prompt 追加(在默认 prompt 之后)
     var systemPromptAppendix: String?
     /// 采样温度 (0.0-2.0)
@@ -79,6 +82,7 @@ extension LLMConfig {
         thinkingEnabled: false,
         isCloudProvider: false,
         sessionToken: nil,
+        allowsHealthDataSharing: false,
         systemPromptAppendix: nil,
         temperature: 0.7
     )
@@ -130,6 +134,7 @@ extension LLMConfig {
             thinkingEnabled: provider?.thinkingEnabled ?? false,
             isCloudProvider: isCloud,
             sessionToken: sessionToken,
+            allowsHealthDataSharing: prefs.healthDataLLMSharingEnabled,
             systemPromptAppendix: prefs.llmSystemPromptAppendix,
             temperature: prefs.llmTemperature,
             overrideSystemPrompt: prefs.debugOverrideSystemPrompt

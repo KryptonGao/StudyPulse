@@ -8,6 +8,12 @@ final class KeychainStoreTests: XCTestCase {
     override func setUpWithError() throws {
         store = KeychainStore(service: "Gao.Chenkai.StudyPulseTests.\(UUID().uuidString)")
         account = "test-account"
+        do {
+            try store.write("entitlement-probe", account: "entitlement-probe")
+            try store.delete(account: "entitlement-probe")
+        } catch KeychainStore.StoreError.unexpectedStatus(-34018) {
+            throw XCTSkip("The simulator test process has no Keychain access entitlement.")
+        }
     }
 
     override func tearDownWithError() throws {

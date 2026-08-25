@@ -23,6 +23,12 @@ enum HealthHistoryStore {
     /// 文件保留窗口:60 天足以构建稳定的 30 天基线,且留有冗余。
     nonisolated static let retentionDays = 60
 
+    /// 串行化 `upsert` 的 read-modify-write,避免并发刷新时各自 load 再 save
+    /// 互相覆盖当日部分字段(如 restingHeartRate 与 sleepHours 分两次到达)。
+    /// `load`/`save` 保持不锁,仅供同步调用方使用(H-12)。
+    nonisolated private static let upsertQueue =
+        DispatchQueue(label: "com.chenkai.gao.studypulse.health-history")
+
     // MARK: - File I/O
     // MARK: - 文件读写 / File I/O
 
@@ -69,6 +75,11 @@ enum HealthHistoryStore {
         do {
             let data = try JSONEncoder().encode(trimmed)
             try data.write(to: url, options: .atomic)
+            // 健康数据敏感:锁屏后不可读(best-effort 加固,失败不影响保存结果)
+            // Health data is sensitive: complete protection after unlock only.
+            try? FileManager.default.setAttributes(
+                [.protectionKey: FileProtectionType.complete], ofItemAtPath: url.path
+            )
             Log.healthHistory.debug("保存健康历史成功 / Saved health history: count=\(trimmed.count, privacy: .public) bytes=\(data.count, privacy: .public)")
         } catch {
             Log.healthHistory.error("健康历史保存失败 / Health history save failed: \(error.localizedDescription, privacy: .public)")
@@ -82,38 +93,40 @@ enum HealthHistoryStore {
     /// 并返回写盘后的完整历史。
     @discardableResult
     nonisolated static func upsert(snapshot: DailyHealthSnapshot) -> [DailyHealthSnapshot] {
-        let existing = load()
-        let cal = Calendar.current
-        let day = cal.startOfDay(for: snapshot.date)
-        let prior = existing.first {
-            cal.startOfDay(for: $0.date) == day
+        upsertQueue.sync {
+            let existing = load()
+            let cal = Calendar.current
+            let day = cal.startOfDay(for: snapshot.date)
+            let prior = existing.first {
+                cal.startOfDay(for: $0.date) == day
+            }
+            let merged = DailyHealthSnapshot(
+                date: day,
+                hrv:               snapshot.hrv               ?? prior?.hrv,
+                restingHeartRate:  snapshot.restingHeartRate  ?? prior?.restingHeartRate,
+                respiratoryRate:   snapshot.respiratoryRate   ?? prior?.respiratoryRate,
+                sleepHours:        snapshot.sleepHours        ?? prior?.sleepHours,
+                deepSleepHours:    snapshot.deepSleepHours    ?? prior?.deepSleepHours,
+                remSleepHours:     snapshot.remSleepHours     ?? prior?.remSleepHours,
+                exerciseMinutes:   snapshot.exerciseMinutes   ?? prior?.exerciseMinutes
+            )
+            var updated = existing.filter {
+                cal.startOfDay(for: $0.date) != day
+            }
+            updated.append(merged)
+            save(updated)
+            let filledFields: [String] = [
+                snapshot.hrv.map { _ in "hrv" },
+                snapshot.restingHeartRate.map { _ in "rhr" },
+                snapshot.respiratoryRate.map { _ in "rr" },
+                snapshot.sleepHours.map { _ in "sleep" },
+                snapshot.deepSleepHours.map { _ in "deep" },
+                snapshot.remSleepHours.map { _ in "rem" },
+                snapshot.exerciseMinutes.map { _ in "exercise" }
+            ].compactMap { $0 }
+            Log.healthHistory.debug("健康历史 upsert 完成 / Health history upsert: date=\(day, privacy: .public) filled=\(filledFields.joined(separator: ","), privacy: .public) total=\(updated.count, privacy: .public)")
+            return updated
         }
-        let merged = DailyHealthSnapshot(
-            date: day,
-            hrv:               snapshot.hrv               ?? prior?.hrv,
-            restingHeartRate:  snapshot.restingHeartRate  ?? prior?.restingHeartRate,
-            respiratoryRate:   snapshot.respiratoryRate   ?? prior?.respiratoryRate,
-            sleepHours:        snapshot.sleepHours        ?? prior?.sleepHours,
-            deepSleepHours:    snapshot.deepSleepHours    ?? prior?.deepSleepHours,
-            remSleepHours:     snapshot.remSleepHours     ?? prior?.remSleepHours,
-            exerciseMinutes:   snapshot.exerciseMinutes   ?? prior?.exerciseMinutes
-        )
-        var updated = existing.filter {
-            cal.startOfDay(for: $0.date) != day
-        }
-        updated.append(merged)
-        save(updated)
-        let filledFields: [String] = [
-            snapshot.hrv.map { _ in "hrv" },
-            snapshot.restingHeartRate.map { _ in "rhr" },
-            snapshot.respiratoryRate.map { _ in "rr" },
-            snapshot.sleepHours.map { _ in "sleep" },
-            snapshot.deepSleepHours.map { _ in "deep" },
-            snapshot.remSleepHours.map { _ in "rem" },
-            snapshot.exerciseMinutes.map { _ in "exercise" }
-        ].compactMap { $0 }
-        Log.healthHistory.debug("健康历史 upsert 完成 / Health history upsert: date=\(day, privacy: .public) filled=\(filledFields.joined(separator: ","), privacy: .public) total=\(updated.count, privacy: .public)")
-        return updated
     }
 
     /// 按保留窗口裁剪,并按日期降序返回。

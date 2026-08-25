@@ -223,7 +223,7 @@ struct UserAgreementSection {
             ],
             bullets: [
                 "Grade tracking, mistake notes, exam planning, trend analysis.",
-                "Optional HealthKit integration: HRV, heart rate, respiratory rate, sleep, exercise minutes — used only locally.",
+                "Optional HealthKit integration: HRV, heart rate, respiratory rate, sleep, and exercise minutes are processed locally unless you separately allow optional AI sharing.",
                 "WidgetKit extensions for upcoming exams, score trends, and HRV readiness.",
                 "CSV export of your data at any time."
             ]
@@ -231,12 +231,12 @@ struct UserAgreementSection {
         UserAgreementSection(
             titleKey: "Privacy & Data Protection",
             paragraphs: [
-                "We take your privacy and data security very seriously. Your learning data (grades, mistake notes, exams, avatars) is stored only on your device and is never uploaded to any server controlled by the Developer. HealthKit data is read and processed locally only — it is never uploaded or transmitted to any third party.",
+                "We take your privacy and data security very seriously. Your learning data (grades, mistake notes, exams, avatars) remains on your device unless you choose to share specific content through an AI feature. HealthKit data is read and processed locally unless you separately allow health data in AI requests. StudyPulse may write a 1-minute Mindful Session when diary sync is enabled; mood and energy values remain in the app.",
                 "The App does not integrate any advertising SDKs, behavioral tracking SDKs, or social sharing SDKs. The App does not collect your personal information on the Developer's own servers."
             ],
             bullets: [
                 "Data location: device's ~/Documents/, UserDefaults, and the App Group container only.",
-                "No cloud sync, no server upload, no third-party transmission.",
+                "No cloud sync. Optional AI requests go only to the endpoint you configure and require separate consent for health data.",
                 "All permissions (Camera, Photos, Calendar, HealthKit, Notifications) are requested only when needed and require your explicit consent.",
                 "You can export or delete your data at any time via the in-app features."
             ]
@@ -244,7 +244,7 @@ struct UserAgreementSection {
         UserAgreementSection(
             titleKey: "HealthKit Data — Special Notes",
             paragraphs: [
-                "The App reads HealthKit data only (it does NOT write to HealthKit). The read data — HRV (SDNN), heart rate, respiratory rate, sleep, exercise minutes — is used solely to compute study readiness and personalized suggestions locally on your device.",
+                "The App reads HealthKit data with your permission. When diary sync is enabled, it may write a 1-minute Mindful Session; it does not write HRV, heart rate, respiratory rate, sleep, or mood/energy values. The read data — HRV (SDNN), heart rate, respiratory rate, sleep, exercise minutes — is used locally to compute study readiness and personalized suggestions unless you separately allow health data in AI requests.",
                 "HealthKit data is not used for advertising, marketing, data mining, or sale to any third party."
             ],
             bullets: nil

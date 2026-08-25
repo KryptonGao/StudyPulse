@@ -53,7 +53,11 @@ nonisolated enum ExamReadinessLLM {
         依据：
         \(reasons)
         """
-        return LLMPrompt(system: defaultSystem, messages: [.user(user)])
+        return LLMPrompt(
+            system: defaultSystem,
+            messages: [.user(user)],
+            sensitivity: .healthSensitive
+        )
     }
 
     static func parse(_ output: String) -> String? {

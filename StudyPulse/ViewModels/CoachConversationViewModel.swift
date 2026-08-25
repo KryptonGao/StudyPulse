@@ -63,7 +63,8 @@ final class CoachConversationViewModel {
                                 ? attachments.map(\.dataURL)
                                 : message.imageDataURLs
                         )
-                    }
+                    },
+                    sensitivity: .healthSensitive
                 )
                 let raw = try await LLMClient.shared.stream(
                     prompt: prompt,

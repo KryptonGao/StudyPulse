@@ -160,18 +160,25 @@ enum ExamFilter {
               let windowEnd = Calendar.current.date(byAdding: .day, value: endDaysAgo, to: startOfToday) else {
             return []
         }
-        let dayInterval: TimeInterval = 86_400
-        // 预建 key 集合(subject+examName+dateBucket)
+        // 预建 key 集合(subject+examName+dayBucket)
         var registeredKeys = Set<String>()
         registeredKeys.reserveCapacity(grades.count)
         for g in grades {
-            let dayBucket = Int(g.date.timeIntervalSince1970 / dayInterval)
+            let dayBucket = dayBucketKey(for: g.date)
             registeredKeys.insert("\(g.subject)|\(g.examName)|\(dayBucket)")
         }
         return exams.filter { exam in
             guard exam.examDate < windowStart && exam.examDate >= windowEnd else { return false }
-            let dayBucket = Int(exam.examDate.timeIntervalSince1970 / dayInterval)
+            let dayBucket = dayBucketKey(for: exam.examDate)
             return !registeredKeys.contains("\(exam.subject)|\(exam.examName)|\(dayBucket)")
         }.sorted { $0.examDate < $1.examDate }
+    }
+
+    /// 用 `Calendar.startOfDay` 归一化为"日桶"标识。
+    /// Normalize a date to its calendar-day bucket so DST days aren't split
+    /// across two fixed-86400s buckets (a DST day is 23h/25h).
+    private static func dayBucketKey(for date: Date) -> String {
+        let start = Calendar.current.startOfDay(for: date)
+        return String(Int(start.timeIntervalSince1970))
     }
 }

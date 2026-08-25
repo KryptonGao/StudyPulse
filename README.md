@@ -3,6 +3,11 @@
 </p>
 
 <p align="center">
+  <a href="./README.md">简体中文</a> ·
+  <a href="./README.en.md">English</a>
+</p>
+
+<p align="center">
   <a href="https://gao-chenkai.github.io/StudyPulse/">产品介绍</a> ·
   <a href="./docs/README.md">文档中心</a> ·
   <a href="#构建与运行">本地运行</a> ·

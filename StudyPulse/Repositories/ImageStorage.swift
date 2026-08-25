@@ -45,6 +45,11 @@ nonisolated enum ImageStorage {
         let url = dir.appendingPathComponent(filename)
         do {
             try data.write(to: url, options: .atomic)
+            // 锁屏后不可读(best-effort 加固,失败不影响保存结果)
+            // Complete protection after unlock only (best-effort hardening).
+            try? FileManager.default.setAttributes(
+                [.protectionKey: FileProtectionType.complete], ofItemAtPath: url.path
+            )
             Log.data.debug("ImageStorage save OK / saved: \(filename, privacy: .public) bytes=\(data.count, privacy: .public)")
             return true
         } catch {
