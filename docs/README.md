@@ -48,6 +48,7 @@
 
 面向应用内展示、贡献者和用户协议。
 
+- [AI 功能清单与 Prompt 规范](AI_FEATURES.md)
 - [常见问题](reference/FAQ.json)
 - [贡献指南](reference/CONTRIBUTING.json)
 - [用户使用协议](reference/USER_AGREEMENT.md)

@@ -31,6 +31,10 @@ nonisolated struct LLMConfig: Sendable, Equatable {
     var providerName: String? = nil
     var multimodalEnabled: Bool
     var thinkingEnabled: Bool
+    /// Cloud AI thinking preference (`off` / `auto` / `on`). Server policy has the final say.
+    var thinkingMode: LLMThinkingMode = .auto
+    /// App UI language forwarded to Cloud AI so replies follow the user, not the model default.
+    var locale: String? = nil
     /// `true` 表示使用 StudyPulse Cloud AI 网关（/v1/chat），而非 OpenAI 兼容端点。
     /// When `true`, routes through the StudyPulse Cloud AI gateway (/v1/chat)
     /// instead of an OpenAI-compatible endpoint.
@@ -80,6 +84,7 @@ extension LLMConfig {
         providerName: nil,
         multimodalEnabled: false,
         thinkingEnabled: false,
+        thinkingMode: .auto,
         isCloudProvider: false,
         sessionToken: nil,
         allowsHealthDataSharing: false,
@@ -132,6 +137,8 @@ extension LLMConfig {
             providerName: provider?.name,
             multimodalEnabled: provider?.multimodalEnabled ?? false,
             thinkingEnabled: provider?.thinkingEnabled ?? false,
+            thinkingMode: prefs.cloudThinkingMode,
+            locale: prefs.appLanguage ?? Locale.preferredLanguages.first,
             isCloudProvider: isCloud,
             sessionToken: sessionToken,
             allowsHealthDataSharing: prefs.healthDataLLMSharingEnabled,

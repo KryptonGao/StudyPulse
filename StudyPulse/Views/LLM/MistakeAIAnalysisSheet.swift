@@ -90,6 +90,7 @@ struct MistakeAIAnalysisSheet: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .llmDebugButton(caller: "MistakeAI")
+            .cloudThinkingToolbar()
             .navigationTitle("AI Analysis".localized())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

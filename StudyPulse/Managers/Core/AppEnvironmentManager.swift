@@ -390,6 +390,7 @@ final class AppEnvironmentManager {
         preferences.cloudSessionEmail = email
         preferences.cloudMembershipType = nil
         preferences.cloudMembershipExpiresAt = nil
+        preferences.cloudQuotaSnapshot = nil
         preferences.llmEnabled = true
         if let cloud = preferences.llmProviders.first(where: { $0.isCloudProvider }) {
             preferences.activeLLMProviderId = cloud.id
@@ -418,6 +419,7 @@ final class AppEnvironmentManager {
         preferences.cloudSessionEmail = email
         preferences.cloudMembershipType = membershipType
         preferences.cloudMembershipExpiresAt = membershipExpiresAt
+        preferences.cloudQuotaSnapshot = nil
         // 登录即启用 LLM 总开关（用户显然想用 AI 功能）
         preferences.llmEnabled = true
         // 确保 Cloud AI provider 存在并设为活跃（邮箱登录时自动创建，无需 API Key）
@@ -440,6 +442,7 @@ final class AppEnvironmentManager {
         preferences.cloudMembershipType = nil
         preferences.cloudMembershipExpiresAt = nil
         preferences.cloudAvailableModels = nil
+        preferences.cloudQuotaSnapshot = nil
     }
 
     /// 当前是否有 Cloud AI provider。
@@ -449,14 +452,39 @@ final class AppEnvironmentManager {
 
     /// 刷新 Cloud AI 用户信息和可用模型列表。
     func refreshCloudProfile() async {
-        guard let token = cloudSessionToken,
-              let workerURL = preferences.cloudAIWorkerURL,
-              !token.isEmpty, !workerURL.isEmpty else { return }
+        guard let token = cloudSessionToken, !token.isEmpty else { return }
+        if let workerURL = preferences.cloudAIWorkerURL, !workerURL.isEmpty {
+            do {
+                let profile = try await AuthClient.shared.getProfile(sessionToken: token, workerURL: workerURL)
+                applyCloudProfile(profile)
+            } catch {
+                Log.preferences.error("刷新 Cloud AI profile 失败: \(error.localizedDescription)")
+            }
+        }
+        await refreshCloudQuota(sessionToken: token)
+    }
+
+    func applyCloudDashboard(_ data: UserDashboardData) {
+        if let email = data.user?.email?.trimmingCharacters(in: .whitespacesAndNewlines), !email.isEmpty {
+            preferences.cloudSessionEmail = email
+        }
+        if let type = data.subscription?.effective_type ?? data.subscription?.type {
+            preferences.cloudMembershipType = type
+        }
+        if let expires = data.subscription?.expire_time {
+            preferences.cloudMembershipExpiresAt = expires
+        }
+        preferences.cloudQuotaSnapshot = data.makeQuotaSnapshot()
+    }
+
+    /// Refreshes remaining Cloud AI quota from the user dashboard API.
+    func refreshCloudQuota(sessionToken: String? = nil) async {
+        guard let token = sessionToken ?? cloudSessionToken, !token.isEmpty else { return }
         do {
-            let profile = try await AuthClient.shared.getProfile(sessionToken: token, workerURL: workerURL)
-            applyCloudProfile(profile)
+            let dashboard = try await AuthClient.shared.getDashboard(sessionToken: token)
+            applyCloudDashboard(dashboard)
         } catch {
-            Log.preferences.error("刷新 Cloud AI profile 失败: \(error.localizedDescription)")
+            Log.preferences.error("刷新 Cloud AI 额度失败: \(error.localizedDescription)")
         }
     }
 
@@ -482,6 +510,10 @@ final class AppEnvironmentManager {
     func setLLMTemperature(_ temperature: Double) {
         let clamped = max(0, min(2, temperature))
         preferences.llmTemperature = clamped
+    }
+
+    func setCloudThinkingMode(_ mode: LLMThinkingMode) {
+        preferences.cloudThinkingMode = mode
     }
 
     /// 设置恢复雷达 LLM 自动分析冷却时间（5–180 分钟）。

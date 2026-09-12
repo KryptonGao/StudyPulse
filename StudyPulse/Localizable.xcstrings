@@ -1,6 +1,60 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "深度思考由服务器最终决定。关闭响应更快、消耗更少积分；自动适合大多数问题；开启优先深度推理。" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Deep thinking is ultimately controlled by the server. Off responds faster and uses fewer AI Points; Auto suits most questions; On prioritizes deep reasoning."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"深度思考由服务器最终决定。关闭时响应更快、消耗更少积分；自动适合大多数问题；开启时优先进行深度推理。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"深度思考最終由伺服器決定。關閉時回應更快、消耗更少積分；自動適合大多數問題；開啟時優先進行深度推理。"}},"ja":{"stringUnit":{"state":"translated","value":"深い思考は最終的にサーバー側で決定されます。オフにすると応答が速く、AIポイントの消費を抑えられます。自動はほとんどの質問に適し、オンは深い推論を優先します。"}},"ko":{"stringUnit":{"state":"translated","value":"심층 사고는 최종적으로 서버에서 결정됩니다. 끄면 더 빠르게 응답하고 AI 포인트를 적게 사용하며, 자동은 대부분의 질문에 적합하고, 켜면 심층 추론을 우선합니다."}}}},
+    "Account" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Account"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"账户"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"帳戶"}},"ja":{"stringUnit":{"state":"translated","value":"アカウント"}},"ko":{"stringUnit":{"state":"translated","value":"계정"}}}},
+    "Refresh Profile" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Refresh Profile"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"刷新账户信息"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"重新整理帳戶資料"}},"ja":{"stringUnit":{"state":"translated","value":"プロフィールを更新"}},"ko":{"stringUnit":{"state":"translated","value":"프로필 새로고침"}}}},
+    "Logout" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Log Out"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"退出登录"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"登出"}},"ja":{"stringUnit":{"state":"translated","value":"ログアウト"}},"ko":{"stringUnit":{"state":"translated","value":"로그아웃"}}}},
+    "Beta API Key (Optional)" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Beta API Key (Optional)"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"测试版 API 密钥（可选）"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"測試版 API 金鑰（選填）"}},"ja":{"stringUnit":{"state":"translated","value":"ベータ版APIキー（任意）"}},"ko":{"stringUnit":{"state":"translated","value":"베타 API 키(선택 사항)"}}}},
+    "API Key (sp_xxx)" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"API Key (sp_xxx)"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"API 密钥（sp_xxx）"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"API 金鑰（sp_xxx）"}},"ja":{"stringUnit":{"state":"translated","value":"APIキー（sp_xxx）"}},"ko":{"stringUnit":{"state":"translated","value":"API 키(sp_xxx)"}}}},
+    "Save Key" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Save Key"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"保存密钥"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"儲存金鑰"}},"ja":{"stringUnit":{"state":"translated","value":"キーを保存"}},"ko":{"stringUnit":{"state":"translated","value":"키 저장"}}}},
+    "Disconnect Key" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Disconnect Key"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"断开密钥连接"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"中斷金鑰連線"}},"ja":{"stringUnit":{"state":"translated","value":"キーの接続を解除"}},"ko":{"stringUnit":{"state":"translated","value":"키 연결 해제"}}}},
+    "Log in with your email to get started. New accounts receive a free plan with 50 daily requests." : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Log in with your email to get started. New accounts receive a free plan with 50 daily requests."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"使用邮箱登录即可开始。新账户可免费获得每日 50 次请求额度。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"使用電子郵件登入即可開始。新帳戶可免費獲得每日 50 次請求額度。"}},"ja":{"stringUnit":{"state":"translated","value":"メールでログインして始めましょう。新規アカウントには1日50回リクエストできる無料プランが提供されます。"}},"ko":{"stringUnit":{"state":"translated","value":"이메일로 로그인하여 시작하세요. 새 계정에는 일일 요청 50회가 포함된 무료 요금제가 제공됩니다."}}}},
+    "Login with Email" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Log In with Email"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"使用邮箱登录"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"使用電子郵件登入"}},"ja":{"stringUnit":{"state":"translated","value":"メールでログイン"}},"ko":{"stringUnit":{"state":"translated","value":"이메일로 로그인"}}}},
+    "Manual API Key Setup (Advanced)" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Manual API Key Setup (Advanced)"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"手动设置 API 密钥（高级）"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"手動設定 API 金鑰（進階）"}},"ja":{"stringUnit":{"state":"translated","value":"APIキーを手動設定（詳細）"}},"ko":{"stringUnit":{"state":"translated","value":"수동 API 키 설정(고급)"}}}},
+    "Deactivate" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Deactivate"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"停用"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"停用"}},"ja":{"stringUnit":{"state":"translated","value":"無効にする"}},"ko":{"stringUnit":{"state":"translated","value":"비활성화"}}}},
+    "Activate" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Activate"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"启用"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"啟用"}},"ja":{"stringUnit":{"state":"translated","value":"有効にする"}},"ko":{"stringUnit":{"state":"translated","value":"활성화"}}}},
+    "Remove" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Remove"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"移除"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"移除"}},"ja":{"stringUnit":{"state":"translated","value":"削除"}},"ko":{"stringUnit":{"state":"translated","value":"제거"}}}},
+    "Cloud AI" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Cloud AI"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"云端 AI"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"雲端 AI"}},"ja":{"stringUnit":{"state":"translated","value":"クラウドAI"}},"ko":{"stringUnit":{"state":"translated","value":"클라우드 AI"}}}},
+    "No providers configured" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"No providers configured"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"尚未配置服务商"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"尚未設定服務商"}},"ja":{"stringUnit":{"state":"translated","value":"プロバイダーが設定されていません"}},"ko":{"stringUnit":{"state":"translated","value":"설정된 제공업체가 없습니다"}}}},
+    "Active Model" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Active Model"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"当前模型"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"目前模型"}},"ja":{"stringUnit":{"state":"translated","value":"使用中のモデル"}},"ko":{"stringUnit":{"state":"translated","value":"활성 모델"}}}},
+    "Tap a provider to make it active. Add your own OpenAI-compatible endpoints below." : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Tap a provider to make it active. Add your own OpenAI-compatible endpoints below."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"轻点服务商即可将其设为当前服务。你也可以在下方添加兼容 OpenAI 的自定义端点。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"點一下服務商即可將其設為目前服務。你也可以在下方加入相容 OpenAI 的自訂端點。"}},"ja":{"stringUnit":{"state":"translated","value":"プロバイダーをタップすると使用中に切り替わります。OpenAI互換のカスタムエンドポイントも下から追加できます。"}},"ko":{"stringUnit":{"state":"translated","value":"제공업체를 탭하면 활성화됩니다. 아래에서 OpenAI 호환 사용자 지정 엔드포인트를 추가할 수도 있습니다."}}}},
+    "Add Custom Provider" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Add Custom Provider"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"添加自定义服务商"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"加入自訂服務商"}},"ja":{"stringUnit":{"state":"translated","value":"カスタムプロバイダーを追加"}},"ko":{"stringUnit":{"state":"translated","value":"사용자 지정 제공업체 추가"}}}},
+    "AI Coach" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"AI Coach"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"AI 学习教练"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"AI 學習教練"}},"ja":{"stringUnit":{"state":"translated","value":"AIコーチ"}},"ko":{"stringUnit":{"state":"translated","value":"AI 코치"}}}},
+    "Logged in" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Logged In"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"已登录"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"已登入"}},"ja":{"stringUnit":{"state":"translated","value":"ログイン済み"}},"ko":{"stringUnit":{"state":"translated","value":"로그인됨"}}}},
+    "Unnamed" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Unnamed"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"未命名"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"未命名"}},"ja":{"stringUnit":{"state":"translated","value":"名称未設定"}},"ko":{"stringUnit":{"state":"translated","value":"이름 없음"}}}},
+    "%@ · Account" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"%@ · Account"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"%@ · 账户"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"%@ · 帳戶"}},"ja":{"stringUnit":{"state":"translated","value":"%@ · アカウント"}},"ko":{"stringUnit":{"state":"translated","value":"%@ · 계정"}}}},
+    "%@ · Key" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"%@ · Key"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"%@ · 密钥"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"%@ · 金鑰"}},"ja":{"stringUnit":{"state":"translated","value":"%@ · キー"}},"ko":{"stringUnit":{"state":"translated","value":"%@ · 키"}}}},
+    "Incomplete configuration" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Incomplete Configuration"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"配置不完整"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"設定不完整"}},"ja":{"stringUnit":{"state":"translated","value":"設定が未完了です"}},"ko":{"stringUnit":{"state":"translated","value":"설정이 완료되지 않음"}}}},
+    "Free" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Free"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"免费"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"免費"}},"ja":{"stringUnit":{"state":"translated","value":"無料"}},"ko":{"stringUnit":{"state":"translated","value":"무료"}}}},
+    "Plus" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Plus"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"Plus"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"Plus"}},"ja":{"stringUnit":{"state":"translated","value":"Plus"}},"ko":{"stringUnit":{"state":"translated","value":"Plus"}}}},
+    "Pro" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Pro"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"Pro"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"Pro"}},"ja":{"stringUnit":{"state":"translated","value":"Pro"}},"ko":{"stringUnit":{"state":"translated","value":"Pro"}}}},
+    "Failed to save API Key: %@" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Failed to save API Key: %@"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"无法保存 API 密钥：%@"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"無法儲存 API 金鑰：%@"}},"ja":{"stringUnit":{"state":"translated","value":"APIキーを保存できませんでした：%@"}},"ko":{"stringUnit":{"state":"translated","value":"API 키를 저장하지 못했습니다: %@"}}}},
+    "Enable AI Coach" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Enable AI Coach"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"启用 AI 学习教练"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"啟用 AI 學習教練"}},"ja":{"stringUnit":{"state":"translated","value":"AIコーチを有効にする"}},"ko":{"stringUnit":{"state":"translated","value":"AI 코치 활성화"}}}},
+    "AI Coach is a separate opt-in. Major health changes are judged on-device; only then is a proposed plan generated through your configured LLM." : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"AI Coach is a separate opt-in. Major health changes are judged on-device; only then is a proposed plan generated through your configured LLM."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"AI 学习教练需要单独启用。设备会先在本地判断重要的健康变化，仅在需要时才通过你配置的大模型生成计划建议。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"AI 學習教練需要另外啟用。裝置會先在本機判斷重要的健康變化，僅在需要時才透過你設定的大模型產生計畫建議。"}},"ja":{"stringUnit":{"state":"translated","value":"AIコーチは別途有効にする必要があります。大きな健康状態の変化はデバイス上で判定され、必要な場合にのみ設定済みのLLMでプラン案を生成します。"}},"ko":{"stringUnit":{"state":"translated","value":"AI 코치는 별도로 동의하여 활성화해야 합니다. 주요 건강 변화는 기기에서 판단하며, 필요한 경우에만 설정된 LLM을 통해 계획 제안을 생성합니다."}}}},
+    "Adapt plan for health changes" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Adapt Plan for Health Changes"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"根据健康变化调整计划"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"依健康變化調整計畫"}},"ja":{"stringUnit":{"state":"translated","value":"健康状態の変化に合わせてプランを調整"}},"ko":{"stringUnit":{"state":"translated","value":"건강 변화에 맞춰 계획 조정"}}}},
+    "Daily Coach Notification" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Daily Coach Notification"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"每日教练通知"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"每日教練通知"}},"ja":{"stringUnit":{"state":"translated","value":"毎日のコーチ通知"}},"ko":{"stringUnit":{"state":"translated","value":"일일 코치 알림"}}}},
+    "Force Refresh" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Force Refresh"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"强制刷新"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"強制重新整理"}},"ja":{"stringUnit":{"state":"translated","value":"強制更新"}},"ko":{"stringUnit":{"state":"translated","value":"강제 새로고침"}}}},
+    "Recovery Radar Cooldown" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Recovery Radar Cooldown"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"恢复雷达冷却时间"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"恢復雷達冷卻時間"}},"ja":{"stringUnit":{"state":"translated","value":"回復レーダーのクールダウン"}},"ko":{"stringUnit":{"state":"translated","value":"회복 레이더 대기 시간"}}}},
+    "Daily Notification" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Daily Notification"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"每日通知"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"每日通知"}},"ja":{"stringUnit":{"state":"translated","value":"毎日の通知"}},"ko":{"stringUnit":{"state":"translated","value":"일일 알림"}}}},
+    "Rate Limits" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Rate Limits"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"频率限制"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"頻率限制"}},"ja":{"stringUnit":{"state":"translated","value":"利用頻度の制限"}},"ko":{"stringUnit":{"state":"translated","value":"사용 빈도 제한"}}}},
+    "Connection" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Connection"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"连接"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"連線"}},"ja":{"stringUnit":{"state":"translated","value":"接続"}},"ko":{"stringUnit":{"state":"translated","value":"연결"}}}},
+    "Provider Name" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Provider Name"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"服务商名称"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"服務商名稱"}},"ja":{"stringUnit":{"state":"translated","value":"プロバイダー名"}},"ko":{"stringUnit":{"state":"translated","value":"제공업체 이름"}}}},
+    "Enable Multimodal" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Enable Multimodal"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"启用多模态"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"啟用多模態"}},"ja":{"stringUnit":{"state":"translated","value":"マルチモーダルを有効にする"}},"ko":{"stringUnit":{"state":"translated","value":"멀티모달 활성화"}}}},
+    "Enable Thinking" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Enable Thinking"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"启用深度思考"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"啟用深度思考"}},"ja":{"stringUnit":{"state":"translated","value":"深い思考を有効にする"}},"ko":{"stringUnit":{"state":"translated","value":"심층 사고 활성화"}}}},
+    "Active Provider" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Active Provider"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"当前服务商"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"目前服務商"}},"ja":{"stringUnit":{"state":"translated","value":"使用中のプロバイダー"}},"ko":{"stringUnit":{"state":"translated","value":"활성 제공업체"}}}},
+    "Use This Provider" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Use This Provider"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"使用此服务商"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"使用此服務商"}},"ja":{"stringUnit":{"state":"translated","value":"このプロバイダーを使用"}},"ko":{"stringUnit":{"state":"translated","value":"이 제공업체 사용"}}}},
+    "Unable to Save API Key" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Unable to Save API Key"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"无法保存 API 密钥"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"無法儲存 API 金鑰"}},"ja":{"stringUnit":{"state":"translated","value":"APIキーを保存できません"}},"ko":{"stringUnit":{"state":"translated","value":"API 키를 저장할 수 없음"}}}},
+    "The API key could not be stored securely." : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"The API key could not be stored securely."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"无法安全存储 API 密钥。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"無法安全儲存 API 金鑰。"}},"ja":{"stringUnit":{"state":"translated","value":"APIキーを安全に保存できませんでした。"}},"ko":{"stringUnit":{"state":"translated","value":"API 키를 안전하게 저장하지 못했습니다."}}}},
+    "Monthly AI Points" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Monthly AI Points"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"每月 AI 积分"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"每月 AI 積分"}},"ja":{"stringUnit":{"state":"translated","value":"月間AIポイント"}},"ko":{"stringUnit":{"state":"translated","value":"월간 AI 포인트"}}}},
+    "Daily request quota resets at 00:00 (Asia/Shanghai). Monthly AI Points reset on the 1st." : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Daily request quota resets at 00:00 (Asia/Shanghai). Monthly AI Points reset on the 1st."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"每日请求额度于 00:00（亚洲/上海）重置；每月 AI 积分于每月 1 日重置。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"每日請求額度於 00:00（亞洲／上海）重設；每月 AI 積分於每月 1 日重設。"}},"ja":{"stringUnit":{"state":"translated","value":"1日のリクエスト上限は00:00（アジア／上海）にリセットされ、月間AIポイントは毎月1日にリセットされます。"}},"ko":{"stringUnit":{"state":"translated","value":"일일 요청 한도는 00:00(아시아/상하이)에 초기화되며, 월간 AI 포인트는 매월 1일에 초기화됩니다."}}}},
+    "Login" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Log In"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"登录"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"登入"}},"ja":{"stringUnit":{"state":"translated","value":"ログイン"}},"ko":{"stringUnit":{"state":"translated","value":"로그인"}}}},
+    "深度思考" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Deep Thinking"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"深度思考"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"深度思考"}},"ja":{"stringUnit":{"state":"translated","value":"深い思考"}},"ko":{"stringUnit":{"state":"translated","value":"심층 사고"}}}},
+    "自动" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Auto"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"自动"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"自動"}},"ja":{"stringUnit":{"state":"translated","value":"自動"}},"ko":{"stringUnit":{"state":"translated","value":"자동"}}}},
+    "开启" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"On"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"开启"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"開啟"}},"ja":{"stringUnit":{"state":"translated","value":"オン"}},"ko":{"stringUnit":{"state":"translated","value":"켬"}}}},
+    "Photos" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Photos"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"照片"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"照片"}},"ja":{"stringUnit":{"state":"translated","value":"写真"}},"ko":{"stringUnit":{"state":"translated","value":"사진"}}}},
+    "Add image" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Add Image"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"添加图片"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"加入圖片"}},"ja":{"stringUnit":{"state":"translated","value":"画像を追加"}},"ko":{"stringUnit":{"state":"translated","value":"이미지 추가"}}}},
+    "AI" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"AI"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"AI"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"AI"}},"ja":{"stringUnit":{"state":"translated","value":"AI"}},"ko":{"stringUnit":{"state":"translated","value":"AI"}}}},
     "" : {
 
     },
@@ -185,10 +239,16 @@
     "--" : {
 
     },
+    "—" : {
+
+    },
     ":" : {
 
     },
     "·" : {
+
+    },
+    "· %@" : {
 
     },
     "(%lld)" : {
@@ -269,6 +329,26 @@
     },
     "/" : {
 
+    },
+    "/ %.0f %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "/ %1$.0f %2$@"
+          }
+        }
+      }
+    },
+    "/ %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "/ %1$@ %2$@"
+          }
+        }
+      }
     },
     "/ %lld" : {
 
@@ -742,6 +822,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ 分/週 (%@)"
+          }
+        }
+      }
+    },
+    "%@ remaining of %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ remaining of %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "残り %@ / %@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ / %@ 남음"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剩余 %@ / %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剩餘 %@ / %@"
           }
         }
       }
@@ -5608,6 +5723,41 @@
         }
       }
     },
+    "AI health privacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI health privacy"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AIヘルスプライバシー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 건강 개인정보"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 健康隐私"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 健康隱私"
+          }
+        }
+      }
+    },
     "AI Interpretation" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6805,6 +6955,111 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "全天科目共用一個日曆事件,有具體時間的科目各自一個事件。"
+          }
+        }
+      }
+    },
+    "Allow and continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow and continue"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可して続ける"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "허용하고 계속"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许并继续"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許並繼續"
+          }
+        }
+      }
+    },
+    "Allow health data in AI requests" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow health data in AI requests"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AIリクエストでヘルスデータを許可"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 요청에 건강 데이터 허용"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许在 AI 请求中使用健康数据"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許在 AI 請求中使用健康資料"
+          }
+        }
+      }
+    },
+    "Allow health data in AI requests?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow health data in AI requests?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AIリクエストでヘルスデータを使用しますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 요청에 건강 데이터를 허용할까요?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许在 AI 请求中使用健康数据？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許在 AI 請求中使用健康資料？"
           }
         }
       }
@@ -13576,9 +13831,7 @@
         }
       }
     },
-    "Continue to secure login" : {
-
-    },
+    "Continue to secure login" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Continue to Secure Login"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"安全登录"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"前往安全登入"}},"ja":{"stringUnit":{"state":"translated","value":"安全なログインへ進む"}},"ko":{"stringUnit":{"state":"translated","value":"보안 로그인 계속"}}}},
     "Contribution" : {
       "comment" : "Contribution Guide",
       "extractionState" : "manual",
@@ -14743,6 +14996,76 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "每日提醒"
+          }
+        }
+      }
+    },
+    "Daily request quota resets at 00:00 (Asia/Shanghai). Monthly tokens reset on the 1st." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily request quota resets at 00:00 (Asia/Shanghai). Monthly tokens reset on the 1st."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日次リクエスト枠は北京時間 0:00 にリセットされ、月間トークンは毎月1日にリセットされます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일일 요청 한도는 베이징 시간 00:00에 초기화되고, 월간 토큰은 매월 1일에 초기화됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每日请求额度于北京时间 00:00 重置，每月 Token 于每月 1 日重置。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每日請求額度於北京時間 00:00 重置，每月 Token 於每月 1 日重置。"
+          }
+        }
+      }
+    },
+    "Daily requests" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily requests"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1日のリクエスト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일일 요청"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每日请求"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每日請求"
           }
         }
       }
@@ -27653,6 +27976,76 @@
         }
       }
     },
+    "Health Data Controls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health Data Controls"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ヘルスデータの管理"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "건강 데이터 관리"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "健康数据控制"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "健康資料控制"
+          }
+        }
+      }
+    },
+    "Health data sharing with AI is turned off. You can allow it in Health settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health data sharing with AI is turned off. You can allow it in Health settings."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AIとのヘルスデータ共有はオフです。ヘルス設定で許可できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI와 건강 데이터 공유가 꺼져 있습니다. 건강 설정에서 허용할 수 있습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "与 AI 分享健康数据的功能已关闭。你可以在健康设置中允许。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "與 AI 分享健康資料的功能已關閉。你可以在健康設定中允許。"
+          }
+        }
+      }
+    },
     "Health history" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -27793,6 +28186,41 @@
         }
       }
     },
+    "HealthKit access is controlled by you" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit access is controlled by you"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKitへのアクセスはあなたが管理します"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit 접근은 사용자가 관리합니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit 访问由你控制"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit 存取權由你控制"
+          }
+        }
+      }
+    },
     "HealthKit access was denied. You can enable it later in the iOS Settings app under Privacy → Health → StudyPulse." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -27824,6 +28252,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "HealthKit 存取被拒絕。你可以稍後在 iOS 系統的「設定 → 隱私權與安全性 → 健康 → StudyPulse」中開啟。"
+          }
+        }
+      }
+    },
+    "HealthKit signals are read with your permission and processed locally for recovery guidance. StudyPulse does not upload them unless you separately allow health data in AI requests." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit signals are read with your permission and processed locally for recovery guidance. StudyPulse does not upload them unless you separately allow health data in AI requests."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKitの信号は許可を得て読み取り、回復ガイダンスのため端末上で処理します。ヘルスデータのAI利用を別途許可しない限り、StudyPulseがアップロードすることはありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit 신호는 사용자의 허가를 받아 읽고 회복 안내를 위해 기기에서 처리합니다. 건강 데이터의 AI 사용을 별도로 허용하지 않는 한 StudyPulse는 이를 업로드하지 않습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit 信号仅在获得许可后读取，并在设备上处理以提供恢复建议。除非你另外允许将健康数据用于 AI 请求，否则 StudyPulse 不会上传这些数据。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit 訊號僅在取得許可後讀取，並在裝置上處理以提供恢復建議。除非你另外允許將健康資料用於 AI 請求，否則 StudyPulse 不會上傳這些資料。"
           }
         }
       }
@@ -29965,6 +30428,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "記得"
+          }
+        }
+      }
+    },
+    "If enabled, selected recovery and mood or energy summaries may be sent to your configured AI endpoint." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If enabled, selected recovery and mood or energy summaries may be sent to your configured AI endpoint."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有効にすると、選択した回復情報や気分・エネルギーの概要が設定したAIエンドポイントに送信される場合があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "허용하면 선택한 회복 정보와 기분 또는 에너지 요약이 설정한 AI 엔드포인트로 전송될 수 있습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用后，选定的恢复信息以及心情或精力摘要可能会发送到你配置的 AI 端点。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用後，選定的恢復資訊以及心情或精力摘要可能會傳送到你設定的 AI 端點。"
           }
         }
       }
@@ -35036,6 +35534,41 @@
         }
       }
     },
+    "Loading remaining quota…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading remaining quota…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "残りクォータを読み込み中…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "남은 한도를 불러오는 중…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载剩余额度…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在載入剩餘額度…"
+          }
+        }
+      }
+    },
     "Loading..." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -35102,6 +35635,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本地規則視圖"
+          }
+        }
+      }
+    },
+    "Local recovery algorithms continue to work if you decline." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local recovery algorithms continue to work if you decline."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可しなくても、端末上の回復アルゴリズムは引き続き動作します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "허용하지 않아도 기기의 회복 알고리즘은 계속 작동합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即使拒绝，本地恢复算法仍会继续工作。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即使拒絕，裝置上的恢復演算法仍會繼續運作。"
           }
         }
       }
@@ -35250,9 +35818,7 @@
         }
       }
     },
-    "Login failed" : {
-
-    },
+    "Login failed" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Login Failed"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"登录失败"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"登入失敗"}},"ja":{"stringUnit":{"state":"translated","value":"ログインに失敗しました"}},"ko":{"stringUnit":{"state":"translated","value":"로그인 실패"}}}},
     "Longest Streak" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -40898,9 +41464,7 @@
         }
       }
     },
-    "Model: %@ · Multimodal: On · Thinking: Off" : {
-
-    },
+    "Model: %@ · Multimodal: On · Thinking: Off" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Model: %@ · Multimodal: On · Thinking: Off"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"模型：%@ · 多模态：开启 · 深度思考：关闭"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"模型：%@ · 多模態：開啟 · 深度思考：關閉"}},"ja":{"stringUnit":{"state":"translated","value":"モデル：%@ · マルチモーダル：オン · 深い思考：オフ"}},"ko":{"stringUnit":{"state":"translated","value":"모델: %@ · 멀티모달: 켬 · 심층 사고: 끔"}}}},
     "Moderate" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -41037,6 +41601,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "月報在每月 1 日上午 9:00 自動產生。"
+          }
+        }
+      }
+    },
+    "Monthly tokens" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly tokens"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "月間トークン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "월간 토큰"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每月 Token"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每月 Token"
           }
         }
       }
@@ -42127,6 +42726,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "暫無待辦,點擊編輯新增"
+          }
+        }
+      }
+    },
+    "No cloud sync. Optional AI requests go only to the endpoint you configure and require separate consent for health data." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No cloud sync. Optional AI requests go only to the endpoint you configure and require separate consent for health data."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クラウド同期はありません。任意のAIリクエストは設定したエンドポイントにのみ送信され、ヘルスデータには別途同意が必要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "클라우드 동기화는 없습니다. 선택적 AI 요청은 설정한 엔드포인트로만 전송되며 건강 데이터에는 별도 동의가 필요합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不提供云同步。可选的 AI 请求只会发送到你配置的端点，使用健康数据还需要单独同意。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不提供雲端同步。可選的 AI 請求只會傳送到你設定的端點，使用健康資料還需要另外同意。"
           }
         }
       }
@@ -43847,6 +44481,41 @@
         }
       }
     },
+    "Not now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今は許可しない"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "나중에"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂不允许"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暫不允許"
+          }
+        }
+      }
+    },
     "Not Selected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -44305,6 +44974,41 @@
     "OFF" : {
 
     },
+    "Off by default. If enabled, HealthKit-derived recovery signals and mood or energy summaries may be sent to your selected AI endpoint. Turning it off blocks future requests and clears the local LLM response cache." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off by default. If enabled, HealthKit-derived recovery signals and mood or energy summaries may be sent to your selected AI endpoint. Turning it off blocks future requests and clears the local LLM response cache."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デフォルトではオフです。有効にすると、HealthKit由来の回復信号や気分・エネルギーの概要が選択したAIエンドポイントに送信される場合があります。オフにすると今後のリクエストをブロックし、端末のLLM応答キャッシュを消去します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기본값은 꺼짐입니다. 켜면 HealthKit에서 얻은 회복 신호와 기분 또는 에너지 요약이 선택한 AI 엔드포인트로 전송될 수 있습니다. 끄면 이후 요청을 차단하고 기기의 LLM 응답 캐시를 삭제합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认关闭。启用后，HealthKit 派生的恢复信号以及心情或精力摘要可能会发送到所选 AI 端点。关闭后会阻止后续请求并清除本地 LLM 响应缓存。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設關閉。啟用後，HealthKit 衍生的恢復訊號以及心情或精力摘要可能會傳送到所選 AI 端點。關閉後會阻擋後續請求並清除本機 LLM 回應快取。"
+          }
+        }
+      }
+    },
     "Offline Support" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -44702,6 +45406,41 @@
         }
       }
     },
+    "Optional AI sharing is off by default" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optional AI sharing is off by default"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AIへの共有はデフォルトでオフです"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택적 AI 공유는 기본적으로 꺼져 있습니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可选的 AI 分享默认关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可選的 AI 分享預設關閉"
+          }
+        }
+      }
+    },
     "Optional details." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -44733,6 +45472,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選填的補充資訊。"
+          }
+        }
+      }
+    },
+    "Optional HealthKit integration: HRV, heart rate, respiratory rate, sleep, and exercise minutes are processed locally unless you separately allow optional AI sharing." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optional HealthKit integration: HRV, heart rate, respiratory rate, sleep, and exercise minutes are processed locally unless you separately allow optional AI sharing."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任意のHealthKit連携では、HRV、心拍数、呼吸数、睡眠、運動時間を、任意のAI共有を別途許可しない限り端末上で処理します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택적 HealthKit 연동의 HRV, 심박수, 호흡수, 수면 및 운동 시간은 선택적 AI 공유를 별도로 허용하지 않는 한 기기에서 처리됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可选的 HealthKit 集成会读取 HRV、心率、呼吸率、睡眠和锻炼时长；除非你另外允许可选的 AI 分享，否则这些数据仅在设备上处理。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可選的 HealthKit 整合會讀取 HRV、心率、呼吸率、睡眠和運動時間；除非你另外允許可選的 AI 分享，否則這些資料僅在裝置上處理。"
           }
         }
       }
@@ -49169,6 +49943,41 @@
         }
       }
     },
+    "Reads HRV, resting heart rate, respiratory rate and last night's sleep from Apple Health with your permission. StudyPulse uses these signals locally unless you separately allow optional AI sharing below." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reads HRV, resting heart rate, respiratory rate and last night's sleep from Apple Health with your permission. StudyPulse uses these signals locally unless you separately allow optional AI sharing below."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可を得てApple HealthからHRV、安静時心拍数、呼吸数、昨夜の睡眠を読み取ります。下で任意のAI共有を別途許可しない限り、これらの信号は端末上で処理します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "권한을 받아 Apple Health에서 HRV, 안정시 심박수, 호흡수 및 지난밤 수면을 읽습니다. 아래에서 선택적 AI 공유를 별도로 허용하지 않는 한 이 신호는 기기에서 처리됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经你许可后从 Apple Health 读取 HRV、静息心率、呼吸率和昨晚睡眠。除非你在下方另外允许可选的 AI 分享，否则这些信号仅在设备上处理。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "經你許可後從 Apple Health 讀取 HRV、靜息心率、呼吸率和昨晚睡眠。除非你在下方另外允許可選的 AI 分享，否則這些訊號僅在裝置上處理。"
+          }
+        }
+      }
+    },
     "Reads HRV, resting heart rate, respiratory rate and last night's sleep from Apple Health with your permission. Your data stays on device and is never uploaded." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -50677,6 +51486,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已釋放 %@"
+          }
+        }
+      }
+    },
+    "Remaining quota" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remaining quota"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "残りクォータ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "남은 한도"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剩余额度"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剩餘額度"
           }
         }
       }
@@ -55044,9 +55888,7 @@
     "Side" : {
 
     },
-    "Sign in securely with the StudyPulse identity center. Email/password, email code, and GitHub are supported on the web page." : {
-
-    },
+    "Sign in securely with the StudyPulse identity center. Email/password, email code, and GitHub are supported on the web page." : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Sign in securely with the StudyPulse identity center. Email/password, email code, and GitHub are supported on the web page."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"通过 StudyPulse 身份中心安全登录。网页支持邮箱和密码、邮箱验证码以及 GitHub 登录。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"透過 StudyPulse 身分中心安全登入。網頁支援電子郵件與密碼、電子郵件驗證碼及 GitHub 登入。"}},"ja":{"stringUnit":{"state":"translated","value":"StudyPulseの認証センターから安全にログインします。Webページではメールアドレスとパスワード、メール認証コード、GitHubに対応しています。"}},"ko":{"stringUnit":{"state":"translated","value":"StudyPulse 인증 센터에서 안전하게 로그인하세요. 웹페이지에서 이메일/비밀번호, 이메일 인증 코드, GitHub 로그인을 지원합니다."}}}},
     "Single Subject" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -56742,12 +57584,43 @@
         }
       }
     },
-    "StudyPulse Cloud AI" : {
-
+    "StudyPulse can optionally include HealthKit-derived recovery signals and mood or energy summaries in requests to your selected AI endpoint. This is separate from Apple Health permission and is off by default." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "StudyPulse can optionally include HealthKit-derived recovery signals and mood or energy summaries in requests to your selected AI endpoint. This is separate from Apple Health permission and is off by default."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "StudyPulseは、選択したAIエンドポイントへのリクエストに、HealthKitから取得した回復信号や気分・エネルギーの概要を任意で含められます。これはApple Healthの許可とは別で、初期状態ではオフです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "StudyPulse는 선택한 AI 엔드포인트 요청에 HealthKit에서 얻은 회복 신호와 기분 또는 에너지 요약을 선택적으로 포함할 수 있습니다. Apple Health 권한과는 별개이며 기본값은 꺼짐입니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "StudyPulse 可以选择将 HealthKit 派生的恢复信号以及心情或精力摘要包含在发送到所选 AI 端点的请求中。这与 Apple Health 权限分开管理，默认关闭。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "StudyPulse 可以選擇將 HealthKit 衍生的恢復訊號以及心情或精力摘要包含在傳送到所選 AI 端點的請求中。這與 Apple Health 權限分開管理，預設關閉。"
+          }
+        }
+      }
     },
-    "StudyPulse Cloud AI (Beta)" : {
-
-    },
+    "StudyPulse Cloud AI" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"StudyPulse Cloud AI"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"StudyPulse 云端 AI"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"StudyPulse 雲端 AI"}},"ja":{"stringUnit":{"state":"translated","value":"StudyPulse クラウドAI"}},"ko":{"stringUnit":{"state":"translated","value":"StudyPulse 클라우드 AI"}}}},
+    "StudyPulse Cloud AI (Beta)" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"StudyPulse Cloud AI (Beta)"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"StudyPulse 云端 AI（测试版）"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"StudyPulse 雲端 AI（測試版）"}},"ja":{"stringUnit":{"state":"translated","value":"StudyPulse クラウドAI（ベータ版）"}},"ko":{"stringUnit":{"state":"translated","value":"StudyPulse 클라우드 AI(베타)"}}}},
     "StudyPulse does not have calendar access. Please enable it in Settings." : {
       "comment" : "CalendarManager",
       "extractionState" : "manual",
@@ -56886,6 +57759,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "StudyPulse 學習報告"
+          }
+        }
+      }
+    },
+    "StudyPulse may write a 1-minute Mindful Session when diary sync is enabled. Mood and energy values stay on-device." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "StudyPulse may write a 1-minute Mindful Session when diary sync is enabled. Mood and energy values stay on-device."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日記の同期を有効にすると、StudyPulseは1分間のマインドフルセッションを記録する場合があります。気分とエネルギーの値は端末上に留まります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일기 동기화를 켜면 StudyPulse가 1분 마음챙김 세션을 기록할 수 있습니다. 기분과 에너지 값은 기기에만 저장됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用日记同步后，StudyPulse 可能会写入 1 分钟的正念会话。心情和精力数值仅保留在设备上。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用日記同步後，StudyPulse 可能會寫入 1 分鐘的正念活動。心情和精力數值僅保留在裝置上。"
           }
         }
       }
@@ -59243,6 +60151,41 @@
         }
       }
     },
+    "The App reads HealthKit data with your permission. When diary sync is enabled, it may write a 1-minute Mindful Session; it does not write HRV, heart rate, respiratory rate, sleep, or mood/energy values. The read data — HRV (SDNN), heart rate, respiratory rate, sleep, exercise minutes — is used locally to compute study readiness and personalized suggestions unless you separately allow health data in AI requests." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The App reads HealthKit data with your permission. When diary sync is enabled, it may write a 1-minute Mindful Session; it does not write HRV, heart rate, respiratory rate, sleep, or mood/energy values. The read data — HRV (SDNN), heart rate, respiratory rate, sleep, exercise minutes — is used locally to compute study readiness and personalized suggestions unless you separately allow health data in AI requests."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリは許可を得てHealthKitデータを読み取ります。日記の同期を有効にすると1分間のマインドフルセッションを記録する場合がありますが、HRV、心拍数、呼吸数、睡眠、気分・エネルギーの値は書き込みません。読み取ったデータは、ヘルスデータのAI利用を別途許可しない限り端末上で学習準備度と個別提案の計算に使われます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱은 권한을 받아 HealthKit 데이터를 읽습니다. 일기 동기화를 켜면 1분 마음챙김 세션을 기록할 수 있지만 HRV, 심박수, 호흡수, 수면 또는 기분/에너지 값은 쓰지 않습니다. 읽은 데이터는 건강 데이터의 AI 사용을 별도로 허용하지 않는 한 기기에서 학습 준비도와 맞춤 제안을 계산하는 데 사용됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用会经你许可读取 HealthKit 数据。启用日记同步后，应用可能会写入 1 分钟的正念会话，但不会写入 HRV、心率、呼吸率、睡眠或心情/精力数值。除非你另外允许健康数据用于 AI 请求，否则读取的数据仅在设备上用于计算学习准备度和个性化建议。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用程式會經你許可讀取 HealthKit 資料。啟用日記同步後，應用程式可能會寫入 1 分鐘的正念活動，但不會寫入 HRV、心率、呼吸率、睡眠或心情/精力數值。除非你另外允許健康資料用於 AI 請求，否則讀取的資料僅在裝置上用於計算學習準備度和個人化建議。"
+          }
+        }
+      }
+    },
     "The backup contains an unsafe file path." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -59309,6 +60252,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "備份缺少 manifest。"
+          }
+        }
+      }
+    },
+    "The selected endpoint processes the data under its own privacy policy." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The selected endpoint processes the data under its own privacy policy."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択したエンドポイントは独自のプライバシーポリシーに基づいてデータを処理します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택한 엔드포인트는 자체 개인정보 보호정책에 따라 데이터를 처리합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选端点会按照其自身的隐私政策处理这些数据。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選端點會依照其自身的隱私權政策處理這些資料。"
           }
         }
       }
@@ -66326,6 +67304,41 @@
         }
       }
     },
+    "Unlimited" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlimited"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無制限"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무제한"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不限"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不限"
+          }
+        }
+      }
+    },
     "Unnamed Exam" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -66821,6 +67834,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "結合你的心率、呼吸和睡眠給出更貼切的學習建議"
+          }
+        }
+      }
+    },
+    "Used: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used: %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用済み：%@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사용: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已用：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已用：%@"
           }
         }
       }
@@ -67458,6 +68506,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我們不會查看或儲存這些資料"
+          }
+        }
+      }
+    },
+    "We take your privacy and data security very seriously. Your learning data (grades, mistake notes, exams, avatars) remains on your device unless you choose to share specific content through an AI feature. HealthKit data is read and processed locally unless you separately allow health data in AI requests. StudyPulse may write a 1-minute Mindful Session when diary sync is enabled; mood and energy values remain in the app." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We take your privacy and data security very seriously. Your learning data (grades, mistake notes, exams, avatars) remains on your device unless you choose to share specific content through an AI feature. HealthKit data is read and processed locally unless you separately allow health data in AI requests. StudyPulse may write a 1-minute Mindful Session when diary sync is enabled; mood and energy values remain in the app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライバシーとデータセキュリティを大切にしています。学習データはAI機能で特定の内容を共有する場合を除き端末に保存されます。HealthKitデータはヘルスデータのAI利用を別途許可しない限り端末上で処理されます。日記の同期を有効にすると1分間のマインドフルセッションを記録する場合があります。気分とエネルギーの値はアプリ内に残ります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "개인정보와 데이터 보안을 중요하게 생각합니다. 학습 데이터는 AI 기능을 통해 특정 내용을 공유하기로 선택한 경우를 제외하고 기기에 남습니다. HealthKit 데이터는 건강 데이터의 AI 사용을 별도로 허용하지 않는 한 기기에서 처리됩니다. 일기 동기화를 켜면 1분 마음챙김 세션을 기록할 수 있으며 기분과 에너지 값은 앱에 남습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我们非常重视隐私和数据安全。除非你选择通过 AI 功能分享特定内容，否则成绩、错题、考试和头像等学习数据会保留在设备上。除非你另外允许健康数据用于 AI 请求，否则 HealthKit 数据仅在设备上读取和处理。启用日记同步后，StudyPulse 可能会写入 1 分钟的正念会话；心情和精力数值保留在应用中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我們非常重視隱私和資料安全。除非你選擇透過 AI 功能分享特定內容，否則成績、錯題、考試和頭像等學習資料會保留在裝置上。除非你另外允許健康資料用於 AI 請求，否則 HealthKit 資料僅在裝置上讀取和處理。啟用日記同步後，StudyPulse 可能會寫入 1 分鐘的正念活動；心情和精力數值保留在應用程式中。"
           }
         }
       }
@@ -68766,9 +69849,7 @@
         }
       }
     },
-    "Worker URL" : {
-
-    },
+    "Worker URL" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Worker URL"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"服务地址"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"服務位址"}},"ja":{"stringUnit":{"state":"translated","value":"サービスURL"}},"ko":{"stringUnit":{"state":"translated","value":"서비스 URL"}}}},
     "Workout" : {
       "comment" : "5th radar axis (workout / exercise)",
       "extractionState" : "manual",
@@ -69088,6 +70169,41 @@
     "You are free to:\n• Share — copy and redistribute the material in any medium or format\n• Adapt — remix, transform, and build upon the material\n\nUnder the following terms:\n• Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.\n• NonCommercial — You may not use the material for commercial purposes.\n• ShareAlike — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.\n\nNo additional restrictions — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits." : {
 
     },
+    "You can disable HealthKit access in Settings at any time." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can disable HealthKit access in Settings at any time."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定からいつでもHealthKitへのアクセスを無効にできます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정에서 언제든지 HealthKit 접근을 끌 수 있습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你可以随时在设置中关闭 HealthKit 访问。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你可以隨時在設定中關閉 HealthKit 存取權。"
+          }
+        }
+      }
+    },
     "You can disable HRV anytime in Settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69119,6 +70235,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你隨時可以在設定中關閉 HRV"
+          }
+        }
+      }
+    },
+    "You can revoke access at any time; cached AI responses will be cleared." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can revoke access at any time; cached AI responses will be cleared."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "いつでも許可を撤回でき、AIの応答キャッシュは消去されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "언제든지 권한을 철회할 수 있으며 AI 응답 캐시는 삭제됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你可以随时撤回权限；缓存的 AI 响应也会被清除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你可以隨時撤回權限；快取的 AI 回應也會被清除。"
           }
         }
       }
@@ -69784,6 +70935,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的 HRV 在正常範圍內。建議保持穩定的學習節奏。"
+          }
+        }
+      }
+    },
+    "Your learning data stays on device. HealthKit signals are processed locally unless you separately allow optional AI sharing; diary sync may write a 1-minute Mindful Session." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your learning data stays on device. HealthKit signals are processed locally unless you separately allow optional AI sharing; diary sync may write a 1-minute Mindful Session."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "学習データは端末に保存されます。HealthKitの信号は端末上で処理されますが、任意のAI共有を別途許可した場合を除きます。日記の同期を有効にすると、1分間のマインドフルセッションを記録する場合があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "학습 데이터는 기기에 저장됩니다. HealthKit 신호는 선택적 AI 공유를 별도로 허용하지 않는 한 기기에서 처리됩니다. 일기 동기화를 켜면 1분 마음챙김 세션을 기록할 수 있습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的学习数据保留在设备上。除非你另外允许可选的 AI 分享，否则 HealthKit 信号仅在设备上处理；启用日记同步后可能会写入 1 分钟的正念会话。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的學習資料保留在裝置上。除非你另外允許可選的 AI 分享，否則 HealthKit 訊號僅在裝置上處理；啟用日記同步後可能會寫入 1 分鐘的正念活動。"
           }
         }
       }
@@ -70640,41 +71826,7 @@
     "关键问题" : {
 
     },
-    "关闭" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "閉じる"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "닫기"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关闭"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "關閉"
-          }
-        }
-      }
-    },
+    "关闭" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Off"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"关闭"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"關閉"}},"ja":{"stringUnit":{"state":"translated","value":"オフ"}},"ko":{"stringUnit":{"state":"translated","value":"끔"}}}},
     "具体失分行为" : {
 
     },
@@ -74422,244 +75574,14 @@
         }
       }
     },
-    "Health Data Controls" : {
+    "Refresh quota" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Health Data Controls" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ヘルスデータの管理" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "건강 데이터 관리" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "健康数据控制" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "健康資料控制" } }
-      }
-    },
-    "HealthKit signals are read with your permission and processed locally for recovery guidance. StudyPulse does not upload them unless you separately allow health data in AI requests." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit signals are read with your permission and processed locally for recovery guidance. StudyPulse does not upload them unless you separately allow health data in AI requests." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "HealthKitの信号は許可を得て読み取り、回復ガイダンスのため端末上で処理します。ヘルスデータのAI利用を別途許可しない限り、StudyPulseがアップロードすることはありません。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 신호는 사용자의 허가를 받아 읽고 회복 안내를 위해 기기에서 처리합니다. 건강 데이터의 AI 사용을 별도로 허용하지 않는 한 StudyPulse는 이를 업로드하지 않습니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 信号仅在获得许可后读取，并在设备上处理以提供恢复建议。除非你另外允许将健康数据用于 AI 请求，否则 StudyPulse 不会上传这些数据。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 訊號僅在取得許可後讀取，並在裝置上處理以提供恢復建議。除非你另外允許將健康資料用於 AI 請求，否則 StudyPulse 不會上傳這些資料。" } }
-      }
-    },
-    "HealthKit access is controlled by you" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit access is controlled by you" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "HealthKitへのアクセスはあなたが管理します" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 접근은 사용자가 관리합니다" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 访问由你控制" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "HealthKit 存取權由你控制" } }
-      }
-    },
-    "You can disable HealthKit access in Settings at any time." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "You can disable HealthKit access in Settings at any time." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "設定からいつでもHealthKitへのアクセスを無効にできます。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "설정에서 언제든지 HealthKit 접근을 끌 수 있습니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你可以随时在设置中关闭 HealthKit 访问。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你可以隨時在設定中關閉 HealthKit 存取權。" } }
-      }
-    },
-    "Optional AI sharing is off by default" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Optional AI sharing is off by default" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIへの共有はデフォルトでオフです" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선택적 AI 공유는 기본적으로 꺼져 있습니다" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "可选的 AI 分享默认关闭" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "可選的 AI 分享預設關閉" } }
-      }
-    },
-    "If enabled, selected recovery and mood or energy summaries may be sent to your configured AI endpoint." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "If enabled, selected recovery and mood or energy summaries may be sent to your configured AI endpoint." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "有効にすると、選択した回復情報や気分・エネルギーの概要が設定したAIエンドポイントに送信される場合があります。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "허용하면 선택한 회복 정보와 기분 또는 에너지 요약이 설정한 AI 엔드포인트로 전송될 수 있습니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "启用后，选定的恢复信息以及心情或精力摘要可能会发送到你配置的 AI 端点。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "啟用後，選定的恢復資訊以及心情或精力摘要可能會傳送到你設定的 AI 端點。" } }
-      }
-    },
-    "StudyPulse may write a 1-minute Mindful Session when diary sync is enabled. Mood and energy values stay on-device." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulse may write a 1-minute Mindful Session when diary sync is enabled. Mood and energy values stay on-device." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "日記の同期を有効にすると、StudyPulseは1分間のマインドフルセッションを記録する場合があります。気分とエネルギーの値は端末上に留まります。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "일기 동기화를 켜면 StudyPulse가 1분 마음챙김 세션을 기록할 수 있습니다. 기분과 에너지 값은 기기에만 저장됩니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "启用日记同步后，StudyPulse 可能会写入 1 分钟的正念会话。心情和精力数值仅保留在设备上。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "啟用日記同步後，StudyPulse 可能會寫入 1 分鐘的正念活動。心情和精力數值僅保留在裝置上。" } }
-      }
-    },
-    "Allow health data in AI requests?" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow health data in AI requests?" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIリクエストでヘルスデータを使用しますか？" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "AI 요청에 건강 데이터를 허용할까요?" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "允许在 AI 请求中使用健康数据？" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "允許在 AI 請求中使用健康資料？" } }
-      }
-    },
-    "Allow health data in AI requests" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow health data in AI requests" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIリクエストでヘルスデータを許可" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "AI 요청에 건강 데이터 허용" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "允许在 AI 请求中使用健康数据" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "允許在 AI 請求中使用健康資料" } }
-      }
-    },
-    "StudyPulse can optionally include HealthKit-derived recovery signals and mood or energy summaries in requests to your selected AI endpoint. This is separate from Apple Health permission and is off by default." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulse can optionally include HealthKit-derived recovery signals and mood or energy summaries in requests to your selected AI endpoint. This is separate from Apple Health permission and is off by default." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulseは、選択したAIエンドポイントへのリクエストに、HealthKitから取得した回復信号や気分・エネルギーの概要を任意で含められます。これはApple Healthの許可とは別で、初期状態ではオフです。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulse는 선택한 AI 엔드포인트 요청에 HealthKit에서 얻은 회복 신호와 기분 또는 에너지 요약을 선택적으로 포함할 수 있습니다. Apple Health 권한과는 별개이며 기본값은 꺼짐입니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulse 可以选择将 HealthKit 派生的恢复信号以及心情或精力摘要包含在发送到所选 AI 端点的请求中。这与 Apple Health 权限分开管理，默认关闭。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "StudyPulse 可以選擇將 HealthKit 衍生的恢復訊號以及心情或精力摘要包含在傳送到所選 AI 端點的請求中。這與 Apple Health 權限分開管理，預設關閉。" } }
-      }
-    },
-    "Local recovery algorithms continue to work if you decline." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local recovery algorithms continue to work if you decline." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "許可しなくても、端末上の回復アルゴリズムは引き続き動作します。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "허용하지 않아도 기기의 회복 알고리즘은 계속 작동합니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "即使拒绝，本地恢复算法仍会继续工作。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "即使拒絕，裝置上的恢復演算法仍會繼續運作。" } }
-      }
-    },
-    "You can revoke access at any time; cached AI responses will be cleared." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "You can revoke access at any time; cached AI responses will be cleared." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "いつでも許可を撤回でき、AIの応答キャッシュは消去されます。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "언제든지 권한을 철회할 수 있으며 AI 응답 캐시는 삭제됩니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你可以随时撤回权限；缓存的 AI 响应也会被清除。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你可以隨時撤回權限；快取的 AI 回應也會被清除。" } }
-      }
-    },
-    "The selected endpoint processes the data under its own privacy policy." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "The selected endpoint processes the data under its own privacy policy." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "選択したエンドポイントは独自のプライバシーポリシーに基づいてデータを処理します。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선택한 엔드포인트는 자체 개인정보 보호정책에 따라 데이터를 처리합니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "所选端点会按照其自身的隐私政策处理这些数据。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "所選端點會依照其自身的隱私權政策處理這些資料。" } }
-      }
-    },
-    "Allow and continue" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow and continue" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "許可して続ける" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "허용하고 계속" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "允许并继续" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "允許並繼續" } }
-      }
-    },
-    "Not now" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not now" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今は許可しない" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "나중에" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂不允许" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "暫不允許" } }
-      }
-    },
-    "AI health privacy" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "AI health privacy" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIヘルスプライバシー" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "AI 건강 개인정보" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "AI 健康隐私" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "AI 健康隱私" } }
-      }
-    },
-    "Reads HRV, resting heart rate, respiratory rate and last night's sleep from Apple Health with your permission. StudyPulse uses these signals locally unless you separately allow optional AI sharing below." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reads HRV, resting heart rate, respiratory rate and last night's sleep from Apple Health with your permission. StudyPulse uses these signals locally unless you separately allow optional AI sharing below." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "許可を得てApple HealthからHRV、安静時心拍数、呼吸数、昨夜の睡眠を読み取ります。下で任意のAI共有を別途許可しない限り、これらの信号は端末上で処理します。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "권한을 받아 Apple Health에서 HRV, 안정시 심박수, 호흡수 및 지난밤 수면을 읽습니다. 아래에서 선택적 AI 공유를 별도로 허용하지 않는 한 이 신호는 기기에서 처리됩니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "经你许可后从 Apple Health 读取 HRV、静息心率、呼吸率和昨晚睡眠。除非你在下方另外允许可选的 AI 分享，否则这些信号仅在设备上处理。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "經你許可後從 Apple Health 讀取 HRV、靜息心率、呼吸率和昨晚睡眠。除非你在下方另外允許可選的 AI 分享，否則這些訊號僅在裝置上處理。" } }
-      }
-    },
-    "Off by default. If enabled, HealthKit-derived recovery signals and mood or energy summaries may be sent to your selected AI endpoint. Turning it off blocks future requests and clears the local LLM response cache." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Off by default. If enabled, HealthKit-derived recovery signals and mood or energy summaries may be sent to your selected AI endpoint. Turning it off blocks future requests and clears the local LLM response cache." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "デフォルトではオフです。有効にすると、HealthKit由来の回復信号や気分・エネルギーの概要が選択したAIエンドポイントに送信される場合があります。オフにすると今後のリクエストをブロックし、端末のLLM応答キャッシュを消去します。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "기본값은 꺼짐입니다. 켜면 HealthKit에서 얻은 회복 신호와 기분 또는 에너지 요약이 선택한 AI 엔드포인트로 전송될 수 있습니다. 끄면 이후 요청을 차단하고 기기의 LLM 응답 캐시를 삭제합니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "默认关闭。启用后，HealthKit 派生的恢复信号以及心情或精力摘要可能会发送到所选 AI 端点。关闭后会阻止后续请求并清除本地 LLM 响应缓存。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "預設關閉。啟用後，HealthKit 衍生的恢復訊號以及心情或精力摘要可能會傳送到所選 AI 端點。關閉後會阻擋後續請求並清除本機 LLM 回應快取。" } }
-      }
-    },
-    "Health data sharing with AI is turned off. You can allow it in Health settings." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Health data sharing with AI is turned off. You can allow it in Health settings." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIとのヘルスデータ共有はオフです。ヘルス設定で許可できます。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "AI와 건강 데이터 공유가 꺼져 있습니다. 건강 설정에서 허용할 수 있습니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "与 AI 分享健康数据的功能已关闭。你可以在健康设置中允许。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "與 AI 分享健康資料的功能已關閉。你可以在健康設定中允許。" } }
-      }
-    },
-    "Your learning data stays on device. HealthKit signals are processed locally unless you separately allow optional AI sharing; diary sync may write a 1-minute Mindful Session." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your learning data stays on device. HealthKit signals are processed locally unless you separately allow optional AI sharing; diary sync may write a 1-minute Mindful Session." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "学習データは端末に保存されます。HealthKitの信号は端末上で処理されますが、任意のAI共有を別途許可した場合を除きます。日記の同期を有効にすると、1分間のマインドフルセッションを記録する場合があります。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "학습 데이터는 기기에 저장됩니다. HealthKit 신호는 선택적 AI 공유를 별도로 허용하지 않는 한 기기에서 처리됩니다. 일기 동기화를 켜면 1분 마음챙김 세션을 기록할 수 있습니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你的学习数据保留在设备上。除非你另外允许可选的 AI 分享，否则 HealthKit 信号仅在设备上处理；启用日记同步后可能会写入 1 分钟的正念会话。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的學習資料保留在裝置上。除非你另外允許可選的 AI 分享，否則 HealthKit 訊號僅在裝置上處理；啟用日記同步後可能會寫入 1 分鐘的正念活動。" } }
-      }
-    },
-    "Optional HealthKit integration: HRV, heart rate, respiratory rate, sleep, and exercise minutes are processed locally unless you separately allow optional AI sharing." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Optional HealthKit integration: HRV, heart rate, respiratory rate, sleep, and exercise minutes are processed locally unless you separately allow optional AI sharing." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "任意のHealthKit連携では、HRV、心拍数、呼吸数、睡眠、運動時間を、任意のAI共有を別途許可しない限り端末上で処理します。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선택적 HealthKit 연동의 HRV, 심박수, 호흡수, 수면 및 운동 시간은 선택적 AI 공유를 별도로 허용하지 않는 한 기기에서 처리됩니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "可选的 HealthKit 集成会读取 HRV、心率、呼吸率、睡眠和锻炼时长；除非你另外允许可选的 AI 分享，否则这些数据仅在设备上处理。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "可選的 HealthKit 整合會讀取 HRV、心率、呼吸率、睡眠和運動時間；除非你另外允許可選的 AI 分享，否則這些資料僅在裝置上處理。" } }
-      }
-    },
-    "We take your privacy and data security very seriously. Your learning data (grades, mistake notes, exams, avatars) remains on your device unless you choose to share specific content through an AI feature. HealthKit data is read and processed locally unless you separately allow health data in AI requests. StudyPulse may write a 1-minute Mindful Session when diary sync is enabled; mood and energy values remain in the app." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "We take your privacy and data security very seriously. Your learning data (grades, mistake notes, exams, avatars) remains on your device unless you choose to share specific content through an AI feature. HealthKit data is read and processed locally unless you separately allow health data in AI requests. StudyPulse may write a 1-minute Mindful Session when diary sync is enabled; mood and energy values remain in the app." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プライバシーとデータセキュリティを大切にしています。学習データはAI機能で特定の内容を共有する場合を除き端末に保存されます。HealthKitデータはヘルスデータのAI利用を別途許可しない限り端末上で処理されます。日記の同期を有効にすると1分間のマインドフルセッションを記録する場合があります。気分とエネルギーの値はアプリ内に残ります。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "개인정보와 데이터 보안을 중요하게 생각합니다. 학습 데이터는 AI 기능을 통해 특정 내용을 공유하기로 선택한 경우를 제외하고 기기에 남습니다. HealthKit 데이터는 건강 데이터의 AI 사용을 별도로 허용하지 않는 한 기기에서 처리됩니다. 일기 동기화를 켜면 1분 마음챙김 세션을 기록할 수 있으며 기분과 에너지 값은 앱에 남습니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我们非常重视隐私和数据安全。除非你选择通过 AI 功能分享特定内容，否则成绩、错题、考试和头像等学习数据会保留在设备上。除非你另外允许健康数据用于 AI 请求，否则 HealthKit 数据仅在设备上读取和处理。启用日记同步后，StudyPulse 可能会写入 1 分钟的正念会话；心情和精力数值保留在应用中。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "我們非常重視隱私和資料安全。除非你選擇透過 AI 功能分享特定內容，否則成績、錯題、考試和頭像等學習資料會保留在裝置上。除非你另外允許健康資料用於 AI 請求，否則 HealthKit 資料僅在裝置上讀取和處理。啟用日記同步後，StudyPulse 可能會寫入 1 分鐘的正念活動；心情和精力數值保留在應用程式中。" } }
-      }
-    },
-    "No cloud sync. Optional AI requests go only to the endpoint you configure and require separate consent for health data." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "No cloud sync. Optional AI requests go only to the endpoint you configure and require separate consent for health data." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クラウド同期はありません。任意のAIリクエストは設定したエンドポイントにのみ送信され、ヘルスデータには別途同意が必要です。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "클라우드 동기화는 없습니다. 선택적 AI 요청은 설정한 엔드포인트로만 전송되며 건강 데이터에는 별도 동의가 필요합니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不提供云同步。可选的 AI 请求只会发送到你配置的端点，使用健康数据还需要单独同意。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "不提供雲端同步。可選的 AI 請求只會傳送到你設定的端點，使用健康資料還需要另外同意。" } }
-      }
-    },
-    "The App reads HealthKit data with your permission. When diary sync is enabled, it may write a 1-minute Mindful Session; it does not write HRV, heart rate, respiratory rate, sleep, or mood/energy values. The read data — HRV (SDNN), heart rate, respiratory rate, sleep, exercise minutes — is used locally to compute study readiness and personalized suggestions unless you separately allow health data in AI requests." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "The App reads HealthKit data with your permission. When diary sync is enabled, it may write a 1-minute Mindful Session; it does not write HRV, heart rate, respiratory rate, sleep, or mood/energy values. The read data — HRV (SDNN), heart rate, respiratory rate, sleep, exercise minutes — is used locally to compute study readiness and personalized suggestions unless you separately allow health data in AI requests." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アプリは許可を得てHealthKitデータを読み取ります。日記の同期を有効にすると1分間のマインドフルセッションを記録する場合がありますが、HRV、心拍数、呼吸数、睡眠、気分・エネルギーの値は書き込みません。読み取ったデータは、ヘルスデータのAI利用を別途許可しない限り端末上で学習準備度と個別提案の計算に使われます。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "앱은 권한을 받아 HealthKit 데이터를 읽습니다. 일기 동기화를 켜면 1분 마음챙김 세션을 기록할 수 있지만 HRV, 심박수, 호흡수, 수면 또는 기분/에너지 값은 쓰지 않습니다. 읽은 데이터는 건강 데이터의 AI 사용을 별도로 허용하지 않는 한 기기에서 학습 준비도와 맞춤 제안을 계산하는 데 사용됩니다." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "应用会经你许可读取 HealthKit 数据。启用日记同步后，应用可能会写入 1 分钟的正念会话，但不会写入 HRV、心率、呼吸率、睡眠或心情/精力数值。除非你另外允许健康数据用于 AI 请求，否则读取的数据仅在设备上用于计算学习准备度和个性化建议。" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "應用程式會經你許可讀取 HealthKit 資料。啟用日記同步後，應用程式可能會寫入 1 分鐘的正念活動，但不會寫入 HRV、心率、呼吸率、睡眠或心情/精力數值。除非你另外允許健康資料用於 AI 請求，否則讀取的資料僅在裝置上用於計算學習準備度和個人化建議。" } }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Refresh quota" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クォータを更新" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "한도 새로고침" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷新额度" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "重新整理額度" } }
       }
     }
   },

@@ -51,6 +51,7 @@ struct LLMChatView: View {
         .debugModeContainer()
         .debugLayoutBoundsAuto()
         .llmDebugButton(caller: "LLMChat")
+        .cloudThinkingToolbar()
         .navigationTitle("AI Assistant".localized())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

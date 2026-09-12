@@ -24,7 +24,26 @@ struct CoachView: View {
                     ContentUnavailableView("AI Coach is disabled".localized(), systemImage: "brain",
                                            description: Text("Enable Coach and configure your BYOK LLM in Settings → LLM.".localized()))
                 } else if viewModel.goals.isEmpty && standaloneChats.isEmpty {
-                    emptyView
+                    List {
+                        CloudAIQuotaListSection()
+                        Section {
+                            VStack(spacing: 16) {
+                                ContentUnavailableView(
+                                    "Create your first goal".localized(),
+                                    systemImage: "target",
+                                    description: Text("AI Coach needs a measurable goal before it can coach you.".localized())
+                                )
+                                Button("Create Goal".localized()) { showingGoalForm = true }
+                                    .buttonStyle(.borderedProminent)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                        }
+                    }
+                    .listStyle(.insetGrouped)
+                    .scrollContentBackground(.hidden)
+                    .background(Color(uiColor: .systemGroupedBackground))
+                    .refreshable { await container.envManager.refreshCloudQuota() }
                 } else {
                     goalList
                 }
@@ -78,6 +97,7 @@ struct CoachView: View {
         .onAppear {
             refresh()
             Task { await viewModel.refreshIfNeeded() }
+            Task { await container.envManager.refreshCloudQuota() }
             if let raw = UserDefaults.standard.string(forKey: "studyPulse.pendingCoachGoalID"),
                let id = UUID(uuidString: raw), let goal = viewModel.goals.first(where: { $0.id == id }) {
                 viewModel.select(goal)
@@ -89,21 +109,14 @@ struct CoachView: View {
             guard phase == .active else { return }
             refresh()
             Task { await viewModel.refreshIfNeeded() }
+            Task { await container.envManager.refreshCloudQuota() }
         }
         }
-    }
-
-    private var emptyView: some View {
-        ContentUnavailableView("Create your first goal".localized(), systemImage: "target",
-                               description: Text("AI Coach needs a measurable goal before it can coach you.".localized()))
-            .overlay(alignment: .bottom) {
-                Button("Create Goal".localized()) { showingGoalForm = true }
-                    .buttonStyle(.borderedProminent).padding(.bottom, 32)
-            }
     }
 
     private var goalList: some View {
         List {
+            CloudAIQuotaListSection()
             coachSummarySection
             standaloneSection
             goalSection(.active, title: "Active Goals")
@@ -114,6 +127,7 @@ struct CoachView: View {
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(Color(uiColor: .systemGroupedBackground))
+        .refreshable { await container.envManager.refreshCloudQuota() }
     }
 
     @ViewBuilder

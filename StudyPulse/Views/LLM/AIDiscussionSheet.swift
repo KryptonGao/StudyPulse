@@ -81,6 +81,7 @@ struct AIDiscussionSheet: View {
             }
             .containerBackground(.clear, for: .navigation)
             .llmDebugButton(caller: "AIDiscussion")
+            .cloudThinkingToolbar()
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

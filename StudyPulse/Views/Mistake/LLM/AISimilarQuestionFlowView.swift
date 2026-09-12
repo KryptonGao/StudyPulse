@@ -142,6 +142,7 @@ struct AISimilarQuestionFlowView: View {
                     Button("Close".localized()) { dismiss() }
                 }
             }
+            .cloudThinkingToolbar()
         }
         .onAppear {
             if generatedQuestion.isEmpty {
