@@ -88,7 +88,7 @@ nonisolated enum StudyStreakCalculator {
         let active = activeDays(from: sessions, calendar: referenceCalendar)
         guard !active.isEmpty else { return 0 }
 
-        var calendar = referenceCalendar
+        let calendar = referenceCalendar
         let todayStart = calendar.startOfDay(for: now)
         guard let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: todayStart) else {
             return 0

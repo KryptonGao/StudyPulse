@@ -72,8 +72,69 @@ struct MembershipInfo: Decodable {
 struct PlanInfo: Decodable {
     let name: String?
     let daily_request_limit: Int?
+    let monthly_point_limit: Int?
     let monthly_token_limit: Int?
     let available_models: [String]?
+}
+
+// MARK: - Dashboard (quota) Response Types
+
+nonisolated struct UserDashboardResponse: Decodable, Sendable {
+    let success: Bool
+    let error: String?
+    let data: UserDashboardData?
+}
+
+nonisolated struct UserDashboardData: Decodable, Sendable {
+    let user: DashboardUserInfo?
+    let subscription: DashboardSubscription?
+    let usage: DashboardUsage?
+}
+
+nonisolated struct DashboardUserInfo: Decodable, Sendable {
+    let email: String?
+}
+
+nonisolated struct DashboardSubscription: Decodable, Sendable {
+    let plan: String?
+    let type: String?
+    let effective_type: String?
+    let status: String?
+    let expire_time: String?
+    let daily_request_limit: Int?
+    let monthly_point_limit: Int?
+}
+
+nonisolated struct DashboardUsage: Decodable, Sendable {
+    let quota: DashboardQuotaBuckets?
+}
+
+nonisolated struct DashboardQuotaBuckets: Decodable, Sendable {
+    let day: DashboardQuotaDay?
+    let month: DashboardQuotaMonth?
+}
+
+nonisolated struct DashboardQuotaDay: Decodable, Sendable {
+    let requests: Int?
+}
+
+nonisolated struct DashboardQuotaMonth: Decodable, Sendable {
+    let points: Int?
+}
+
+extension UserDashboardData {
+    func makeQuotaSnapshot(fetchedAt: Date = .now) -> CloudAIQuotaSnapshot {
+        CloudAIQuotaSnapshot(
+            planName: subscription?.plan,
+            membershipType: subscription?.effective_type ?? subscription?.type,
+            membershipStatus: subscription?.status,
+            dailyRequestLimit: subscription?.daily_request_limit,
+            monthlyPointLimit: subscription?.monthly_point_limit,
+            usedDayRequests: usage?.quota?.day?.requests ?? 0,
+            usedMonthPoints: usage?.quota?.month?.points ?? 0,
+            fetchedAt: fetchedAt
+        )
+    }
 }
 
 // MARK: - Auth Client
@@ -81,6 +142,8 @@ struct PlanInfo: Decodable {
 @MainActor
 final class AuthClient: @unchecked Sendable {
     static let shared = AuthClient()
+    /// User console host for `GET /api/user/dashboard` (session token required).
+    static let cloudDashboardHost = "dash.studypulse.chenkai.space"
 
     private let session: URLSession
     private let timeoutSeconds: TimeInterval = 30
@@ -175,6 +238,27 @@ final class AuthClient: @unchecked Sendable {
             return profileData
         }
         let msg = decoded.error ?? "HTTP \(http.statusCode)"
+        throw AuthError.network(msg)
+    }
+
+    /// 获取控制台概览（会员额度 + 当日/当月用量）。
+    /// Fetches the user dashboard: membership limits and current-period usage.
+    func getDashboard(
+        sessionToken: String,
+        dashboardURL: String = AuthClient.cloudDashboardHost
+    ) async throws -> UserDashboardData {
+        let url = try buildURL(base: dashboardURL, path: "/api/user/dashboard")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = timeoutSeconds
+
+        let result = try await data(for: request)
+        let decoded = try decode(UserDashboardResponse.self, from: result.0)
+        if (200..<300).contains(result.1.statusCode), decoded.success, let data = decoded.data {
+            return data
+        }
+        let msg = decoded.error ?? "HTTP \(result.1.statusCode)"
         throw AuthError.network(msg)
     }
 

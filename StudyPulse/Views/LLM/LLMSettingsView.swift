@@ -21,7 +21,6 @@ struct LLMSettingsView: View {
     @State private var cloudWorkerURL: String = ""
     @State private var cloudAPIKeyInput: String = ""
     @State private var isActivatingCloud: Bool = false
-    @State private var cloudSelectedModel: String = "MiniMax-M3"
     @State private var isRefreshingProfile = false
 
     // Account
@@ -48,25 +47,18 @@ struct LLMSettingsView: View {
 
             // ── 2. Cloud AI ──
             Section {
-                if container.envManager.isCloudSessionLoggedIn {
+                    if container.envManager.isCloudSessionLoggedIn {
                     // ── Account mode ──
                     cloudAccountRow
-
-                    // 始终显示模型选择器（服务端模型列表未加载时用 provider 自带模型兜底）
-                    HStack {
-                        Text("Model".localized()).foregroundColor(.secondary)
-                        Spacer()
-                        if let models = container.envManager.preferences.cloudAvailableModels,
-                           !models.isEmpty {
-                            Picker("", selection: $cloudSelectedModel) {
-                                ForEach(models, id: \.self) { Text($0).tag($0) }
-                            }
-                            .onChange(of: cloudSelectedModel) { _, m in updateCloudProviderModel(m) }
-                        } else {
-                            Text(cloudSelectedModel)
-                                .foregroundColor(.secondary)
-                        }
-                    }
+                    LLMThinkingModePicker(
+                        mode: Binding(
+                            get: { container.envManager.preferences.cloudThinkingMode },
+                            set: { container.envManager.setCloudThinkingMode($0) }
+                        )
+                    )
+                    Text("深度思考由服务器最终决定。关闭响应更快、消耗更少积分；自动适合大多数问题；开启优先深度推理。".localized())
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
 
                     DisclosureGroup("Account".localized()) {
                         Button {
@@ -86,7 +78,7 @@ struct LLMSettingsView: View {
                     }
 
                     DisclosureGroup("Beta API Key (Optional)".localized()) {
-                        TextField("Worker URL", text: $cloudWorkerURL)
+                        TextField("Worker URL".localized(), text: $cloudWorkerURL)
                             .textInputAutocapitalization(.never).autocorrectionDisabled(true)
                             .keyboardType(.URL).font(.subheadline)
                         SecureField("API Key (sp_xxx)".localized(), text: $cloudAPIKeyInput)
@@ -143,7 +135,7 @@ struct LLMSettingsView: View {
                     .padding(.vertical, 8)
 
                     DisclosureGroup("Manual API Key Setup (Advanced)".localized()) {
-                        TextField("Worker URL", text: $cloudWorkerURL)
+                        TextField("Worker URL".localized(), text: $cloudWorkerURL)
                             .textInputAutocapitalization(.never).autocorrectionDisabled(true)
                             .keyboardType(.URL).font(.subheadline)
                         SecureField("API Key (sp_xxx)".localized(), text: $cloudAPIKeyInput)
@@ -190,6 +182,8 @@ struct LLMSettingsView: View {
             } header: {
                 Text("Cloud AI".localized())
             }
+
+            CloudAIQuotaListSection()
 
             // ── 3. Provider List (unified: Cloud AI + BYOK) ──
             Section {
@@ -255,6 +249,11 @@ struct LLMSettingsView: View {
         .listStyle(.insetGrouped)
         .background(Color(.systemGroupedBackground))
         .containerBackground(.clear, for: .navigation)
+        .refreshable {
+            if container.envManager.isCloudSessionLoggedIn {
+                await container.envManager.refreshCloudQuota()
+            }
+        }
         .debugModeContainer()
         .debugLayoutBoundsAuto()
         .navigationTitle("LLM".localized())
@@ -287,7 +286,7 @@ struct LLMSettingsView: View {
                 HStack(spacing: 4) {
                     Text("Logged in".localized()).font(.caption).foregroundColor(.secondary)
                     if let type = container.envManager.preferences.cloudMembershipType {
-                        Text(type.capitalized)
+                        Text(membershipName(type))
                             .font(.caption2.weight(.bold))
                             .foregroundColor(membershipColor(type))
                             .padding(.horizontal, 6).padding(.vertical, 2)
@@ -312,8 +311,8 @@ struct LLMSettingsView: View {
         let subtitle: String = {
             if isCloud {
                 return container.envManager.isCloudSessionLoggedIn
-                    ? "\(provider.model)  ·  Account".localized()
-                    : "\(provider.model)  ·  Key".localized()
+                    ? String(format: "%@ · Account".localized(), provider.model)
+                    : String(format: "%@ · Key".localized(), provider.model)
             }
             return isConfigured ? provider.model : "Incomplete configuration".localized()
         }()
@@ -361,12 +360,13 @@ struct LLMSettingsView: View {
         switch type { case "pro": return .purple; case "plus": return .blue; default: return .secondary }
     }
 
-    private func updateCloudProviderModel(_ model: String) {
-        guard let cloud = container.envManager.preferences.llmProviders.first(where: { $0.isCloudProvider }),
-              let idx = container.envManager.preferences.llmProviders.firstIndex(where: { $0.id == cloud.id }) else { return }
-        var updated = cloud
-        updated.model = model
-        container.envManager.preferences.llmProviders[idx] = updated
+    private func membershipName(_ type: String) -> String {
+        switch type.lowercased() {
+        case "free": return "Free".localized()
+        case "plus": return "Plus".localized()
+        case "pro": return "Pro".localized()
+        default: return type.capitalized
+        }
     }
 
     private func syncFromPreferences() {
@@ -374,9 +374,6 @@ struct LLMSettingsView: View {
         cloudWorkerURL = prefs.cloudAIWorkerURL ?? ""
         if container.envManager.hasCloudProvider {
             cloudAPIKeyInput = container.envManager.cloudAPIKey
-            if let cloud = prefs.llmProviders.first(where: { $0.isCloudProvider }) {
-                cloudSelectedModel = cloud.model
-            }
         }
     }
 
@@ -387,7 +384,10 @@ struct LLMSettingsView: View {
         isActivatingCloud = true
         defer { isActivatingCloud = false }
         do { try container.envManager.activateCloudProvider(workerURL: url, apiKey: key) }
-        catch { testAlertSucceeded = false; testAlertMessage = "Failed to save API Key: \(error.localizedDescription)" }
+        catch {
+            testAlertSucceeded = false
+            testAlertMessage = String(format: "Failed to save API Key: %@".localized(), error.localizedDescription)
+        }
     }
 
     @MainActor private func performLogout() async {
@@ -418,9 +418,6 @@ struct LLMSettingsView: View {
         // 确保 Cloud AI 是活跃 provider
         if let cloud = container.envManager.preferences.llmProviders.first(where: { $0.isCloudProvider }) {
             container.envManager.preferences.activeLLMProviderId = cloud.id
-        }
-        if let models = container.envManager.preferences.cloudAvailableModels, let first = models.first {
-            cloudSelectedModel = container.envManager.preferences.llmProviders.first(where: { $0.isCloudProvider })?.model ?? first
         }
     }
 }
@@ -465,7 +462,7 @@ private struct LLMAICoachSettingsView: View {
                         get: { container.envManager.preferences.coachNotificationHour },
                         set: { container.envManager.preferences.coachNotificationHour = max(0, min(23, $0)); CoachNotifications.shared.reschedule(enabled: container.envManager.preferences.coachNotificationEnabled, hour: $0) }
                     ), in: 0...23) {
-                        Text(String(format: "%02d:00".localized(), container.envManager.preferences.coachNotificationHour))
+                        Text(String(format: "%02d:00", container.envManager.preferences.coachNotificationHour))
                     }
                 }
 
@@ -635,9 +632,9 @@ private struct LLMProviderEditor: View {
                 Section {
                     HStack {
                         Image(systemName: "cloud.fill").foregroundColor(.accentColor)
-                        Text("StudyPulse Cloud AI (Beta)").font(.headline)
+                        Text("StudyPulse Cloud AI (Beta)".localized()).font(.headline)
                     }
-                    Text("Model: \(provider.model) · Multimodal: On · Thinking: Off")
+                    Text(String(format: "Model: %@ · Multimodal: On · Thinking: Off".localized(), provider.model))
                         .font(.caption).foregroundColor(.secondary)
                     SecureField("API Key (sp_xxx)".localized(), text: $apiKey)
                         .textInputAutocapitalization(.never).autocorrectionDisabled(true)

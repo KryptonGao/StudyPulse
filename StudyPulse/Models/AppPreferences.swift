@@ -218,6 +218,11 @@ nonisolated struct AppPreferences: Codable {
     /// Available models for Cloud AI (retrieved from /user/profile).
     var cloudAvailableModels: [String]? = nil
 
+    /// Last Cloud AI quota snapshot from `GET /api/user/dashboard`.
+    var cloudQuotaSnapshot: CloudAIQuotaSnapshot? = nil
+    /// Cloud AI thinking preference for interactive callers. Background callers use server defaults.
+    var cloudThinkingMode: LLMThinkingMode = .auto
+
     /// Debug 专用:全局覆盖 LLM 系统 prompt(仅 DEBUG 模式可见)。
     /// 非空时 LLMClient.buildBody 会**完全替换**默认 system + appendix,用于排查 prompt 行为。
     /// 空 / nil 时回退到默认 + appendix 的常规逻辑。
@@ -289,7 +294,7 @@ nonisolated struct AppPreferences: Codable {
         case cardSkinId, timerAnimationId
         case plantCardEnabled, plantPetalColorId
         case debugModeEnabled, debugVerboseLogging, debugFPSOverlay, debugLayoutBounds, debugLongPressInspect
-        case llmEnabled, coachEnabled, coachNotificationEnabled, coachNotificationHour, coachAdaptivePlanEnabled, coachHealthBaselineCategory, coachHealthBaselineZScore, coachHealthBaselineSleepHours, coachHealthBaselineRestingHeartRate, coachHealthBaselineRestorativeSleepHours, lastCoachAdaptivePlanRequestTime, llmBaseURL, llmAPIKey, llmModel, llmSystemPromptAppendix, llmTemperature, llmProviders, activeLLMProviderId, cloudAIWorkerURL, cloudSessionEmail, cloudMembershipType, cloudMembershipExpiresAt, cloudAvailableModels, radarAICooldownMinutes, lastRadarAIRequestTime, debugOverrideSystemPrompt, lastStudySuggestionsAIRequestTime, healthDataLLMSharingEnabled
+        case llmEnabled, coachEnabled, coachNotificationEnabled, coachNotificationHour, coachAdaptivePlanEnabled, coachHealthBaselineCategory, coachHealthBaselineZScore, coachHealthBaselineSleepHours, coachHealthBaselineRestingHeartRate, coachHealthBaselineRestorativeSleepHours, lastCoachAdaptivePlanRequestTime, llmBaseURL, llmAPIKey, llmModel, llmSystemPromptAppendix, llmTemperature, llmProviders, activeLLMProviderId, cloudAIWorkerURL, cloudSessionEmail, cloudMembershipType, cloudMembershipExpiresAt, cloudAvailableModels, cloudQuotaSnapshot, cloudThinkingMode, radarAICooldownMinutes, lastRadarAIRequestTime, debugOverrideSystemPrompt, lastStudySuggestionsAIRequestTime, healthDataLLMSharingEnabled
         case habitInsightEnabled, habitInsightNotificationEnabled, habitInsightNotificationHour, habitInsightCooldownMinutes, lastHabitInsightAIRequestTime, lastHabitInsightNotificationBody, lastHabitInsightNotificationDate
         case heartRateStreamingEnabled
         case diaryEnabled, diaryDailyReminderEnabled, diaryDailyReminderHour, diarySyncToHealthEnabled, diaryLLMReflectionEnabled
@@ -341,6 +346,8 @@ nonisolated struct AppPreferences: Codable {
         self.cloudMembershipType = try c.decodeIfPresent(String.self, forKey: .cloudMembershipType)
         self.cloudMembershipExpiresAt = try c.decodeIfPresent(String.self, forKey: .cloudMembershipExpiresAt)
         self.cloudAvailableModels = try c.decodeIfPresent([String].self, forKey: .cloudAvailableModels)
+        self.cloudQuotaSnapshot = try c.decodeIfPresent(CloudAIQuotaSnapshot.self, forKey: .cloudQuotaSnapshot)
+        self.cloudThinkingMode = try c.decodeIfPresent(LLMThinkingMode.self, forKey: .cloudThinkingMode) ?? .auto
         // 从旧版单一配置无损迁移，既有用户升级后可立刻继续使用。
         if self.llmProviders.isEmpty,
            let baseURL = self.llmBaseURL,

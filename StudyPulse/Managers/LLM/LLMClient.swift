@@ -167,7 +167,8 @@ final class LLMClient: @unchecked Sendable {
 
         // Cloud AI 网关:使用简化协议,响应格式不同。
         if config.isCloudProvider {
-            return try await cloudComplete(prompt: prompt, config: config, caller: caller)
+            let context = LLMRequestContext.make(caller: caller, config: config)
+            return try await cloudComplete(prompt: prompt, config: config, context: context)
         }
 
         // BYOK: OpenAI 兼容协议。
@@ -260,17 +261,17 @@ final class LLMClient: @unchecked Sendable {
     private func cloudComplete(
         prompt: LLMPrompt,
         config: LLMConfig,
-        caller: String,
+        context: LLMRequestContext,
         retryingAfterRefresh: Bool = false
     ) async throws -> String {
         // 缓存命中
-        if let cached = await LLMResponseCache.shared.get(caller: caller, prompt: prompt, config: config) {
+        if let cached = await LLMResponseCache.shared.get(caller: context.caller, prompt: prompt, config: config) {
             return cached
         }
-        printPromptToConsole(prompt: prompt, config: config, caller: caller)
+        printPromptToConsole(prompt: prompt, config: config, caller: context.caller)
         let url = try buildCloudURL(baseURL: config.baseURL)
         let body = try await Task.detached(priority: .userInitiated) {
-            try self.buildCloudBody(prompt: prompt, config: config)
+            try self.buildCloudBody(prompt: prompt, config: config, context: context)
         }.value
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -292,7 +293,7 @@ final class LLMClient: @unchecked Sendable {
                 systemPrompt: effectiveSystem(prompt: prompt, config: config),
                 messages: prompt.messages, streaming: false,
                 response: nil, error: LLMError.timeout.errorDescription,
-                caller: caller
+                caller: context.caller
             )
             recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw LLMError.timeout
@@ -304,7 +305,7 @@ final class LLMClient: @unchecked Sendable {
                 systemPrompt: effectiveSystem(prompt: prompt, config: config),
                 messages: prompt.messages, streaming: false,
                 response: nil, error: error.localizedDescription,
-                caller: caller
+                caller: context.caller
             )
             recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw LLMError.network(error.localizedDescription)
@@ -322,7 +323,7 @@ final class LLMClient: @unchecked Sendable {
                 return try await cloudComplete(
                     prompt: prompt,
                     config: refreshedConfig,
-                    caller: caller,
+                    context: context,
                     retryingAfterRefresh: true
                 )
             } catch {
@@ -339,7 +340,7 @@ final class LLMClient: @unchecked Sendable {
                 temperature: config.temperature,
                 systemPrompt: effectiveSystem(prompt: prompt, config: config),
                 messages: prompt.messages, streaming: false,
-                response: nil, error: cloudError.errorDescription, caller: caller
+                response: nil, error: cloudError.errorDescription, caller: context.caller
             )
             recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw cloudError
@@ -359,7 +360,7 @@ final class LLMClient: @unchecked Sendable {
                 systemPrompt: effectiveSystem(prompt: prompt, config: config),
                 messages: prompt.messages, streaming: false,
                 response: nil,
-                error: desc, caller: caller
+                error: desc, caller: context.caller
             )
             recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw error
@@ -371,10 +372,10 @@ final class LLMClient: @unchecked Sendable {
             temperature: config.temperature,
             systemPrompt: effectiveSystem(prompt: prompt, config: config),
             messages: prompt.messages, streaming: false,
-            response: result, error: nil, caller: caller
+            response: result, error: nil, caller: context.caller
         )
         recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
-        await LLMResponseCache.shared.set(caller: caller, prompt: prompt, config: config, response: result)
+        await LLMResponseCache.shared.set(caller: context.caller, prompt: prompt, config: config, response: result)
         return result
     }
 
@@ -385,19 +386,19 @@ final class LLMClient: @unchecked Sendable {
     private func cloudStream(
         prompt: LLMPrompt,
         config: LLMConfig,
-        caller: String,
+        context: LLMRequestContext,
         onDelta: @MainActor (String) -> Void,
         retryingAfterRefresh: Bool = false
     ) async throws -> String {
         // 缓存命中:把缓存作为单次 onDelta emit,避免重复走网络。
-        if let cached = await LLMResponseCache.shared.get(caller: caller, prompt: prompt, config: config) {
+        if let cached = await LLMResponseCache.shared.get(caller: context.caller, prompt: prompt, config: config) {
             onDelta(cached)
             return cached
         }
-        printPromptToConsole(prompt: prompt, config: config, caller: caller)
+        printPromptToConsole(prompt: prompt, config: config, caller: context.caller)
         let url = try buildCloudURL(baseURL: config.baseURL)
         let body = try await Task.detached(priority: .userInitiated) {
-            try self.buildCloudBody(prompt: prompt, config: config, stream: true)
+            try self.buildCloudBody(prompt: prompt, config: config, context: context, stream: true)
         }.value
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -420,7 +421,7 @@ final class LLMClient: @unchecked Sendable {
                 systemPrompt: effectiveSystem(prompt: prompt, config: config),
                 messages: prompt.messages, streaming: true,
                 response: nil, error: error.localizedDescription,
-                caller: caller
+                caller: context.caller
             )
             recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             if let urlErr = error as? URLError, urlErr.code == .timedOut {
@@ -444,7 +445,7 @@ final class LLMClient: @unchecked Sendable {
                     return try await cloudStream(
                         prompt: prompt,
                         config: refreshedConfig,
-                        caller: caller,
+                        context: context,
                         onDelta: onDelta,
                         retryingAfterRefresh: true
                     )
@@ -460,7 +461,7 @@ final class LLMClient: @unchecked Sendable {
                 temperature: config.temperature,
                 systemPrompt: effectiveSystem(prompt: prompt, config: config),
                 messages: prompt.messages, streaming: true,
-                response: nil, error: cloudError.errorDescription, caller: caller
+                response: nil, error: cloudError.errorDescription, caller: context.caller
             )
             recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw cloudError
@@ -491,7 +492,7 @@ final class LLMClient: @unchecked Sendable {
                 systemPrompt: effectiveSystem(prompt: prompt, config: config),
                 messages: prompt.messages, streaming: true,
                 response: accumulated.isEmpty ? nil : accumulated,
-                error: error.localizedDescription, caller: caller
+                error: error.localizedDescription, caller: context.caller
             )
             recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw error
@@ -505,7 +506,7 @@ final class LLMClient: @unchecked Sendable {
                 systemPrompt: effectiveSystem(prompt: prompt, config: config),
                 messages: prompt.messages, streaming: true,
                 response: nil, error: LLMError.emptyResponse.errorDescription,
-                caller: caller
+                caller: context.caller
             )
             recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
             throw LLMError.emptyResponse
@@ -517,10 +518,10 @@ final class LLMClient: @unchecked Sendable {
             temperature: config.temperature,
             systemPrompt: effectiveSystem(prompt: prompt, config: config),
             messages: prompt.messages, streaming: true,
-            response: accumulated, error: nil, caller: caller
+            response: accumulated, error: nil, caller: context.caller
         )
         recordCall(info, apiKey: config.apiKey, sessionToken: config.sessionToken)
-        await LLMResponseCache.shared.set(caller: caller, prompt: prompt, config: config, response: accumulated)
+        await LLMResponseCache.shared.set(caller: context.caller, prompt: prompt, config: config, response: accumulated)
         return accumulated
     }
 
@@ -539,7 +540,8 @@ final class LLMClient: @unchecked Sendable {
         // Cloud AI 网关 v0.5-beta 起支持 SSE 流式传输(透传 MiniMax 原始格式)。
         // Cloud AI gateway supports SSE streaming since v0.5-beta (proxies MiniMax raw format).
         if config.isCloudProvider {
-            return try await cloudStream(prompt: prompt, config: config, caller: caller, onDelta: onDelta)
+            let context = LLMRequestContext.make(caller: caller, config: config)
+            return try await cloudStream(prompt: prompt, config: config, context: context, onDelta: onDelta)
         }
 
         // BYOK: SSE 流式。
@@ -711,7 +713,10 @@ final class LLMClient: @unchecked Sendable {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(cloudAuthHeader(config: config), forHTTPHeaderField: "Authorization")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["message": "ping"])
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "messages": [["role": "user", "content": "ping"]],
+            "studypulse": ["caller": "Legacy", "thinking": "off"],
+        ])
         let (data, response) = try await session.data(for: request)
         guard let httpResp = response as? HTTPURLResponse else {
             throw LLMError.network("Non-HTTP response")
@@ -848,41 +853,44 @@ final class LLMClient: @unchecked Sendable {
         return try JSONSerialization.data(withJSONObject: payload, options: [])
     }
 
-    /// 构建 Cloud AI 网关请求体。
-    /// Cloud AI uses simplified format: `{"message": "..."}` for text-only,
-    /// or `{"content": [...]}` for multimodal.
-    /// System prompt is prepended to the message since the Cloud AI Worker
-    /// does not have a separate `system` field.
-    nonisolated private func buildCloudBody(prompt: LLMPrompt, config: LLMConfig, stream: Bool = false) throws -> Data {
+    /// 构建 Cloud AI 网关请求体：完整 messages + studypulse metadata。
+    /// Official Cloud AI requests do not send a client-selected model.
+    nonisolated private func buildCloudBody(prompt: LLMPrompt, config: LLMConfig, context: LLMRequestContext, stream: Bool = false) throws -> Data {
         let system = effectiveSystem(prompt: prompt, config: config)
-        let userMessages = prompt.messages
-            .filter { $0.role == .user }
-            .map(\.content)
-            .joined(separator: "\n")
-
-        // 把 system prompt 拼到消息前面,用分隔符标注
-        let fullMessage: String
-        if system.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            fullMessage = userMessages
-        } else {
-            fullMessage = "\(system)\n\n---\n\n\(userMessages)"
+        var allMessages: [[String: Any]] = []
+        if !system.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            allMessages.append(["role": "system", "content": system])
         }
-
-        if config.multimodalEnabled {
-            var parts: [[String: Any]] = [["type": "text", "text": fullMessage]]
-            for msg in prompt.messages where msg.role == .user {
-                parts.append(contentsOf: msg.imageDataURLs.map {
+        for message in prompt.messages {
+            var body: [String: Any] = ["role": message.role.rawValue]
+            if config.multimodalEnabled, !message.imageDataURLs.isEmpty {
+                var parts: [[String: Any]] = [["type": "text", "text": message.content]]
+                parts.append(contentsOf: message.imageDataURLs.map {
                     ["type": "image_url", "image_url": ["url": $0, "detail": "default"]]
                 })
+                body["content"] = parts
+            } else {
+                body["content"] = message.content
             }
-            var payload: [String: Any] = ["content": parts, "stream": stream]
-            if let model = config.model, !model.isEmpty { payload["model"] = model }
-            return try JSONSerialization.data(withJSONObject: payload, options: [])
-        } else {
-            var payload: [String: Any] = ["message": fullMessage, "stream": stream]
-            if let model = config.model, !model.isEmpty { payload["model"] = model }
-            return try JSONSerialization.data(withJSONObject: payload, options: [])
+            allMessages.append(body)
         }
+        let payload: [String: Any] = [
+            "messages": allMessages,
+            "stream": stream,
+            "studypulse": cloudMetadata(context: context),
+        ]
+        return try JSONSerialization.data(withJSONObject: payload, options: [])
+    }
+
+    nonisolated private func cloudMetadata(context: LLMRequestContext) -> [String: Any] {
+        var meta: [String: Any] = [
+            "caller": context.caller,
+            "thinking": context.thinking.rawValue,
+        ]
+        if let locale = context.locale?.trimmingCharacters(in: .whitespacesAndNewlines), !locale.isEmpty {
+            meta["locale"] = locale
+        }
+        return meta
     }
 
     nonisolated private func isMiniMax(config: LLMConfig) -> Bool {

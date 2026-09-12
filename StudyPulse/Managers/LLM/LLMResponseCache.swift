@@ -124,7 +124,7 @@ actor LLMResponseCache {
         }
         let model = config.model ?? ""
         let temperature = config.temperature
-        let blob = "\(effectiveSystem)\n\(messageContents)\nmodel=\(model)\ntemperature=\(temperature)\nmultimodal=\(config.multimodalEnabled)\nthinking=\(config.thinkingEnabled)\nsensitivity=\(prompt.sensitivity.rawValue)"
+        let blob = "\(effectiveSystem)\n\(messageContents)\nmodel=\(model)\ntemperature=\(temperature)\nmultimodal=\(config.multimodalEnabled)\nthinking=\(config.thinkingEnabled)\nthinkingMode=\(config.thinkingMode.rawValue)\nsensitivity=\(prompt.sensitivity.rawValue)"
         let hash = SHA256.hash(data: Data(blob.utf8))
         let hashHex = hash.map { String(format: "%02x", $0) }.joined()
         return "\(caller):\(hashHex)"

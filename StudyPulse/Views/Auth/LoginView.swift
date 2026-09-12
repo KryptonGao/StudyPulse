@@ -13,9 +13,9 @@ struct LoginView: View {
                 Image(systemName: "person.badge.key.fill")
                     .font(.system(size: 58))
                     .foregroundStyle(.teal)
-                Text("StudyPulse Cloud AI")
+                Text("StudyPulse Cloud AI".localized())
                     .font(.title2.weight(.semibold))
-                Text("Sign in securely with the StudyPulse identity center. Email/password, email code, and GitHub are supported on the web page.")
+                Text("Sign in securely with the StudyPulse identity center. Email/password, email code, and GitHub are supported on the web page.".localized())
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                 Button {
@@ -24,7 +24,7 @@ struct LoginView: View {
                     HStack {
                         if isWorking { ProgressView().tint(.white) }
                         else { Image(systemName: "safari.fill") }
-                        Text("Continue to secure login")
+                        Text("Continue to secure login".localized())
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -40,11 +40,11 @@ struct LoginView: View {
                     Button("Cancel".localized()) { dismiss() }
                 }
             }
-            .alert("Login failed", isPresented: Binding(
+            .alert("Login failed".localized(), isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
             )) {
-                Button("OK", role: .cancel) {}
+                Button("OK".localized(), role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }

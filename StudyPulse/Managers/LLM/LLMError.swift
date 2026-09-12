@@ -122,7 +122,7 @@ enum LLMError: Error, LocalizedError, Equatable {
         if searchable.contains("model") && searchable.contains("not available") {
             return "This model is not available on your current Cloud AI plan. Please choose another model.".localized()
         }
-        if searchable.contains("daily request limit") || searchable.contains("monthly token limit") || searchable.contains("api quota exceeded") {
+        if searchable.contains("daily request limit") || searchable.contains("monthly token limit") || searchable.contains("monthly point limit") || searchable.contains("api quota exceeded") {
             return "Your Cloud AI quota has been used up. Please try again after the quota resets or upgrade your plan.".localized()
         }
         if searchable.contains("rate_limited") || searchable.contains("rate limit") {

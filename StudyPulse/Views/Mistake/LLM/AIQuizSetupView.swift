@@ -166,6 +166,7 @@ struct AIQuizSetupView: View {
                 }
             }
         }
+        .cloudThinkingToolbar()
         .onAppear {
             // 进入页面时默认选中第一个启用的学科,避免 picker 空白
             // On appear: default the picker to the first enabled subject.

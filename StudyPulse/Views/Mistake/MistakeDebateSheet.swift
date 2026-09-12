@@ -54,6 +54,7 @@ struct MistakeDebateSheet: View {
             }
             .containerBackground(.clear, for: .navigation)
             .llmDebugButton(caller: "MistakeDebate")
+            .cloudThinkingToolbar()
             .navigationTitle("错题辩论".localized())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

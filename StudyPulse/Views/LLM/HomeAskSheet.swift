@@ -100,6 +100,7 @@ struct HomeAskSheet: View {
             }
         }
         .llmDebugButton(caller: "HomeAsk-Answer")
+        .cloudThinkingToolbar()
         .onDisappear { viewModel.cancel() }
         .onChange(of: viewModel.shouldRequestHealthDataConsent) { _, newValue in
             showingHealthDataConsent = newValue

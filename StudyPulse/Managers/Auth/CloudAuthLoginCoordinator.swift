@@ -33,5 +33,6 @@ enum CloudAuthLoginCoordinator {
             tokenStore: tokenStore
         )
         container.envManager.applyCloudProfile(profile)
+        await container.envManager.refreshCloudQuota()
     }
 }
