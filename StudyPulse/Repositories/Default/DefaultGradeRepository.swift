@@ -11,10 +11,11 @@ import os
 final class DefaultGradeRepository: GradeRepository, PersistenceExecutorBacked {
     var grades: [Grade] = []
     var filteredGrades: [Grade] = []
+    @ObservationIgnored var lastPersistenceError: (any Error)?
 
     @ObservationIgnored private let envManager: AppEnvironmentManager
     @ObservationIgnored private var executor: PersistenceExecutor?
-    @ObservationIgnored private var persistenceTail: Task<Void, Never>?
+    @ObservationIgnored private let persistenceQueue = RepositoryPersistenceQueue(domain: "GradeRepository")
 
     init(envManager: AppEnvironmentManager) {
         self.envManager = envManager
@@ -33,7 +34,7 @@ final class DefaultGradeRepository: GradeRepository, PersistenceExecutorBacked {
 
     func reloadFromSwiftData() async {
         guard let executor else { return }
-        await persistenceTail?.value
+        await persistenceQueue.wait()
         do {
             let snapshots = try await executor.fetchGrades()
             let filtered = try await executor.fetchGrades(activePhaseID: envManager.activePhaseId)
@@ -155,13 +156,20 @@ final class DefaultGradeRepository: GradeRepository, PersistenceExecutorBacked {
         }
     }
 
-    func flushPendingPersistence() async {
-        await persistenceTail?.value
+    func waitForPendingPersistence() async {
+        await persistenceQueue.wait()
+    }
+
+    func flushPendingPersistence() async throws {
+        try await persistenceQueue.flush()
     }
 
     func cancelPendingPersistence() {
-        persistenceTail?.cancel()
-        persistenceTail = nil
+        persistenceQueue.cancel()
+    }
+
+    func debugFailNextPersistence(_ error: any Error) {
+        persistenceQueue.debugNextOperationError = error
     }
 
     private func publish(_ snapshots: [Grade], filtered: [Grade]) {
@@ -180,27 +188,25 @@ final class DefaultGradeRepository: GradeRepository, PersistenceExecutorBacked {
             Log.data.debug("GradeRepository filtered refresh cancelled")
         } catch {
             Log.data.error("GradeRepository filtered refresh failed: \(error.localizedDescription, privacy: .public)")
+            let activeID = envManager.activePhaseId
+            publish(snapshots, filtered: snapshots.filter { $0.phaseId == nil || $0.phaseId == activeID })
         }
     }
 
     private func enqueue(
         _ operation: @escaping @MainActor @Sendable (PersistenceExecutor) async throws -> Void
     ) {
-        guard let executor else {
-            Log.data.error("GradeRepository persistence executor is not attached")
-            return
-        }
-        let predecessor = persistenceTail
-        persistenceTail = Task {
-            await predecessor?.value
-            guard !Task.isCancelled else { return }
-            do {
-                try await operation(executor)
-            } catch is CancellationError {
-                Log.data.debug("GradeRepository mutation cancelled")
-            } catch {
-                Log.data.error("GradeRepository mutation failed: \(error.localizedDescription, privacy: .public)")
-            }
-        }
+        persistenceQueue.enqueue(
+            executor: executor,
+            captureRestore: { [self] in
+                let snapshots = self.grades
+                let filtered = self.filteredGrades
+                return { self.publish(snapshots, filtered: filtered) }
+            },
+            onSettled: { [self] error in
+                self.lastPersistenceError = error
+            },
+            operation: operation
+        )
     }
 }

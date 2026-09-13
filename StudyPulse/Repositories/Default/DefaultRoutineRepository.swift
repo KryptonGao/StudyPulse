@@ -189,6 +189,10 @@ final class DefaultRoutineRepository: RoutineRepository, PersistenceExecutorBack
         }
     }
 
+    var lastPersistenceError: (any Error)? { nil }
+
+    func waitForPendingPersistence() async {}
+
     func flushPendingPersistence() async {}
 
     func cancelPendingPersistence() {}
