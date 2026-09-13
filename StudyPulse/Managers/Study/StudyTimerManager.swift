@@ -480,7 +480,7 @@ final class StudyTimerManager {
                 // 仅在尚未收到会话内样本时更新(避免覆盖更新的数据)
                 if self.currentHeartRate == nil {
                     self.currentHeartRate = bpm
-                    Log.app.info("StudyTimer: recent HR \(Int(bpm)) bpm (sampled \(sample.startDate, privacy: .public)) shown as initial")
+                    Log.app.info("StudyTimer: recent HR sample shown as initial")
                 }
             }
         }
