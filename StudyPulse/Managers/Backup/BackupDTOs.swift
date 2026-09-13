@@ -154,8 +154,21 @@ nonisolated struct BackupPreferencesDTO: Codable, Equatable, Sendable {
 }
 
 nonisolated struct BackupChecksums: Codable, Equatable, Sendable {
+    /// Unkeyed SHA-256 digests for accidental corruption detection only.
+    /// Authenticity is `BackupIntegrity` HMAC (or AES-GCM for encrypted envelopes).
     var algorithm: String = "SHA-256"
     var files: [String: String]
+}
+
+nonisolated struct BackupIntegrity: Codable, Equatable, Sendable {
+    static let hmacSHA256 = "HMAC-SHA256"
+
+    var algorithm: String
+    var keySource: String
+    var kdf: String
+    var salt: String
+    var iterations: Int?
+    var mac: String
 }
 
 nonisolated enum BackupCoachKind: String, Codable, Sendable {

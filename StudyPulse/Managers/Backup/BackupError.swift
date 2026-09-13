@@ -13,6 +13,8 @@ nonisolated enum BackupError: LocalizedError, Sendable {
     case dangerousPath(String)
     case missingRequiredFile(String)
     case checksumMismatch(String)
+    case missingAuthentication
+    case authenticationFailed
     case malformedData(String)
     case invalidRelationship(String)
     case countMismatch(String)
@@ -34,6 +36,8 @@ nonisolated enum BackupError: LocalizedError, Sendable {
         case .dangerousPath: return "The backup contains an unsafe file path.".localized()
         case .missingRequiredFile(let path): return String(format: "Required backup file is missing: %@".localized(), path)
         case .checksumMismatch(let path): return String(format: "Backup integrity check failed for %@.".localized(), path)
+        case .missingAuthentication: return "This backup is missing an authenticity check and cannot be imported.".localized()
+        case .authenticationFailed: return "Backup authenticity check failed.".localized()
         case .malformedData(let path): return String(format: "Backup data could not be decoded: %@".localized(), path)
         case .invalidRelationship(let detail): return String(format: "Backup relationships are invalid: %@".localized(), detail)
         case .countMismatch(let kind): return String(format: "Backup record count does not match for %@.".localized(), kind)

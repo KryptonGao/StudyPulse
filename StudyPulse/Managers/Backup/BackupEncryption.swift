@@ -15,6 +15,7 @@ nonisolated enum BackupEncryption {
     static let keySize = 32
     static let maxHeaderLength = 16_384
     static let hkdfInfo = Data("StudyPulseBackupV1".utf8)
+    static let hmacInfo = Data("StudyPulseBackupHMACv1".utf8)
 
     nonisolated struct Header: Codable, Equatable, Sendable {
         var formatIdentifier: String
@@ -73,6 +74,46 @@ nonisolated enum BackupEncryption {
         let envelope = try Data(contentsOf: source)
         let plaintext = try decrypt(envelope: envelope, password: normalizedPassword(password))
         try plaintext.write(to: destination, options: .atomic)
+    }
+
+    static func makeRandomSalt() throws -> Data {
+        var saltBytes = [UInt8](repeating: 0, count: saltSize)
+        let saltStatus = SecRandomCopyBytes(kSecRandomDefault, saltSize, &saltBytes)
+        guard saltStatus == errSecSuccess else {
+            throw BackupError.exportFailed("Could not generate backup integrity salt")
+        }
+        return Data(saltBytes)
+    }
+
+    /// HMAC key for `integrity.json`. Never written into the archive.
+    /// Device-bound backups HKDF-expand the Keychain wrapping key; password
+    /// backups PBKDF2-derive from the user passphrase and a per-backup salt.
+    static func deriveIntegrityKey(
+        keySource: String,
+        password: String?,
+        salt: Data,
+        iterations: Int?
+    ) throws -> SymmetricKey {
+        guard salt.count == saltSize else { throw BackupError.authenticationFailed }
+        switch keySource {
+        case Header.passwordSource:
+            guard let password else { throw BackupError.passwordRequired }
+            let rounds = iterations ?? pbkdf2Iterations
+            guard rounds > 0, rounds <= 5_000_000 else {
+                throw BackupError.encryptedArchiveUnsupported
+            }
+            return try derivePasswordKey(password: password, salt: salt, iterations: rounds)
+        case Header.deviceSource:
+            let wrapping = try BackupWrappingKeyStore.loadOrCreate()
+            return HKDF<SHA256>.deriveKey(
+                inputKeyMaterial: wrapping,
+                salt: salt,
+                info: hmacInfo,
+                outputByteCount: keySize
+            )
+        default:
+            throw BackupError.encryptedArchiveUnsupported
+        }
     }
 
     static func encrypt(plaintext: Data, password: String?) throws -> Data {

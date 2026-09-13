@@ -207,6 +207,8 @@ enum BackupExporter {
         }
         let checksums = BackupChecksums(files: checksumFiles.mapValues(BackupChecksum.sha256(data:)))
         try encoder.encode(checksums).write(to: root.appendingPathComponent("checksums.json"), options: .atomic)
+        let integrity = try BackupChecksum.makeIntegrity(checksums: checksums, password: password)
+        try encoder.encode(integrity).write(to: root.appendingPathComponent("integrity.json"), options: .atomic)
 
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
