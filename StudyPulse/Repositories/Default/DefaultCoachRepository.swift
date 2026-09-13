@@ -30,19 +30,23 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
         } catch is CancellationError {
             Log.data.debug("CoachRepository startup load cancelled")
         } catch {
-            goals = []
-            analyses = []
-            proposals = []
-            chats = []
-            messages = []
-            Log.data.error("CoachRepository load failed: \(error.localizedDescription, privacy: .public)")
+            // Keep whatever was already in memory so a transient load failure
+            // cannot look like the Coach history vanished.
+            Log.data.error(
+                "CoachRepository load failed; keeping previously loaded snapshots: \(error.localizedDescription, privacy: .public)"
+            )
         }
     }
 
     func addGoal(_ goal: CoachGoal) {
         guard !goals.contains(where: { $0.id == goal.id }) else { return }
         if let context {
-            context.insert(CoachGoalRecord(from: goal))
+            do {
+                context.insert(try CoachGoalRecord(from: goal))
+            } catch {
+                Log.data.error("CoachRepository addGoal encode failed: \(error.localizedDescription, privacy: .public)")
+                return
+            }
             guard context.saveOrRollback("CoachRepository.addGoal") else { return }
         }
         goals.append(goal)
@@ -54,11 +58,13 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
             return
         }
         do {
+            let payload = try encodePayload(goal, operation: "updateGoal")
             if let record = try context.fetch(FetchDescriptor<CoachGoalRecord>(
                 predicate: #Predicate { $0.id == goal.id }
             )).first {
-                record.payload = (try? JSONEncoder().encode(goal)) ?? Data(); record.updatedAt = goal.updatedAt
-                try context.save()
+                record.payload = payload
+                record.updatedAt = goal.updatedAt
+                guard context.saveOrRollback("CoachRepository.updateGoal") else { return }
             }
         } catch {
             context.rollback()
@@ -80,7 +86,7 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
                 predicate: #Predicate { $0.id == goal.id }
             )).first {
                 context.delete(record)
-                try context.save()
+                guard context.saveOrRollback("CoachRepository.deleteGoal") else { return }
             }
         } catch {
             context.rollback()
@@ -101,7 +107,12 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
     func addChat(_ chat: CoachChat) {
         guard !chats.contains(where: { $0.id == chat.id }) else { return }
         if let context {
-            context.insert(CoachChatRecord(from: chat))
+            do {
+                context.insert(try CoachChatRecord(from: chat))
+            } catch {
+                Log.data.error("CoachRepository addChat encode failed: \(error.localizedDescription, privacy: .public)")
+                return
+            }
             guard context.saveOrRollback("CoachRepository.addChat") else { return }
         }
         chats.append(chat)
@@ -113,6 +124,7 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
             return
         }
         do {
+            let payload = try encodePayload(chat, operation: "updateChat")
             if let record = try context.fetch(
                 FetchDescriptor<CoachChatRecord>(predicate: #Predicate { $0.id == chat.id })
             ).first {
@@ -120,8 +132,9 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
                 record.title = chat.title
                 record.isArchived = chat.isArchived
                 record.createdAt = chat.createdAt
-                record.payload = (try? JSONEncoder().encode(chat)) ?? Data(); record.updatedAt = chat.updatedAt
-                try context.save()
+                record.payload = payload
+                record.updatedAt = chat.updatedAt
+                guard context.saveOrRollback("CoachRepository.updateChat") else { return }
             }
         } catch {
             context.rollback()
@@ -142,7 +155,7 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
                 predicate: #Predicate { $0.id == chat.id }
             )).first {
                 context.delete(record)
-                try context.save()
+                guard context.saveOrRollback("CoachRepository.deleteChat") else { return }
             }
         } catch {
             context.rollback()
@@ -156,12 +169,16 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
         // Keep every successful run so Coach history can show a trend.
         if let context {
             do {
+                let payload = try encodePayload(analysis, operation: "saveAnalysis")
                 if let record = try context.fetch(FetchDescriptor<CoachAnalysisRecord>(
                     predicate: #Predicate { $0.id == analysis.id }
                 )).first {
-                    record.payload = (try? JSONEncoder().encode(analysis)) ?? Data(); record.calculatedAt = analysis.calculatedAt
-                } else { context.insert(CoachAnalysisRecord(from: analysis)) }
-                try context.save()
+                    record.payload = payload
+                    record.calculatedAt = analysis.calculatedAt
+                } else {
+                    context.insert(try CoachAnalysisRecord(from: analysis))
+                }
+                guard context.saveOrRollback("CoachRepository.saveAnalysis") else { return }
             } catch {
                 context.rollback()
                 Log.data.error("CoachRepository saveAnalysis failed: \(error.localizedDescription, privacy: .public)")
@@ -175,12 +192,16 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
     func saveProposal(_ proposal: CoachProposal) {
         if let context {
             do {
+                let payload = try encodePayload(proposal, operation: "saveProposal")
                 if let record = try context.fetch(FetchDescriptor<CoachProposalRecord>(
                     predicate: #Predicate { $0.id == proposal.id }
                 )).first {
-                    record.payload = (try? JSONEncoder().encode(proposal)) ?? Data(); record.statusRaw = proposal.status.rawValue
-                } else { context.insert(CoachProposalRecord(from: proposal)) }
-                try context.save()
+                    record.payload = payload
+                    record.statusRaw = proposal.status.rawValue
+                } else {
+                    context.insert(try CoachProposalRecord(from: proposal))
+                }
+                guard context.saveOrRollback("CoachRepository.saveProposal") else { return }
             } catch {
                 context.rollback()
                 Log.data.error("CoachRepository saveProposal failed: \(error.localizedDescription, privacy: .public)")
@@ -201,7 +222,7 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
             predicate: #Predicate { $0.goalID == goalID },
             sortBy: [SortDescriptor(\.createdAt)]
         )
-        return (try? context.fetch(descriptor))?.compactMap { $0.toSnapshot() } ?? []
+        return fetchMessages(descriptor, fallback: messages.filter { $0.goalID == goalID })
     }
 
     func messages(forChatID chatID: UUID) -> [CoachConversationMessage] {
@@ -212,7 +233,7 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
             predicate: #Predicate { $0.chatID == chatID },
             sortBy: [SortDescriptor(\.createdAt)]
         )
-        return (try? context.fetch(descriptor))?.compactMap { $0.toSnapshot() } ?? []
+        return fetchMessages(descriptor, fallback: messages.filter { $0.chatID == chatID })
     }
 
     func latestMessage(forChatID chatID: UUID) -> CoachConversationMessage? {
@@ -224,7 +245,8 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         descriptor.fetchLimit = 1
-        return (try? context.fetch(descriptor))?.first?.toSnapshot()
+        let fallback = messages.filter { $0.chatID == chatID }
+        return fetchLatestMessage(descriptor, fallback: fallback)
     }
 
     func latestMessage(for goalID: UUID) -> CoachConversationMessage? {
@@ -236,7 +258,8 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         descriptor.fetchLimit = 1
-        return (try? context.fetch(descriptor))?.first?.toSnapshot()
+        let fallback = messages.filter { $0.goalID == goalID }
+        return fetchLatestMessage(descriptor, fallback: fallback)
     }
 
     func allMessages() -> [CoachConversationMessage] {
@@ -246,13 +269,18 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
         let descriptor = FetchDescriptor<CoachConversationMessageRecord>(
             sortBy: [SortDescriptor(\.createdAt)]
         )
-        return (try? context.fetch(descriptor))?.compactMap { $0.toSnapshot() } ?? []
+        return fetchMessages(descriptor, fallback: messages)
     }
 
     func addMessage(_ message: CoachConversationMessage) {
         guard !messages.contains(where: { $0.id == message.id }) else { return }
         if let context {
-            context.insert(CoachConversationMessageRecord(from: message))
+            do {
+                context.insert(try CoachConversationMessageRecord(from: message))
+            } catch {
+                Log.data.error("CoachRepository addMessage encode failed: \(error.localizedDescription, privacy: .public)")
+                return
+            }
             guard context.saveOrRollback("CoachRepository.addMessage") else { return }
         }
         messages.append(message)
@@ -264,14 +292,16 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
             return
         }
         do {
+            let payload = try encodePayload(message, operation: "updateMessage")
             if let record = try context.fetch(
                 FetchDescriptor<CoachConversationMessageRecord>(predicate: #Predicate { $0.id == message.id })
             ).first {
                 record.goalID = message.goalID
                 record.chatID = message.chatID
-                record.payload = (try? JSONEncoder().encode(message)) ?? Data(); record.roleRaw = message.role.rawValue
+                record.payload = payload
+                record.roleRaw = message.role.rawValue
                 record.createdAt = message.createdAt
-                try context.save()
+                guard context.saveOrRollback("CoachRepository.updateMessage") else { return }
             }
         } catch {
             context.rollback()
@@ -288,7 +318,7 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
                     predicate: #Predicate { $0.goalID == goalID }
                 ))
                 records.forEach(context.delete)
-                try context.save()
+                guard context.saveOrRollback("CoachRepository.deleteMessages(for goal)") else { return }
             } catch {
                 context.rollback()
                 Log.data.error("CoachRepository deleteMessages(for goal) failed: \(error.localizedDescription, privacy: .public)")
@@ -305,7 +335,7 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
                     predicate: #Predicate { $0.chatID == chatID }
                 ))
                 records.forEach(context.delete)
-                try context.save()
+                guard context.saveOrRollback("CoachRepository.deleteMessages(forChat)") else { return }
             } catch {
                 context.rollback()
                 Log.data.error("CoachRepository deleteMessages(forChat) failed: \(error.localizedDescription, privacy: .public)")
@@ -313,6 +343,71 @@ final class DefaultCoachRepository: CoachRepository, PersistenceExecutorAttachab
             }
         }
         messages.removeAll { $0.chatID == chatID }
+    }
+
+    private func encodePayload<T: Encodable>(_ value: T, operation: String) throws -> Data {
+        do {
+            return try JSONEncoder().encode(value)
+        } catch {
+            Log.data.error(
+                "CoachRepository \(operation, privacy: .public) encode failed: \(error.localizedDescription, privacy: .public)"
+            )
+            throw error
+        }
+    }
+
+    private func fetchMessages(
+        _ descriptor: FetchDescriptor<CoachConversationMessageRecord>,
+        fallback: [CoachConversationMessage]
+    ) -> [CoachConversationMessage] {
+        guard let context else {
+            return fallback.sorted { $0.createdAt < $1.createdAt }
+        }
+        do {
+            let records = try context.fetch(descriptor)
+            var decoded: [CoachConversationMessage] = []
+            decoded.reserveCapacity(records.count)
+            for record in records {
+                if let snapshot = record.toSnapshot() {
+                    decoded.append(snapshot)
+                } else {
+                    Log.data.error(
+                        "CoachRepository skipped unreadable message id=\(record.id.uuidString, privacy: .public)"
+                    )
+                }
+            }
+            return decoded
+        } catch {
+            Log.data.error(
+                "CoachRepository message fetch failed; using in-memory fallback: \(error.localizedDescription, privacy: .public)"
+            )
+            return fallback.sorted { $0.createdAt < $1.createdAt }
+        }
+    }
+
+    private func fetchLatestMessage(
+        _ descriptor: FetchDescriptor<CoachConversationMessageRecord>,
+        fallback: [CoachConversationMessage]
+    ) -> CoachConversationMessage? {
+        guard let context else {
+            return fallback.max { $0.createdAt < $1.createdAt }
+        }
+        do {
+            if let record = try context.fetch(descriptor).first {
+                if let snapshot = record.toSnapshot() {
+                    return snapshot
+                }
+                Log.data.error(
+                    "CoachRepository skipped unreadable latest message id=\(record.id.uuidString, privacy: .public)"
+                )
+            }
+            return fallback.max { $0.createdAt < $1.createdAt }
+        } catch {
+            Log.data.error(
+                "CoachRepository latest message fetch failed; using in-memory fallback: \(error.localizedDescription, privacy: .public)"
+            )
+            return fallback.max { $0.createdAt < $1.createdAt }
+        }
     }
 
 }

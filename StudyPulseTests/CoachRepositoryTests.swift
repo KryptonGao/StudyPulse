@@ -66,4 +66,29 @@ final class CoachRepositoryTests: XCTestCase {
         XCTAssertTrue(repo.messages(forChatID: first.id).isEmpty)
         XCTAssertEqual(repo.messages(forChatID: second.id).count, 1)
     }
+
+    func testLoadAllSkipsCorruptPayloadAndKeepsValidRecords() async throws {
+        let model = try TestModelContainerFactory.makeInMemoryContainer()
+        let context = model.mainContext
+        let good = CoachGoal(
+            title: "Keep",
+            subjects: [CoachGoalSubject(subject: "Math", targetScore: 90)],
+            targetDate: Date().addingTimeInterval(86400)
+        )
+        let corrupt = CoachGoal(
+            title: "Corrupt",
+            subjects: [CoachGoalSubject(subject: "Physics", targetScore: 80)],
+            targetDate: Date().addingTimeInterval(86400)
+        )
+        context.insert(try CoachGoalRecord(from: good))
+        let corruptRecord = try CoachGoalRecord(from: corrupt)
+        corruptRecord.payload = Data()
+        context.insert(corruptRecord)
+        try context.save()
+
+        let repo = DefaultCoachRepository()
+        await repo.loadAll(context: context)
+        XCTAssertEqual(repo.goals.map(\.id), [good.id])
+        XCTAssertEqual(repo.goals.first?.title, "Keep")
+    }
 }

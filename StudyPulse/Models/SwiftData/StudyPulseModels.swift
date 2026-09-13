@@ -847,8 +847,10 @@ final class CoachGoalRecord {
     var payload: Data
     var updatedAt: Date
 
-    init(from goal: CoachGoal) {
-        id = goal.id; payload = (try? JSONEncoder().encode(goal)) ?? Data(); updatedAt = goal.updatedAt
+    init(from goal: CoachGoal) throws {
+        id = goal.id
+        payload = try JSONEncoder().encode(goal)
+        updatedAt = goal.updatedAt
     }
 
     func toSnapshot() -> CoachGoal? { try? JSONDecoder().decode(CoachGoal.self, from: payload) }
@@ -861,9 +863,11 @@ final class CoachAnalysisRecord {
     var payload: Data
     var calculatedAt: Date
 
-    init(from analysis: CoachAnalysis) {
-        id = analysis.id; goalID = analysis.goalID
-        payload = (try? JSONEncoder().encode(analysis)) ?? Data(); calculatedAt = analysis.calculatedAt
+    init(from analysis: CoachAnalysis) throws {
+        id = analysis.id
+        goalID = analysis.goalID
+        payload = try JSONEncoder().encode(analysis)
+        calculatedAt = analysis.calculatedAt
     }
 
     func toSnapshot() -> CoachAnalysis? { try? JSONDecoder().decode(CoachAnalysis.self, from: payload) }
@@ -877,9 +881,12 @@ final class CoachProposalRecord {
     var payload: Data
     var createdAt: Date
 
-    init(from proposal: CoachProposal) {
-        id = proposal.id; goalID = proposal.goalID; statusRaw = proposal.status.rawValue
-        payload = (try? JSONEncoder().encode(proposal)) ?? Data(); createdAt = proposal.createdAt
+    init(from proposal: CoachProposal) throws {
+        id = proposal.id
+        goalID = proposal.goalID
+        statusRaw = proposal.status.rawValue
+        payload = try JSONEncoder().encode(proposal)
+        createdAt = proposal.createdAt
     }
 
     func toSnapshot() -> CoachProposal? { try? JSONDecoder().decode(CoachProposal.self, from: payload) }
@@ -897,9 +904,13 @@ final class CoachConversationMessageRecord {
     var payload: Data
     var createdAt: Date
 
-    init(from message: CoachConversationMessage) {
-        id = message.id; goalID = message.goalID; chatID = message.chatID; roleRaw = message.role.rawValue
-        payload = (try? JSONEncoder().encode(message)) ?? Data(); createdAt = message.createdAt
+    init(from message: CoachConversationMessage) throws {
+        id = message.id
+        goalID = message.goalID
+        chatID = message.chatID
+        roleRaw = message.role.rawValue
+        payload = try JSONEncoder().encode(message)
+        createdAt = message.createdAt
     }
 
     func toSnapshot() -> CoachConversationMessage? { try? JSONDecoder().decode(CoachConversationMessage.self, from: payload) }
@@ -918,9 +929,14 @@ final class CoachChatRecord {
     var payload: Data
     var updatedAt: Date
 
-    init(from chat: CoachChat) {
-        id = chat.id; goalID = chat.goalID; title = chat.title; isArchived = chat.isArchived; createdAt = chat.createdAt
-        payload = (try? JSONEncoder().encode(chat)) ?? Data(); updatedAt = chat.updatedAt
+    init(from chat: CoachChat) throws {
+        id = chat.id
+        goalID = chat.goalID
+        title = chat.title
+        isArchived = chat.isArchived
+        createdAt = chat.createdAt
+        payload = try JSONEncoder().encode(chat)
+        updatedAt = chat.updatedAt
     }
 
     func toSnapshot() -> CoachChat? { try? JSONDecoder().decode(CoachChat.self, from: payload) }
