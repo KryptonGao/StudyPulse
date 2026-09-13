@@ -18,8 +18,6 @@ jobs:
   compile:
     name: compile
     runs-on: macos-26
-    environment:
-      name: compile-approval
     timeout-minutes: 30
 
     steps:
