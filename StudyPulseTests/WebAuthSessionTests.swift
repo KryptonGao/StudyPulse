@@ -1,8 +1,32 @@
+import AuthenticationServices
+import UIKit
 import XCTest
 @testable import StudyPulse
 
 @MainActor
 final class WebAuthSessionTests: XCTestCase {
+    func testAuthenticationWithoutAnchorFailsBeforePresenting() async {
+        let auth = WebAuthSession(anchorProvider: { nil })
+        do {
+            _ = try await auth.authenticate()
+            XCTFail("Authentication must fail when no foreground window is available.")
+        } catch {
+            XCTAssertEqual(
+                error as? WebAuthError,
+                .oauthFailed("Unable to start the secure login session.")
+            )
+        }
+    }
+
+    func testPresentationContextReturnsExistingWindow() {
+        let window = UIWindow()
+        let context = WebAuthPresentationContext(anchor: window)
+        let session = ASWebAuthenticationSession(
+            url: WebAuthSession.loginURL, callbackURLScheme: "studypulse"
+        ) { _, _ in }
+        XCTAssertTrue(context.presentationAnchor(for: session) === window)
+    }
+
     func testLoginURLUsesEncodedReturnToCallback() throws {
         let state = "test-state"
         let loginURL = WebAuthSession.makeLoginURL(state: state)
