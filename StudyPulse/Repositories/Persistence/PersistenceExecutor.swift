@@ -234,20 +234,27 @@ final class PersistenceExecutor {
             )
         )
 
-        let goals = goalRecords.compactMap { $0.toSnapshot() }
-        let analyses = analysisRecords.compactMap { $0.toSnapshot() }
-        let proposals = proposalRecords.compactMap { $0.toSnapshot() }
+        let goals = decodeCoachRecords(goalRecords, kind: "CoachGoal", id: { $0.id }, decode: { $0.toSnapshot() })
+        let analyses = decodeCoachRecords(analysisRecords, kind: "CoachAnalysis", id: { $0.id }, decode: { $0.toSnapshot() })
+        let proposals = decodeCoachRecords(proposalRecords, kind: "CoachProposal", id: { $0.id }, decode: { $0.toSnapshot() })
         var didBackfillChats = false
-        var chats = chatRecords.compactMap { record -> CoachChat? in
+        var chats: [CoachChat] = []
+        chats.reserveCapacity(chatRecords.count)
+        for record in chatRecords {
             let needsBackfill = record.title == nil || record.isArchived == nil || record.createdAt == nil
-            guard let chat = record.toSummary() else { return nil }
-            guard needsBackfill else { return chat }
+            guard let chat = record.toSummary() else {
+                Log.data.error(
+                    "Coach load skipped unreadable CoachChat id=\(record.id.uuidString, privacy: .public)"
+                )
+                continue
+            }
+            chats.append(chat)
+            guard needsBackfill else { continue }
             record.goalID = chat.goalID
             record.title = chat.title
             record.isArchived = chat.isArchived
             record.createdAt = chat.createdAt
             didBackfillChats = true
-            return chat
         }
 
         // V1-V4 message records have a nil chatID because the relation lived
@@ -273,7 +280,12 @@ final class PersistenceExecutor {
             }
             var migratedChatByGoal: [UUID?: CoachChat] = [:]
             for record in legacyMessageRecords {
-                guard let old = record.toSnapshot() else { continue }
+                guard let old = record.toSnapshot() else {
+                    Log.data.error(
+                        "Coach message index migration skipped unreadable record id=\(record.id.uuidString, privacy: .public)"
+                    )
+                    continue
+                }
                 let chat: CoachChat
                 if let existing = chats.first(where: { $0.id == old.chatID }) {
                     chat = existing
@@ -281,9 +293,16 @@ final class PersistenceExecutor {
                     chat = existing
                 } else {
                     let newChat = CoachChat(goalID: old.goalID, title: "New chat")
+                    do {
+                        modelContext.insert(try CoachChatRecord(from: newChat))
+                    } catch {
+                        Log.data.error(
+                            "Coach message index migration chat encode failed goal=\(old.goalID?.uuidString ?? "nil", privacy: .public): \(error.localizedDescription, privacy: .public)"
+                        )
+                        continue
+                    }
                     chats.append(newChat)
                     migratedChatByGoal[old.goalID] = newChat
-                    modelContext.insert(CoachChatRecord(from: newChat))
                     chat = newChat
                 }
                 let migrated = CoachConversationMessage(
@@ -297,9 +316,16 @@ final class PersistenceExecutor {
                     error: old.error,
                     todoSuggestions: old.todoSuggestions
                 )
-                record.chatID = chat.id
-                record.payload = (try? JSONEncoder().encode(migrated)) ?? Data()
-                migratedMessages.append(migrated)
+                do {
+                    let payload = try JSONEncoder().encode(migrated)
+                    record.chatID = chat.id
+                    record.payload = payload
+                    migratedMessages.append(migrated)
+                } catch {
+                    Log.data.error(
+                        "Coach message index migration encode failed id=\(record.id.uuidString, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                    )
+                }
             }
         }
 
@@ -665,6 +691,27 @@ final class PersistenceExecutor {
             modelContext.rollback()
             throw error
         }
+    }
+
+    private func decodeCoachRecords<Record, Snapshot>(
+        _ records: [Record],
+        kind: String,
+        id: (Record) -> UUID,
+        decode: (Record) -> Snapshot?
+    ) -> [Snapshot] {
+        var result: [Snapshot] = []
+        result.reserveCapacity(records.count)
+        for record in records {
+            if let snapshot = decode(record) {
+                result.append(snapshot)
+            } else {
+                let recordID = id(record).uuidString
+                Log.data.error(
+                    "Coach load skipped unreadable \(kind, privacy: .public) id=\(recordID, privacy: .public)"
+                )
+            }
+        }
+        return result
     }
 }
 

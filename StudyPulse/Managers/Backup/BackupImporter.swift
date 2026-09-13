@@ -187,11 +187,11 @@ enum BackupImporter {
         c.routines.forEach { context.insert(RoutineRecord(from: $0)) }
         c.routineInstances.forEach { context.insert(RoutineInstanceRecord(from: $0)) }
         c.diaryEntries.forEach { context.insert(DiaryEntryRecord(from: $0)) }
-        c.coachGoals.forEach { context.insert(CoachGoalRecord(from: $0)) }
-        c.coachAnalyses.forEach { context.insert(CoachAnalysisRecord(from: $0)) }
-        c.coachProposals.forEach { context.insert(CoachProposalRecord(from: $0)) }
-        c.coachMessages.forEach { context.insert(CoachConversationMessageRecord(from: $0)) }
-        c.coachChats.forEach { context.insert(CoachChatRecord(from: $0)) }
+        for goal in c.coachGoals { context.insert(try CoachGoalRecord(from: goal)) }
+        for analysis in c.coachAnalyses { context.insert(try CoachAnalysisRecord(from: analysis)) }
+        for proposal in c.coachProposals { context.insert(try CoachProposalRecord(from: proposal)) }
+        for message in c.coachMessages { context.insert(try CoachConversationMessageRecord(from: message)) }
+        for chat in c.coachChats { context.insert(try CoachChatRecord(from: chat)) }
         c.studySessions.forEach { context.insert(StudySessionRecord(from: $0)) }
         c.timeInvestmentSubjects.forEach { context.insert(TimeInvestmentSubjectRecord(from: $0)) }
         c.subTasks.forEach { context.insert(SubTaskRecord(from: $0)) }

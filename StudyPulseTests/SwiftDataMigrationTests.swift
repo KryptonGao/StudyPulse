@@ -462,9 +462,9 @@ final class SwiftDataMigrationTests: XCTestCase {
             createdAt: now,
             updatedAt: now
         )
-        context.insert(CoachGoalRecord(from: coachGoal))
-        context.insert(CoachAnalysisRecord(from: coachAnalysis))
-        context.insert(CoachProposalRecord(from: coachProposal))
+        context.insert(try CoachGoalRecord(from: coachGoal))
+        context.insert(try CoachAnalysisRecord(from: coachAnalysis))
+        context.insert(try CoachProposalRecord(from: coachProposal))
         context.insert(StudyPulseSchemaLegacy.CoachChatRecord(from: coachChat))
         context.insert(StudyPulseSchemaLegacy.CoachConversationMessageRecord(from:
             CoachConversationMessage(

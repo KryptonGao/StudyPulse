@@ -74,8 +74,8 @@ final class PersistenceExecutorTests: XCTestCase {
             completed: true
         )
 
-        context.insert(CoachGoalRecord(from: goal))
-        context.insert(CoachConversationMessageRecord(from: legacyMessage))
+        context.insert(try CoachGoalRecord(from: goal))
+        context.insert(try CoachConversationMessageRecord(from: legacyMessage))
         context.insert(TimeInvestmentSubjectRecord(from: investmentSubject))
         context.insert(SubTaskRecord(from: subTask))
         context.insert(GoalRewardRecord(from: reward))
