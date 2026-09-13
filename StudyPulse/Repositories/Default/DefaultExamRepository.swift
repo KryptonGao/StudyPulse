@@ -13,10 +13,11 @@ final class DefaultExamRepository: ExamRepository, PersistenceExecutorBacked {
     var comprehensiveExamSets: [comprehensiveExam] = []
     var filteredExamSets: [Exam] = []
     var filteredComprehensiveExamSets: [comprehensiveExam] = []
+    @ObservationIgnored var lastPersistenceError: (any Error)?
 
     @ObservationIgnored private let envManager: AppEnvironmentManager
     @ObservationIgnored private var executor: PersistenceExecutor?
-    @ObservationIgnored private var persistenceTail: Task<Void, Never>?
+    @ObservationIgnored private let persistenceQueue = RepositoryPersistenceQueue(domain: "ExamRepository")
 
     init(envManager: AppEnvironmentManager) {
         self.envManager = envManager
@@ -31,7 +32,7 @@ final class DefaultExamRepository: ExamRepository, PersistenceExecutorBacked {
             executor = PersistenceExecutor(modelContainer: context.container)
         }
         guard let executor else { return }
-        await persistenceTail?.value
+        await persistenceQueue.wait()
         do {
             async let single = executor.fetchExams()
             async let comprehensive = executor.fetchComprehensiveExams()
@@ -219,13 +220,20 @@ final class DefaultExamRepository: ExamRepository, PersistenceExecutorBacked {
         }
     }
 
-    func flushPendingPersistence() async {
-        await persistenceTail?.value
+    func waitForPendingPersistence() async {
+        await persistenceQueue.wait()
+    }
+
+    func flushPendingPersistence() async throws {
+        try await persistenceQueue.flush()
     }
 
     func cancelPendingPersistence() {
-        persistenceTail?.cancel()
-        persistenceTail = nil
+        persistenceQueue.cancel()
+    }
+
+    func debugFailNextPersistence(_ error: any Error) {
+        persistenceQueue.debugNextOperationError = error
     }
 
     private func publish(
@@ -258,27 +266,39 @@ final class DefaultExamRepository: ExamRepository, PersistenceExecutorBacked {
             Log.data.debug("ExamRepository filtered refresh cancelled")
         } catch {
             Log.data.error("ExamRepository filtered refresh failed: \(error.localizedDescription, privacy: .public)")
+            let activeID = envManager.activePhaseId
+            publish(
+                single: single,
+                filteredSingle: single.filter { $0.phaseId == nil || $0.phaseId == activeID },
+                comprehensive: comprehensive,
+                filteredComprehensive: comprehensive.filter { $0.phaseId == nil || $0.phaseId == activeID }
+            )
         }
     }
 
     private func enqueue(
         _ operation: @escaping @MainActor @Sendable (PersistenceExecutor) async throws -> Void
     ) {
-        guard let executor else {
-            Log.data.error("ExamRepository persistence executor is not attached")
-            return
-        }
-        let predecessor = persistenceTail
-        persistenceTail = Task {
-            await predecessor?.value
-            guard !Task.isCancelled else { return }
-            do {
-                try await operation(executor)
-            } catch is CancellationError {
-                Log.data.debug("ExamRepository mutation cancelled")
-            } catch {
-                Log.data.error("ExamRepository mutation failed: \(error.localizedDescription, privacy: .public)")
-            }
-        }
+        persistenceQueue.enqueue(
+            executor: executor,
+            captureRestore: { [self] in
+                let single = self.examSets
+                let filteredSingle = self.filteredExamSets
+                let comprehensive = self.comprehensiveExamSets
+                let filteredComprehensive = self.filteredComprehensiveExamSets
+                return {
+                    self.publish(
+                        single: single,
+                        filteredSingle: filteredSingle,
+                        comprehensive: comprehensive,
+                        filteredComprehensive: filteredComprehensive
+                    )
+                }
+            },
+            onSettled: { [self] error in
+                self.lastPersistenceError = error
+            },
+            operation: operation
+        )
     }
 }

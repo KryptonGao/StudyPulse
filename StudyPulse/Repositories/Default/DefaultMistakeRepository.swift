@@ -12,10 +12,11 @@ import os
 final class DefaultMistakeRepository: MistakeRepository, PersistenceExecutorBacked {
     var mistakeSets: [MistakeNote] = []
     var filteredMistakeSets: [MistakeNote] = []
+    @ObservationIgnored var lastPersistenceError: (any Error)?
 
     @ObservationIgnored private let envManager: AppEnvironmentManager
     @ObservationIgnored private var executor: PersistenceExecutor?
-    @ObservationIgnored private var persistenceTail: Task<Void, Never>?
+    @ObservationIgnored private let persistenceQueue = RepositoryPersistenceQueue(domain: "MistakeRepository")
 
     init(envManager: AppEnvironmentManager) {
         self.envManager = envManager
@@ -30,7 +31,7 @@ final class DefaultMistakeRepository: MistakeRepository, PersistenceExecutorBack
             executor = PersistenceExecutor(modelContainer: context.container)
         }
         guard let executor else { return }
-        await persistenceTail?.value
+        await persistenceQueue.wait()
         do {
             let snapshots = try await executor.fetchMistakes()
             let filtered = try await executor.fetchMistakes(activePhaseID: envManager.activePhaseId)
@@ -166,13 +167,20 @@ final class DefaultMistakeRepository: MistakeRepository, PersistenceExecutorBack
         }
     }
 
-    func flushPendingPersistence() async {
-        await persistenceTail?.value
+    func waitForPendingPersistence() async {
+        await persistenceQueue.wait()
+    }
+
+    func flushPendingPersistence() async throws {
+        try await persistenceQueue.flush()
     }
 
     func cancelPendingPersistence() {
-        persistenceTail?.cancel()
-        persistenceTail = nil
+        persistenceQueue.cancel()
+    }
+
+    func debugFailNextPersistence(_ error: any Error) {
+        persistenceQueue.debugNextOperationError = error
     }
 
     private func persistAndPublish(_ note: MistakeNote) {
@@ -217,27 +225,25 @@ final class DefaultMistakeRepository: MistakeRepository, PersistenceExecutorBack
             Log.data.debug("MistakeRepository filtered refresh cancelled")
         } catch {
             Log.data.error("MistakeRepository filtered refresh failed: \(error.localizedDescription, privacy: .public)")
+            let activeID = envManager.activePhaseId
+            publish(snapshots, filtered: snapshots.filter { $0.phaseId == nil || $0.phaseId == activeID })
         }
     }
 
     private func enqueue(
         _ operation: @escaping @MainActor @Sendable (PersistenceExecutor) async throws -> Void
     ) {
-        guard let executor else {
-            Log.data.error("MistakeRepository persistence executor is not attached")
-            return
-        }
-        let predecessor = persistenceTail
-        persistenceTail = Task {
-            await predecessor?.value
-            guard !Task.isCancelled else { return }
-            do {
-                try await operation(executor)
-            } catch is CancellationError {
-                Log.data.debug("MistakeRepository mutation cancelled")
-            } catch {
-                Log.data.error("MistakeRepository mutation failed: \(error.localizedDescription, privacy: .public)")
-            }
-        }
+        persistenceQueue.enqueue(
+            executor: executor,
+            captureRestore: { [self] in
+                let snapshots = self.mistakeSets
+                let filtered = self.filteredMistakeSets
+                return { self.publish(snapshots, filtered: filtered) }
+            },
+            onSettled: { [self] error in
+                self.lastPersistenceError = error
+            },
+            operation: operation
+        )
     }
 }

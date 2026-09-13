@@ -193,6 +193,10 @@ final class DefaultDiaryRepository: DiaryRepository, PersistenceExecutorBacked {
         }
     }
 
+    var lastPersistenceError: (any Error)? { nil }
+
+    func waitForPendingPersistence() async {}
+
     func flushPendingPersistence() async {}
 
     func cancelPendingPersistence() {}

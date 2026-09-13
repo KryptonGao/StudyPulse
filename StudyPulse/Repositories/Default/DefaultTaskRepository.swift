@@ -11,10 +11,11 @@ import os
 final class DefaultTaskRepository: TaskRepository, PersistenceExecutorBacked {
     var taskItems: [TaskItem] = []
     var filteredTaskItems: [TaskItem] = []
+    @ObservationIgnored var lastPersistenceError: (any Error)?
 
     @ObservationIgnored private let envManager: AppEnvironmentManager
     @ObservationIgnored private var executor: PersistenceExecutor?
-    @ObservationIgnored private var persistenceTail: Task<Void, Never>?
+    @ObservationIgnored private let persistenceQueue = RepositoryPersistenceQueue(domain: "TaskRepository")
     @ObservationIgnored private var reminderRefreshTask: Task<Void, Never>?
 
     init(envManager: AppEnvironmentManager) {
@@ -30,7 +31,7 @@ final class DefaultTaskRepository: TaskRepository, PersistenceExecutorBacked {
             executor = PersistenceExecutor(modelContainer: context.container)
         }
         guard let executor else { return }
-        await persistenceTail?.value
+        await persistenceQueue.wait()
         do {
             let snapshots = try await executor.fetchTasks()
             let filtered = try await executor.fetchTasks(activePhaseID: envManager.activePhaseId)
@@ -198,15 +199,22 @@ final class DefaultTaskRepository: TaskRepository, PersistenceExecutorBacked {
         }
     }
 
-    func flushPendingPersistence() async {
-        await persistenceTail?.value
+    func waitForPendingPersistence() async {
+        await persistenceQueue.wait()
+    }
+
+    func flushPendingPersistence() async throws {
+        try await persistenceQueue.flush()
     }
 
     func cancelPendingPersistence() {
-        persistenceTail?.cancel()
-        persistenceTail = nil
+        persistenceQueue.cancel()
         reminderRefreshTask?.cancel()
         reminderRefreshTask = nil
+    }
+
+    func debugFailNextPersistence(_ error: any Error) {
+        persistenceQueue.debugNextOperationError = error
     }
 
     private func persistAndPublish(_ task: TaskItem) {
@@ -238,27 +246,25 @@ final class DefaultTaskRepository: TaskRepository, PersistenceExecutorBacked {
             Log.data.debug("TaskRepository filtered refresh cancelled")
         } catch {
             Log.data.error("TaskRepository filtered refresh failed: \(error.localizedDescription, privacy: .public)")
+            let activeID = envManager.activePhaseId
+            publish(snapshots, filtered: snapshots.filter { $0.phaseId == nil || $0.phaseId == activeID })
         }
     }
 
     private func enqueue(
         _ operation: @escaping @MainActor @Sendable (PersistenceExecutor) async throws -> Void
     ) {
-        guard let executor else {
-            Log.data.error("TaskRepository persistence executor is not attached")
-            return
-        }
-        let predecessor = persistenceTail
-        persistenceTail = Task {
-            await predecessor?.value
-            guard !Task.isCancelled else { return }
-            do {
-                try await operation(executor)
-            } catch is CancellationError {
-                Log.data.debug("TaskRepository mutation cancelled")
-            } catch {
-                Log.data.error("TaskRepository mutation failed: \(error.localizedDescription, privacy: .public)")
-            }
-        }
+        persistenceQueue.enqueue(
+            executor: executor,
+            captureRestore: { [self] in
+                let snapshots = self.taskItems
+                let filtered = self.filteredTaskItems
+                return { self.publish(snapshots, filtered: filtered) }
+            },
+            onSettled: { [self] error in
+                self.lastPersistenceError = error
+            },
+            operation: operation
+        )
     }
 }

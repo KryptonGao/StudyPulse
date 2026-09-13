@@ -21,7 +21,11 @@ enum BackupImporter {
         // snapshot. After C-03 all repositories share this main context, so no
         // second ModelContext can race the replacement transaction.
         container.cancelPendingPersistence()
-        await container.flushPendingPersistence()
+        do {
+            try await container.flushPendingPersistence()
+        } catch {
+            // Failed in-flight writes are about to be replaced by restore.
+        }
         try Task.checkCancellation()
         progress(0.08)
         var content = validated.content
