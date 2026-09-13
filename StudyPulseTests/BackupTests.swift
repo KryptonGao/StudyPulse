@@ -1,5 +1,6 @@
 import XCTest
 import SwiftData
+import CryptoKit
 @testable import StudyPulse
 
 final class BackupTests: XCTestCase {
@@ -56,6 +57,7 @@ final class BackupTests: XCTestCase {
         let decoded = try BackupDateCoding.decoder().decode(BackupManifest.self, from: json)
         XCTAssertEqual(decoded.schemaVersion, 1)
         XCTAssertFalse(decoded.includesMedia)
+        XCTAssertFalse(decoded.encrypted)
         XCTAssertEqual(decoded.warnings, [])
     }
 
@@ -201,6 +203,119 @@ final class BackupTests: XCTestCase {
         }
     }
 
+    func testSensitivePayloadDetection() {
+        XCTAssertFalse(
+            BackupEncryption.containsSensitivePayload(
+                diaryCount: 0,
+                includesHealthHistory: false,
+                coachItemCount: 0,
+                mediaFileCount: 0
+            )
+        )
+        XCTAssertTrue(
+            BackupEncryption.containsSensitivePayload(
+                diaryCount: 1,
+                includesHealthHistory: false,
+                coachItemCount: 0,
+                mediaFileCount: 0
+            )
+        )
+        XCTAssertTrue(
+            BackupEncryption.containsSensitivePayload(
+                diaryCount: 0,
+                includesHealthHistory: true,
+                coachItemCount: 0,
+                mediaFileCount: 0
+            )
+        )
+        XCTAssertTrue(
+            BackupEncryption.containsSensitivePayload(
+                diaryCount: 0,
+                includesHealthHistory: false,
+                coachItemCount: 2,
+                mediaFileCount: 0
+            )
+        )
+        XCTAssertTrue(
+            BackupEncryption.containsSensitivePayload(
+                diaryCount: 0,
+                includesHealthHistory: false,
+                coachItemCount: 0,
+                mediaFileCount: 1
+            )
+        )
+    }
+
+    func testPasswordEnvelopeIsNotAZipAndRoundTrips() throws {
+        let plaintext = Data("study-pulse-backup-zip-bytes".utf8)
+        let envelope = try BackupEncryption.encrypt(plaintext: plaintext, password: "correct horse")
+        XCTAssertTrue(BackupEncryption.isEncryptedEnvelope(data: envelope))
+        XCTAssertNotEqual(Array(envelope.prefix(2)), [0x50, 0x4B])
+        let opened = try BackupEncryption.decrypt(envelope: envelope, password: "correct horse")
+        XCTAssertEqual(opened, plaintext)
+        XCTAssertThrowsError(
+            try BackupEncryption.decrypt(envelope: envelope, password: nil)
+        ) { error in
+            guard let backupError = error as? BackupError,
+                  case .passwordRequired = backupError else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+        }
+        XCTAssertThrowsError(
+            try BackupEncryption.decrypt(envelope: envelope, password: "wrong")
+        ) { error in
+            guard let backupError = error as? BackupError,
+                  case .decryptionFailed = backupError else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+
+    func testDeviceKeyEnvelopeRoundTripsOnThisDevice() throws {
+        BackupWrappingKeyStore.setOverrideKeyForTesting(SymmetricKey(size: .bits256))
+        defer { BackupWrappingKeyStore.setOverrideKeyForTesting(nil) }
+        let plaintext = Data("device-bound-backup".utf8)
+        let envelope = try BackupEncryption.encrypt(plaintext: plaintext, password: nil)
+        XCTAssertTrue(BackupEncryption.isEncryptedEnvelope(data: envelope))
+        let opened = try BackupEncryption.decrypt(envelope: envelope, password: nil)
+        XCTAssertEqual(opened, plaintext)
+    }
+
+    func testPlaintextArchiveMarkedEncryptedIsRejected() async throws {
+        let archive = try makeEmptyArchive(encrypted: true)
+        defer { try? FileManager.default.removeItem(at: archive) }
+        do {
+            _ = try await BackupValidator.validate(archiveURL: archive)
+            XCTFail("Expected encryption inconsistency")
+        } catch let error as BackupError {
+            guard case .encryptionInconsistent = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+
+    func testPasswordEncryptedArchiveValidates() async throws {
+        let zip = try makeEmptyArchive(encrypted: true)
+        let envelope = FileManager.default.temporaryDirectory
+            .appendingPathComponent("encrypted-\(UUID().uuidString).studypulsebackup")
+        defer {
+            try? FileManager.default.removeItem(at: zip)
+            try? FileManager.default.removeItem(at: envelope)
+        }
+        try BackupEncryption.encryptFile(at: zip, to: envelope, password: "restore-secret")
+        let envelopeData = try Data(contentsOf: envelope)
+        XCTAssertTrue(BackupEncryption.isEncryptedEnvelope(data: envelopeData))
+        XCTAssertNotEqual(Array(envelopeData.prefix(2)), [0x50, 0x4B])
+
+        let result = try await BackupValidator.validate(
+            archiveURL: envelope,
+            password: "restore-secret"
+        )
+        defer { result.cleanup() }
+        XCTAssertTrue(result.manifest.encrypted)
+        XCTAssertEqual(result.content.grades.count, 0)
+    }
+
     func testLargeJSONLPerformance() throws {
         let rows = (0..<10_000).map {
             let subject = Subject(name: "Subject-\($0)")
@@ -216,6 +331,7 @@ final class BackupTests: XCTestCase {
         formatVersion: Int = 1,
         overrides: [String: Int] = [:],
         removeManifest: Bool = false,
+        encrypted: Bool = false,
         mutate: ((URL) throws -> Void)? = nil
     ) throws -> URL {
         let fm = FileManager.default
@@ -253,6 +369,7 @@ final class BackupTests: XCTestCase {
             recordCounts: counts,
             includesMedia: false,
             includesDerivedHealthData: false,
+            encrypted: encrypted,
             locale: "en"
         )
         try encoder.encode(manifest).write(to: root.appendingPathComponent("manifest.json"))
