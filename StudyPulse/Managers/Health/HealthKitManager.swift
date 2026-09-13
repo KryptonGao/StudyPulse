@@ -679,7 +679,7 @@ final class HealthKitManager {
             isUsable: hasAny
         )
         bodyStatus = newBodyStatus
-        Log.healthKit.info("refreshBodyStatus 完成 / done; hr=\(lhr?.description ?? "-", privacy: .public) rhr=\(rhr?.description ?? "-", privacy: .public) rr=\(rr?.description ?? "-", privacy: .public) sleep=\(sl?.hours.description ?? "-", privacy: .public)h deep=\(sl?.deepHours.description ?? "-", privacy: .public)h rem=\(sl?.remHours.description ?? "-", privacy: .public)h exercise=\(ex?.description ?? "-", privacy: .public)min isUsable=\(hasAny, privacy: .public)")
+        Log.healthKit.info("refreshBodyStatus 完成 / done; hasHR=\(lhr != nil, privacy: .public) hasRHR=\(rhr != nil, privacy: .public) hasRR=\(rr != nil, privacy: .public) hasSleep=\(sl != nil, privacy: .public) hasExercise=\(ex != nil, privacy: .public) isUsable=\(hasAny, privacy: .public)")
 
         // Record today's snapshot to the 30-day history. We use the
         // first sample of the day for HRV (via `fetchHRVSamples`
@@ -849,7 +849,7 @@ final class HealthKitManager {
         }
         readiness = HRVReadiness(zScore: z, todayHRV: today, baselineMean: mean,
             baselineSampleCount: daily.count, category: category, suggestion: suggestion)
-        Log.healthKit.info("refreshReadiness 完成 / done; category=\(category.rawValue, privacy: .public) z=\(z ?? 0, privacy: .public) today=\(today ?? 0, privacy: .public) baseline=\(mean, privacy: .public) stdDev=\(stdDev, privacy: .public) days=\(daily.count, privacy: .public)")
+        Log.healthKit.info("refreshReadiness 完成 / done; category=\(category.rawValue, privacy: .public) hasToday=\(today != nil, privacy: .public) hasZ=\(z != nil, privacy: .public) days=\(daily.count, privacy: .public)")
         HRVWidgetSyncManager.syncHRV(from: self)
         writeIntentHealthCache()
    }

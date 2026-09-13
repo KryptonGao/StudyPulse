@@ -48,6 +48,6 @@ enum HRVWidgetSyncManager {
 
         HRVWidgetDataStore.save(data: data)
         WidgetCenter.shared.reloadTimelines(ofKind: "HRVWidget")
-        Log.widget.info("HRV widget 同步完成 / HRV widget sync done: history=\(history.count, privacy: .public) today=\(readiness.todayHRV ?? 0, privacy: .public) z=\(readiness.zScore ?? 0, privacy: .public)")
+        Log.widget.info("HRV widget 同步完成 / HRV widget sync done: history=\(history.count, privacy: .public) hasToday=\(readiness.todayHRV != nil, privacy: .public) hasZ=\(readiness.zScore != nil, privacy: .public)")
     }
 }
