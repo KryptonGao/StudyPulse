@@ -184,6 +184,40 @@ final class AuthClient: @unchecked Sendable {
         return pair
     }
 
+    /// Exchanges an authorization code with PKCE. Does not persist tokens;
+    /// `CloudAuthLoginCoordinator` writes Keychain only after profile validation.
+    func exchangeAuthorizationCode(
+        code: String,
+        codeVerifier: String,
+        redirectURI: String
+    ) async throws -> AuthTokenPair {
+        guard let url = URL(string: "https://auth.chenkai.space/auth/token") else {
+            throw AuthError.network("Invalid authentication server URL")
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "grant_type": "authorization_code",
+            "code": code,
+            "code_verifier": codeVerifier,
+            "redirect_uri": redirectURI
+        ])
+        request.timeoutInterval = timeoutSeconds
+
+        let result = try await data(for: request)
+        if result.1.statusCode == 404 {
+            throw AuthError.network("The identity server does not support authorization-code + PKCE token exchange.")
+        }
+        let decoded = try decode(AuthRefreshResponse.self, from: result.0)
+        guard (200..<300).contains(result.1.statusCode),
+              let access = decoded.access_token ?? decoded.data?.access_token, !access.isEmpty,
+              let refresh = decoded.refresh_token ?? decoded.data?.refresh_token, !refresh.isEmpty else {
+            throw AuthError.network(decoded.error ?? decoded.message ?? "Authorization code exchange failed (HTTP \(result.1.statusCode))")
+        }
+        return AuthTokenPair(accessToken: access, refreshToken: refresh)
+    }
+
     /// 退出登录。
     func logout(sessionToken: String, workerURL: String) async throws {
         let url = try buildURL(base: workerURL, path: "/auth/logout")
