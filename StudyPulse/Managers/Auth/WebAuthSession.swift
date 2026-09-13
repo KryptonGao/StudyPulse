@@ -178,7 +178,7 @@ enum AuthCallbackHandler {
 }
 
 @MainActor
-final class WebAuthSession: NSObject, ASWebAuthenticationPresentationContextProviding {
+final class WebAuthSession: NSObject {
     static private(set) var isActive = false
     static let callbackURL = URL(string: "studypulse://auth/callback")!
     /// Legacy constant retained for UI/tests; production always uses a fresh state.
@@ -193,8 +193,30 @@ final class WebAuthSession: NSObject, ASWebAuthenticationPresentationContextProv
     }
 
     private var session: ASWebAuthenticationSession?
+    private let anchorProvider: @MainActor () -> ASPresentationAnchor?
+
+    init(anchorProvider: @escaping @MainActor () -> ASPresentationAnchor? = {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .filter { $0.activationState == .foregroundActive }
+            .compactMap { scene in
+                scene.windows.first(where: \.isKeyWindow) ?? scene.windows.first
+            }
+            .first
+    }) {
+        self.anchorProvider = anchorProvider
+        super.init()
+    }
 
     func authenticate() async throws -> AuthTokenPair {
+        // Fail before creating or starting OAuth when there is no foreground window.
+        guard let anchor = anchorProvider() else {
+            throw WebAuthError.networkStartFailed
+        }
+        let presentationContext = WebAuthPresentationContext(anchor: anchor)
+        // ASWebAuthenticationSession holds its presentation provider weakly.
+        defer { withExtendedLifetime(presentationContext) {} }
+
         let state = AuthCallbackStateStore.shared.begin()
         Self.isActive = true
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AuthTokenPair, Error>) in
@@ -230,7 +252,7 @@ final class WebAuthSession: NSObject, ASWebAuthenticationPresentationContextProv
                     continuation.resume(throwing: error)
                 }
             }
-            authSession.presentationContextProvider = self
+            authSession.presentationContextProvider = presentationContext
             authSession.prefersEphemeralWebBrowserSession = true
             self.session = authSession
             guard authSession.start() else {
@@ -242,13 +264,19 @@ final class WebAuthSession: NSObject, ASWebAuthenticationPresentationContextProv
             }
         }
     }
+}
+
+@MainActor
+final class WebAuthPresentationContext: NSObject, ASWebAuthenticationPresentationContextProviding {
+    private let anchor: ASPresentationAnchor
+
+    init(anchor: ASPresentationAnchor) {
+        self.anchor = anchor
+        super.init()
+    }
 
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        let scene = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first(where: { $0.activationState == .foregroundActive })
-            ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first!
-        return ASPresentationAnchor(windowScene: scene)
+        anchor
     }
 }
 
