@@ -8,6 +8,7 @@
 //
 
 import SwiftUI
+import os
 
 struct LLMSettingsView: View {
     @Environment(RepositoryContainer.self) private var container
@@ -427,6 +428,9 @@ struct LLMSettingsView: View {
 private struct LLMAICoachSettingsView: View {
     @Environment(RepositoryContainer.self) private var container
     @State private var isForceRefreshingCoach = false
+    @State private var lastRefreshSucceeded: Bool?
+    @State private var lastRefreshDetail: String = ""
+    @State private var showRefreshAlert = false
 
     var body: some View {
         List {
@@ -472,21 +476,66 @@ private struct LLMAICoachSettingsView: View {
                             if isForceRefreshingCoach { ProgressView().scaleEffect(0.8) }
                             else { Image(systemName: "arrow.clockwise.circle.fill") }
                             Text("Force Refresh".localized())
+                            Spacer()
+                            if let lastRefreshSucceeded, !isForceRefreshingCoach {
+                                Image(systemName: lastRefreshSucceeded ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                    .foregroundStyle(lastRefreshSucceeded ? Color.green : Color.orange)
+                            }
                         }
                     }
                     .disabled(isForceRefreshingCoach || !container.envManager.llmConfig.isConfigured)
+                } footer: {
+                    if let lastRefreshSucceeded {
+                        Text(lastRefreshDetail)
+                            .foregroundStyle(lastRefreshSucceeded ? Color.secondary : Color.red)
+                    }
                 }
             }
         }
         .navigationTitle("AI Coach".localized())
         .navigationBarTitleDisplayMode(.inline)
+        .alert(
+            lastRefreshSucceeded == true
+                ? "Coach refresh successful".localized()
+                : "Coach refresh failed".localized(),
+            isPresented: $showRefreshAlert
+        ) {
+            Button("OK".localized(), role: .cancel) {}
+        } message: {
+            Text(lastRefreshDetail)
+        }
     }
 
     @MainActor private func forceRefreshCoach() async {
-        isForceRefreshingCoach = true; defer { isForceRefreshingCoach = false }
+        isForceRefreshingCoach = true
+        defer { isForceRefreshingCoach = false }
         do {
             _ = try await CoachCoordinator(container: container).forceRefreshProposal()
-        } catch { }
+            lastRefreshSucceeded = true
+            lastRefreshDetail = "A fresh AI Coach proposal is ready to review.".localized()
+            showRefreshAlert = true
+            Log.app.info("Coach Force Refresh succeeded")
+            Log.record(.info, category: "App", message: "Coach Force Refresh succeeded")
+        } catch {
+            lastRefreshSucceeded = false
+            lastRefreshDetail = coachRefreshFailureMessage(error)
+            showRefreshAlert = true
+            Log.app.error("Coach Force Refresh failed: \(error.localizedDescription, privacy: .public)")
+            Log.record(.error, category: "App", message: "Coach Force Refresh failed: \(error.localizedDescription)")
+        }
+    }
+
+    private func coachRefreshFailureMessage(_ error: Error) -> String {
+        if let llmError = error as? LLMError, let description = llmError.errorDescription, !description.isEmpty {
+            return description
+        }
+        if let coordinatorError = error as? CoachCoordinatorError,
+           let description = coordinatorError.errorDescription,
+           !description.isEmpty {
+            return description
+        }
+        let description = error.localizedDescription
+        return description.isEmpty ? "Coach refresh failed".localized() : description
     }
 }
 

@@ -291,9 +291,9 @@ enum CoachCoordinatorError: Error, LocalizedError {
     case noActiveGoal
     var errorDescription: String? {
         switch self {
-        case .staleProposal: return "This Coach proposal belongs to an older goal version."
-        case .noItemsSelected: return "Select at least one plan item."
-        case .noActiveGoal: return "Create and activate a Coach goal before refreshing its plan."
+        case .staleProposal: return "This Coach proposal belongs to an older goal version.".localized()
+        case .noItemsSelected: return "Select at least one plan item.".localized()
+        case .noActiveGoal: return "Create and activate a Coach goal before refreshing its plan.".localized()
         }
     }
 }
