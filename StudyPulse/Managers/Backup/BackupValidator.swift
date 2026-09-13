@@ -114,6 +114,17 @@ nonisolated enum BackupValidator {
                 throw BackupError.missingRequiredFile("checksum:\(path)")
             }
 
+            let integrityURL = workspace.appendingPathComponent("integrity.json")
+            if fm.fileExists(atPath: integrityURL.path) {
+                let integrity = try decode(BackupIntegrity.self, at: "integrity.json", root: workspace, decoder: decoder)
+                try BackupChecksum.verifyIntegrity(integrity, checksums: checksums, password: password)
+            } else if actuallyEncrypted {
+                // AES-GCM already authenticated the outer envelope. SHA-256
+                // checksums remain a corruption check only.
+            } else {
+                throw BackupError.missingAuthentication
+            }
+
             let subjects = try decode([Subject].self, at: "data/subjects.json", root: workspace, decoder: decoder)
             let grades: [Grade] = try decodeJSONL("data/grades.jsonl", root: workspace)
             let mistakes: [MistakeNote] = try decodeJSONL("data/mistakes.jsonl", root: workspace)
