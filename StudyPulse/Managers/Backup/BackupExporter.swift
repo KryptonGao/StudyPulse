@@ -166,12 +166,24 @@ enum BackupExporter {
         }
 
         let counts = recordCounts(source)
+        let password = BackupEncryption.normalizedPassword(options.password)
+        let coachItemCount =
+            source.coachGoals.count + source.coachAnalyses.count
+            + source.coachProposals.count + source.coachChats.count
+            + source.coachMessages.count
+        let shouldEncrypt = password != nil || BackupEncryption.containsSensitivePayload(
+            diaryCount: source.diaryEntries.count,
+            includesHealthHistory: source.healthHistory != nil,
+            coachItemCount: coachItemCount,
+            mediaFileCount: mediaCount
+        )
         let manifest = BackupManifest(
             appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown",
             appBuild: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown",
             recordCounts: counts,
             includesMedia: options.includesMedia,
             includesDerivedHealthData: options.includesDerivedHealthData,
+            encrypted: shouldEncrypt,
             locale: Locale.current.identifier,
             mediaFileCount: mediaCount,
             mediaBytes: mediaBytes,
@@ -195,13 +207,27 @@ enum BackupExporter {
         }
         let checksums = BackupChecksums(files: checksumFiles.mapValues(BackupChecksum.sha256(data:)))
         try encoder.encode(checksums).write(to: root.appendingPathComponent("checksums.json"), options: .atomic)
+        let integrity = try BackupChecksum.makeIntegrity(checksums: checksums, password: password)
+        try encoder.encode(integrity).write(to: root.appendingPathComponent("integrity.json"), options: .atomic)
 
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd-HHmmss"
         let archiveURL = fm.temporaryDirectory.appendingPathComponent("StudyPulse-\(formatter.string(from: manifest.createdAt)).studypulsebackup")
         try? fm.removeItem(at: archiveURL)
-        try BackupArchive.create(from: root, at: archiveURL)
+        let zipURL = shouldEncrypt
+            ? fm.temporaryDirectory.appendingPathComponent("StudyPulsePlain-\(UUID().uuidString).zip")
+            : archiveURL
+        try BackupArchive.create(from: root, at: zipURL)
+        if shouldEncrypt {
+            defer { try? fm.removeItem(at: zipURL) }
+            do {
+                try BackupEncryption.encryptFile(at: zipURL, to: archiveURL, password: password)
+            } catch {
+                try? fm.removeItem(at: archiveURL)
+                throw error
+            }
+        }
         return BackupExportResult(archiveURL: archiveURL, manifest: manifest)
     }
 

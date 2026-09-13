@@ -130,7 +130,7 @@ final class RepositoryContainerTests: XCTestCase {
         // 添加成绩和待办，验证真实 Repository 与 In-Memory ModelContainer 交互
         let grade = TestDataFixtures.makeGrade(subject: "English", score: 92.0)
         container.addGrade(grade)
-        await container.flushPendingPersistence()
+        try await container.flushPendingPersistence()
         XCTAssertEqual(container.gradeRepo.grades.count, 1)
         XCTAssertEqual(container.gradeRepo.grades.first?.subject, "English")
 
@@ -140,7 +140,7 @@ final class RepositoryContainerTests: XCTestCase {
 
         let exam = TestDataFixtures.makeExam(name: "Midterm English", subject: "English")
         container.addExams(single: [exam], comprehensive: [])
-        await container.flushPendingPersistence()
+        try await container.flushPendingPersistence()
 
         let entries = container.todoEntries(includeCompleted: false)
         // 应该聚合了 1 个 Task + 1 个 Exam

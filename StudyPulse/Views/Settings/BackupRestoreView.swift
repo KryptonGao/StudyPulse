@@ -13,10 +13,12 @@ struct BackupRestoreView: View {
             Section {
                 Toggle("Include media files".localized(), isOn: $viewModel.includesMedia)
                 Toggle("Include body status history".localized(), isOn: $viewModel.includesDerivedHealthData)
+                SecureField("Backup password (optional)".localized(), text: $viewModel.backupPassword)
+                SecureField("Restore password (if set)".localized(), text: $viewModel.restorePassword)
             } header: {
                 Text("Backup contents".localized())
             } footer: {
-                Text("Body status history is health-related sensitive information. It is excluded by default.".localized())
+                Text("Body status history is health-related sensitive information. It is excluded by default. Backups that include diary, health history, coach conversations, or media are encrypted. Leave the backup password empty to use this device's key; set a password to restore on another device.".localized())
             }
 
             Section {
@@ -132,6 +134,7 @@ struct BackupRestoreView: View {
             LabeledContent("Records".localized(), value: "\(backup.manifest.recordCounts.values.reduce(0, +))")
             LabeledContent("Media".localized(), value: "\(backup.manifest.mediaFileCount) · \(ByteCountFormatter.string(fromByteCount: backup.manifest.mediaBytes, countStyle: .file))")
             LabeledContent("Health history".localized(), value: backup.manifest.includesDerivedHealthData ? "Included".localized() : "Excluded".localized())
+            LabeledContent("Encrypted".localized(), value: backup.manifest.encrypted ? "Yes".localized() : "No".localized())
             LabeledContent("Integrity".localized(), value: "Verified".localized())
             if !backup.warnings.isEmpty {
                 Label(

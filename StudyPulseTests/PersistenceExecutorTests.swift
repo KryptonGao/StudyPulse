@@ -166,7 +166,7 @@ final class PersistenceExecutorTests: XCTestCase {
         }
         repository.add(values)
         repository.cancelPendingPersistence()
-        await repository.flushPendingPersistence()
+        try await repository.flushPendingPersistence()
 
         XCTAssertTrue(repository.grades.isEmpty)
         let persisted = try await executor.fetchGrades()
@@ -195,13 +195,13 @@ final class PersistenceExecutorTests: XCTestCase {
         let importStart = clock.now
         repository.add(values)
         XCTAssertTrue(repository.mistakeSets.isEmpty)
-        await repository.flushPendingPersistence()
+        try await repository.flushPendingPersistence()
         let importDuration = importStart.duration(to: clock.now)
         XCTAssertEqual(repository.mistakeSets.count, 2_000)
 
         let deleteStart = clock.now
         XCTAssertEqual(repository.clearAll(), 2_000)
-        await repository.flushPendingPersistence()
+        try await repository.flushPendingPersistence()
         let deleteDuration = deleteStart.duration(to: clock.now)
         XCTAssertTrue(repository.mistakeSets.isEmpty)
         let persisted = try await executor.fetchMistakes()
@@ -311,6 +311,41 @@ final class PersistenceExecutorTests: XCTestCase {
             "indexed_phase_switch_200=\(filterDuration) " +
             "actor_resident_delta=\(Int64(memoryAfter) - Int64(memoryBefore))"
         )
+    }
+
+    func testMutationFailureDoesNotPublishOrPersistAndSurfacesOnFlush() async throws {
+        let container = try TestModelContainerFactory.makeInMemoryContainer()
+        let repository = DefaultGradeRepository(envManager: .shared)
+        let executor = PersistenceExecutor(modelContainer: container)
+        repository.attachPersistenceExecutor(executor)
+        await repository.loadAll(context: container.mainContext)
+
+        repository.debugFailNextPersistence(RepositoryPersistenceError.mutationFailed("disk full"))
+        repository.add(Grade(subject: "Math", score: 90, examName: "Ghost"))
+        await repository.waitForPendingPersistence()
+
+        XCTAssertTrue(repository.grades.isEmpty)
+        XCTAssertEqual(
+            repository.lastPersistenceError as? RepositoryPersistenceError,
+            .mutationFailed("disk full")
+        )
+        let persisted = try await executor.fetchGrades()
+        XCTAssertTrue(persisted.isEmpty)
+
+        do {
+            try await repository.flushPendingPersistence()
+            XCTFail("flush must rethrow the recorded failure")
+        } catch let error as RepositoryPersistenceError {
+            XCTAssertEqual(error, .mutationFailed("disk full"))
+        }
+
+        let recovered = Grade(subject: "Math", score: 91, examName: "Kept")
+        repository.add(recovered)
+        try await repository.flushPendingPersistence()
+        XCTAssertNil(repository.lastPersistenceError)
+        XCTAssertEqual(repository.grades.map(\.id), [recovered.id])
+        let afterRecovery = try await executor.fetchGrades()
+        XCTAssertEqual(afterRecovery.map(\.id), [recovered.id])
     }
 
     func testRepositoryReloadsFilteredSnapshotsFromSwiftDataForActivePhase() async throws {

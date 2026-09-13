@@ -724,7 +724,9 @@ protocol PersistenceExecutorAttachable: AnyObject {
 /// Internal additive capability. Public repository protocols remain unchanged.
 @MainActor
 protocol PersistenceExecutorBacked: PersistenceExecutorAttachable {
+    var lastPersistenceError: (any Error)? { get }
     func reloadFilteredFromSwiftData() async
-    func flushPendingPersistence() async
+    func waitForPendingPersistence() async
+    func flushPendingPersistence() async throws
     func cancelPendingPersistence()
 }

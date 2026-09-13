@@ -232,7 +232,7 @@ final class RepositoryContainer {
         // 内嵌图片迁移(在 waitForAll 后,grades 已加载)
         let migrated = gradeRepo.migrateInlineImagesIfNeeded()
         if migrated > 0, let backed = gradeRepo as? any PersistenceExecutorBacked {
-            await backed.flushPendingPersistence()
+            try await backed.flushPendingPersistence()
         }
         try Task.checkCancellation()
 
@@ -531,12 +531,25 @@ final class RepositoryContainer {
     }
 
     /// Await all currently queued high-frequency writes. Used by lifecycle
-    /// coordination and deterministic integration tests.
-    func flushPendingPersistence() async {
-        await (gradeRepo as? any PersistenceExecutorBacked)?.flushPendingPersistence()
-        await (mistakeRepo as? any PersistenceExecutorBacked)?.flushPendingPersistence()
-        await (examRepo as? any PersistenceExecutorBacked)?.flushPendingPersistence()
-        await (taskRepo as? any PersistenceExecutorBacked)?.flushPendingPersistence()
+    /// coordination and deterministic integration tests. Rethrows the first
+    /// mutation failure so callers cannot treat a failed save as success.
+    func flushPendingPersistence() async throws {
+        var firstError: (any Error)?
+        for repo in [
+            gradeRepo as? any PersistenceExecutorBacked,
+            mistakeRepo as? any PersistenceExecutorBacked,
+            examRepo as? any PersistenceExecutorBacked,
+            taskRepo as? any PersistenceExecutorBacked
+        ] {
+            do {
+                try await repo?.flushPendingPersistence()
+            } catch is CancellationError {
+                continue
+            } catch {
+                if firstError == nil { firstError = error }
+            }
+        }
+        if let firstError { throw firstError }
     }
 
     func cancelPendingPersistence() {

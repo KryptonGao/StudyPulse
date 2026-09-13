@@ -124,7 +124,7 @@ enum HealthHistoryStore {
                 snapshot.remSleepHours.map { _ in "rem" },
                 snapshot.exerciseMinutes.map { _ in "exercise" }
             ].compactMap { $0 }
-            Log.healthHistory.debug("健康历史 upsert 完成 / Health history upsert: date=\(day, privacy: .public) filled=\(filledFields.joined(separator: ","), privacy: .public) total=\(updated.count, privacy: .public)")
+            Log.healthHistory.debug("健康历史 upsert 完成 / Health history upsert: filled=\(filledFields.joined(separator: ","), privacy: .public) total=\(updated.count, privacy: .public)")
             return updated
         }
     }
