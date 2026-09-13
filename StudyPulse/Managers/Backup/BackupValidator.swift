@@ -48,17 +48,38 @@ nonisolated enum BackupValidator {
         "data/achievements.json", "data/coach_data.jsonl", "data/preferences.json",
     ]
 
-    static func validate(archiveURL: URL) async throws -> ValidatedBackup {
+    static func validate(archiveURL: URL, password: String? = nil) async throws -> ValidatedBackup {
         try await Task.detached(priority: .userInitiated) {
-            try validateSynchronously(archiveURL: archiveURL)
+            try validateSynchronously(archiveURL: archiveURL, password: password)
         }.value
     }
 
-    static func validateSynchronously(archiveURL: URL) throws -> ValidatedBackup {
+    static func validateSynchronously(archiveURL: URL, password: String? = nil) throws -> ValidatedBackup {
         let fm = FileManager.default
         let workspace = fm.temporaryDirectory.appendingPathComponent("StudyPulseRestore-\(UUID().uuidString)", isDirectory: true)
+        var decryptedZip: URL?
+        defer {
+            if let decryptedZip {
+                try? fm.removeItem(at: decryptedZip)
+            }
+        }
         do {
-            try BackupArchive.extractSafely(from: archiveURL, to: workspace)
+            let zipURL: URL
+            if try BackupEncryption.isEncryptedEnvelope(at: archiveURL) {
+                let tempZip = fm.temporaryDirectory.appendingPathComponent(
+                    "StudyPulseDecrypt-\(UUID().uuidString).zip"
+                )
+                decryptedZip = tempZip
+                try BackupEncryption.decryptFile(
+                    from: archiveURL,
+                    to: tempZip,
+                    password: password
+                )
+                zipURL = tempZip
+            } else {
+                zipURL = archiveURL
+            }
+            try BackupArchive.extractSafely(from: zipURL, to: workspace)
             for path in requiredFiles where !fm.fileExists(atPath: workspace.appendingPathComponent(path).path) {
                 if path == "manifest.json" { throw BackupError.missingManifest }
                 throw BackupError.missingRequiredFile(path)
@@ -72,7 +93,10 @@ nonisolated enum BackupValidator {
             guard manifest.formatVersion == BackupManifest.currentFormatVersion else {
                 throw BackupError.unsupportedFormatVersion(manifest.formatVersion)
             }
-            guard !manifest.encrypted else { throw BackupError.encryptedArchiveUnsupported }
+            let actuallyEncrypted = decryptedZip != nil
+            guard manifest.encrypted == actuallyEncrypted else {
+                throw BackupError.encryptionInconsistent
+            }
 
             let checksums = try decode(BackupChecksums.self, at: "checksums.json", root: workspace, decoder: decoder)
             guard checksums.algorithm.uppercased() == "SHA-256" else {

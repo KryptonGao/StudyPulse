@@ -14,6 +14,7 @@ nonisolated struct BackupManifest: Codable, Equatable, Sendable {
     var recordCounts: [String: Int]
     var includesMedia: Bool
     var includesDerivedHealthData: Bool
+    /// True only when the exported file is an AES-GCM envelope, not a ZIP.
     var encrypted: Bool
     var locale: String
     var mediaFileCount: Int

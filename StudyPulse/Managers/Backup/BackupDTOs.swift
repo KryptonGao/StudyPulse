@@ -170,6 +170,9 @@ nonisolated struct BackupCoachRow: Codable, Sendable {
 nonisolated struct BackupExportOptions: Sendable {
     var includesMedia = true
     var includesDerivedHealthData = false
+    /// Optional passphrase for portable AES-GCM backups. Empty / nil uses the
+    /// on-device wrapping key stored in Keychain.
+    var password: String? = nil
 }
 
 nonisolated enum BackupRestoreMode: String, CaseIterable, Sendable {

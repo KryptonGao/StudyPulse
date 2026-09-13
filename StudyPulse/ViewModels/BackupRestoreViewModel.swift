@@ -12,6 +12,8 @@ final class BackupRestoreViewModel {
 
     var includesMedia = true
     var includesDerivedHealthData = false
+    var backupPassword = ""
+    var restorePassword = ""
     var operation: Operation = .idle
     var progress: Double = 0
     var exportDocument: BackupDocument?
@@ -42,7 +44,8 @@ final class BackupRestoreViewModel {
                     container: container,
                     options: BackupExportOptions(
                         includesMedia: includesMedia,
-                        includesDerivedHealthData: includesDerivedHealthData
+                        includesDerivedHealthData: includesDerivedHealthData,
+                        password: backupPassword
                     ),
                     progress: { [weak self] in self?.progress = $0 }
                 )
@@ -71,7 +74,10 @@ final class BackupRestoreViewModel {
             let accessed = url.startAccessingSecurityScopedResource()
             defer { if accessed { url.stopAccessingSecurityScopedResource() } }
             do {
-                let value = try await BackupValidator.validate(archiveURL: url)
+                let value = try await BackupValidator.validate(
+                    archiveURL: url,
+                    password: restorePassword
+                )
                 validatedBackup = value
                 progress = 1
                 if forRestore {
