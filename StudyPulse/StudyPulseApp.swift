@@ -104,6 +104,9 @@ struct StudyPulseApp: App {
                     guard url.scheme == "studypulse",
                           url.host == "auth",
                           url.path == "/callback" else { return }
+                    // Tokens in this URL are ignored. AuthCallbackHandler requires a
+                    // one-time state plus PKCE authorization code, then exchanges
+                    // the code over HTTPS.
                     Task { @MainActor in
                         await AuthCallbackHandler.handle(url, container: container)
                     }
