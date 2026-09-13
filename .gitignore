@@ -64,3 +64,14 @@ build/
 DerivedDataBuild/
 .trae/
 .uploads/
+
+# Generated brand film artifacts
+brandfilm/node_modules/
+brandfilm/shots/
+brandfilm/**/*.mp4
+brandfilm/**/*.mov
+brandfilm/**/*.webm
+brandfilm/**/*.wav
+
+# Local agent workspace metadata
+.workbuddy-ai/
