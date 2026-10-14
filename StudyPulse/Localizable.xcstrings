@@ -75601,6 +75601,292 @@
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷新额度" } },
         "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "重新整理額度" } }
       }
+    },
+    "home.hero.focusToday" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Focus today" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日专注" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "今日專注" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日の集中" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "오늘 집중" } }
+      }
+    },
+    "home.hero.streak" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Streak" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "连续打卡" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "連續打卡" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "連続記録" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "연속 기록" } }
+      }
+    },
+    "home.hero.nextExam" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Next exam" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最近考试" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "最近考試" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "次の試験" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "다음 시험" } }
+      }
+    },
+    "home.hero.noExam" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "None in 14 days" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "14 天内无考试" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "14 天內無考試" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "14日以内に試験なし" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "14일 내 시험 없음" } }
+      }
+    },
+    "home.hero.noGrades" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No grades yet" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂无成绩" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "暫無成績" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "成績なし" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "성적 없음" } }
+      }
+    },
+    "home.hero.goalMin" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Goal %d min" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "目标 %d 分钟" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目標 %d 分鐘" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "目標 %d 分" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "목표 %d분" } }
+      }
+    },
+    "home.hero.noGoal" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No daily goal set" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未设置每日目标" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "未設定每日目標" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "日次目標未設定" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "일일 목표 없음" } }
+      }
+    },
+    "home.unit.days" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "days" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "天" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "天" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "日" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "일" } }
+      }
+    },
+    "home.weeklyFocus.title" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Weekly focus" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本周专注" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "本週專注" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間集中" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "주간 집중" } }
+      }
+    },
+    "home.weeklyFocus.subtitle" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Last 7 days" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "近 7 天" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "近 7 天" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "直近7日間" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "최근 7일" } }
+      }
+    },
+    "home.weeklyFocus.hours" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "h total" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "小时" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "小時" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "時間" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "시간" } }
+      }
+    },
+    "home.weeklyFocus.avg" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Avg %d min/day" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日均 %d 分钟" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "日均 %d 分鐘" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "1日平均 %d 分" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "일 평균 %d분" } }
+      }
+    },
+    "home.subjects.title" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subjects at a glance" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "各科一览" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "各科一覽" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "科目別サマリー" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "과목별 한눈에" } }
+      }
+    },
+    "home.subjects.subtitle" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Weakest first" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最弱在前" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "最弱在前" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "弱い順" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "약한 순" } }
+      }
+    },
+    "home.subjects.count" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%d grades" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%d 次成绩" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "%d 次成績" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d 件の成績" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "성적 %d개" } }
+      }
+    },
+    "home.bodyMind.title" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Body & mind" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "身心趋势" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "身心趨勢" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "心身トレンド" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "심신 추세" } }
+      }
+    },
+    "home.bodyMind.subtitle" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Last 14 days" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "近 14 天" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "近 14 天" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "直近14日間" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "최근 14일" } }
+      }
+    },
+    "home.bodyMind.mood" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Mood" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "心情" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "心情" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "気分" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "기분" } }
+      }
+    },
+    "home.bodyMind.sleep" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sleep" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "睡眠" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "睡眠" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "睡眠" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "수면" } }
+      }
+    },
+    "home.bodyMind.avg" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Avg %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "平均 %@" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "平均 %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "平均 %@" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "평균 %@" } }
+      }
+    },
+    "home.habit.heatmap" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "When you focus best" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最佳专注时段" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "最佳專注時段" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "集中しやすい時間帯" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "집중이 잘 되는 시간" } }
+      }
+    },
+    "home.habit.less" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Less" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "少" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "少" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "少" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "적게" } }
+      }
+    },
+    "home.habit.more" : {
+      "comment" : "Home redesign",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "More" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "多" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "多" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "多" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "많이" } }
+      }
+    },
+    "home.layout.dynamic.title" : {
+      "comment" : "Home dynamic layout",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Dynamic Layout" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "动态排布" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "動態排布" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ダイナミックレイアウト" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "동적 배치" } }
+      }
+    },
+    "home.layout.dynamic.footer" : {
+      "comment" : "Home dynamic layout",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hides cards that have no information and orders the rest by urgency (exams, due reviews and today's plan first). Manual ordering is locked while this is on." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自动隐藏没有信息的卡片,并按紧迫度排序(考试、待复习、今日计划优先)。开启期间无法手动调整顺序。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "自動隱藏沒有資訊的卡片,並依緊迫度排序(考試、待複習、今日計畫優先)。開啟期間無法手動調整順序。" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "情報のないカードを自動で非表示にし、緊急度順に並べます(試験・復習・今日の計画を優先)。オンの間は手動の並べ替えができません。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "정보가 없는 카드는 자동으로 숨기고 긴급도 순으로 정렬합니다(시험·복습·오늘 계획 우선). 켜져 있는 동안에는 수동 정렬이 잠깁니다." } }
+      }
+    },
+    "home.layout.locked.footer" : {
+      "comment" : "Home dynamic layout",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Order is locked while Dynamic Layout is on. Turn it off to reorder cards manually. Switches still choose which cards may appear." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "动态排布开启时顺序已锁定。关闭后即可手动排序;开关仍可决定哪些卡片可以出现。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "動態排布開啟時順序已鎖定。關閉後即可手動排序;開關仍可決定哪些卡片可以出現。" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ダイナミックレイアウトがオンの間は順序が固定されます。オフにすると手動で並べ替えられます。スイッチで表示するカードは引き続き選べます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "동적 배치가 켜져 있는 동안 순서가 잠깁니다. 끄면 수동으로 정렬할 수 있습니다. 스위치로 표시할 카드는 계속 선택할 수 있습니다." } }
+      }
     }
   },
   "version" : "1.0"

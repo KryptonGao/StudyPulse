@@ -9,6 +9,7 @@ struct HabitInsightCard: View {
     @State private var aiErrorMessage: String?
     @State private var aiTask: Task<Void, Never>?
     @State private var todayBestSlot: HabitInsight?
+    @State private var slotCells: [WeekdaySlotCell] = []
 
     private var displayedInsights: [HabitInsight] { aiInsights ?? localInsights }
     private var cooldownSeconds: TimeInterval { TimeInterval(container.envManager.preferences.habitInsightCooldownMinutes * 60) }
@@ -18,22 +19,34 @@ struct HabitInsightCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Habit Insight".localized(), systemImage: "waveform.path.ecg").font(.headline)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                Spacer()
-                if aiLoading { ProgressView() }
-                if container.envManager.llmConfig.isConfigured {
-                    Text("✨ AI").font(.caption).foregroundStyle(.secondary).lineLimit(1)
+        // 数据不足(< 3 次会话)时整卡隐藏,避免空占位 / Hidden entirely until there's enough data.
+        Group {
+            if !localInsights.isEmpty { cardBody }
+        }
+        .task { reload() }
+        .onDisappear { aiTask?.cancel() }
+    }
+
+    private var cardBody: some View {
+        HomeCardContainer {
+            HomeCardHeader(icon: "waveform.path.ecg", title: "Habit Insight".localized(), tint: .teal) {
+                HStack(spacing: 6) {
+                    if aiLoading { ProgressView() }
+                    if container.envManager.llmConfig.isConfigured {
+                        Text("✨ AI").font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    }
                 }
             }
             if let todayBestSlot { todayWindow(todayBestSlot) }
-            ForEach(displayedInsights) { insight in insightRow(insight) }
-            if localInsights.isEmpty {
-                ContentUnavailableView("Not Enough Data".localized(), systemImage: "chart.bar.xaxis", description: Text("Keep studying for a few more days to unlock insights.".localized())).frame(minHeight: 100)
+            if !slotCells.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("home.habit.heatmap".localized())
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    WeekdaySlotHeatmap(cells: slotCells, tint: container.envManager.effectiveAccentColor)
+                }
             }
+            ForEach(displayedInsights) { insight in insightRow(insight) }
             if let aiErrorMessage, container.envManager.preferences.debugModeEnabled { Text(aiErrorMessage).font(.caption).foregroundStyle(.orange) }
             if container.envManager.llmConfig.isConfigured {
                 TimelineView(.periodic(from: .now, by: 1)) { _ in
@@ -53,11 +66,6 @@ struct HabitInsightCard: View {
             if container.envManager.preferences.debugModeEnabled { LLMCallIndicator(caller: "HabitInsight") }
             #endif
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .glassCard(enabled: container.envManager.glassEffectEnabled, cornerRadius: 16)
-        .task { reload() }
-        .onDisappear { aiTask?.cancel() }
     }
 
     private func todayWindow(_ insight: HabitInsight) -> some View {
@@ -83,6 +91,9 @@ struct HabitInsightCard: View {
         let sessions = container.studySessionRepo.sessions
         localInsights = HabitInsightEngine.computeInsights(sessions: sessions)
         todayBestSlot = HabitInsightEngine.bestSlotForToday(sessions: sessions)
+        slotCells = HomeInsightsEngine.weekdaySlotCells(
+            buckets: StudySessionStore.aggregateByWeekdayHourSlot(sessions: sessions)
+        )
         guard container.envManager.llmConfig.isConfigured, container.envManager.preferences.habitInsightEnabled, !localInsights.isEmpty else { return }
         requestAI(force: false)
     }

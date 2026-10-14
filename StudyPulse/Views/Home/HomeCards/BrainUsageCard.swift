@@ -51,8 +51,9 @@ struct BrainUsageCard: View {
                     .font(.caption.weight(.semibold)).foregroundStyle(.green)
             }
         }
-        .padding(16)
-        .glassCard(enabled: container.envManager.glassEffectEnabled, cornerRadius: 16)
+        .padding(DesignToken.Spacing.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cardSkin()
         .task {
             reload()
             await BrainUsageQuotaLLM.refreshIfNeeded(container: container, hrvManager: hrvManager)
