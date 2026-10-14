@@ -72,6 +72,23 @@ final class HomeViewModel {
     private(set) var burnoutAssessment: BurnoutAssessment?
     private(set) var burnoutSuggestion: StudySuggestion?
 
+    /// 本周专注(7 日堆叠柱状 + 与上周对比) / Weekly focus (7-day stacked bars + week-over-week).
+    private(set) var weeklyFocus: WeeklyFocusSummary = .empty
+    /// 各科快照(得分率 + sparkline + 近期变化),最弱科在前 / Subject snapshots, weakest first.
+    private(set) var subjectSnapshots: [SubjectSnapshot] = []
+    /// 近 14 天心情 / 睡眠 / HRV 序列 / 14-day mood / sleep / HRV series.
+    private(set) var moodSeries: [DailyValuePoint] = []
+    private(set) var sleepSeries: [DailyValuePoint] = []
+    private(set) var hrvSeries: [DailyValuePoint] = []
+    /// 平均得分率 sparkline(最近 8 次成绩,按日期升序,%) / Average-rate sparkline (latest 8 grades, %).
+    private(set) var averageRateTrend: [Double] = []
+    /// 心情 / 睡眠 / HRV 任一有 ≥ 2 个点即可绘制 / Any of mood / sleep / HRV has ≥ 2 points to chart.
+    var hasBodyMindData: Bool {
+        moodSeries.count >= 2 || sleepSeries.count >= 2 || hrvSeries.count >= 2
+    }
+    /// 全部成绩的平均得分率(%);无成绩为 nil / Overall average score rate in %; nil without grades.
+    private(set) var overallAverageRate: Double? = nil
+
     /// 图表卡片的当前规则 + 选中科目 / Current chart rule & subject.
     private(set) var chartRule: SubjectSelectionRule = .lowestScore
     private(set) var chartSelectedSubject: String? = nil
@@ -179,6 +196,21 @@ final class HomeViewModel {
             priority: .high,
             color: .red
         )
+
+        // 主页图表序列 / Home chart series.
+        weeklyFocus = HomeInsightsEngine.weeklyFocus(sessions: sessions)
+        subjectSnapshots = HomeInsightsEngine.subjectSnapshots(
+            grades: grades,
+            fullScoreProvider: { [container] in container.fullScore(for: $0) }
+        )
+        moodSeries = HomeInsightsEngine.moodSeries(entries: diaryEntries)
+        sleepSeries = HomeInsightsEngine.sleepSeries(history: healthHistory)
+        hrvSeries = HomeInsightsEngine.hrvSeries(history: healthHistory)
+        let allRates = grades.map { $0.scoreRate(subjectFullScore: container.fullScore(for: $0.subject)) * 100 }
+        overallAverageRate = allRates.isEmpty ? nil : allRates.reduce(0, +) / Double(allRates.count)
+        averageRateTrend = sortedGradesDesc.prefix(8).reversed().map {
+            $0.scoreRate(subjectFullScore: container.fullScore(for: $0.subject)) * 100
+        }
 
         // 今日 Top-3 计划(2026-07-09) / Today's Top-3 plan.
         let planContext = DailyPlanContext(

@@ -50,6 +50,12 @@ enum HomeCardType: String, CaseIterable, Codable {
     case examRoleSimulator = "examRoleSimulator"
     /// 考试倒推计划入口。
     case examReversePlanner = "examReversePlanner"
+    /// 本周专注:7 日堆叠柱状图 + 目标线 + 与上周对比。
+    case weeklyFocus = "weeklyFocus"
+    /// 各科一览:得分率 + sparkline + 近期变化。
+    case subjectSnapshot = "subjectSnapshot"
+    /// 身心趋势:心情 / 睡眠 / HRV 14 天图表。
+    case bodyMindTrend = "bodyMindTrend"
 
     /// 本地化显示名称
     var displayName: String {
@@ -77,6 +83,9 @@ enum HomeCardType: String, CaseIterable, Codable {
         case .brainUsage: return "Brain Usage".localized()
         case .examRoleSimulator: return "考场人格模拟器".localized()
         case .examReversePlanner: return "exam.reverse.planner.title".localized()
+        case .weeklyFocus: return "home.weeklyFocus.title".localized()
+        case .subjectSnapshot: return "home.subjects.title".localized()
+        case .bodyMindTrend: return "home.bodyMind.title".localized()
         }
     }
 
@@ -106,6 +115,9 @@ enum HomeCardType: String, CaseIterable, Codable {
         case .brainUsage: return "brain.head.profile"
         case .examRoleSimulator: return "person.crop.circle.badge.questionmark"
         case .examReversePlanner: return "calendar.badge.clock"
+        case .weeklyFocus: return "chart.bar.fill"
+        case .subjectSnapshot: return "square.stack.3d.up.fill"
+        case .bodyMindTrend: return "waveform.path.ecg"
         }
     }
 
@@ -113,7 +125,7 @@ enum HomeCardType: String, CaseIterable, Codable {
     /// 宽幅可视化卡片（如 90 天热力图、即将考试大卡）应标记为 true。
     var isFullWidth: Bool {
         switch self {
-        case .learningHeatmap, .memoryClimate, .examRoleSimulator, .examReversePlanner: return true
+        case .learningHeatmap, .memoryClimate, .examRoleSimulator, .examReversePlanner, .habitInsight: return true
         default: return false
         }
     }
@@ -138,33 +150,57 @@ struct HomeCardItem: Identifiable, Codable, Equatable {
 /// Home layout preference: card order + enabled flags.
 struct HomeLayoutPreference: Codable, Equatable {
     var items: [HomeCardItem]
+    /// 动态排布:开启后无信息的卡片自动隐藏,顺序由 `HomeDynamicLayoutEngine` 按紧迫度决定,
+    /// 用户手动排序被锁定;关闭后恢复 `items` 的自定义顺序。
+    /// Dynamic layout: when on, cards without information are hidden and the order is decided by
+    /// `HomeDynamicLayoutEngine` by urgency (manual ordering is locked); off restores `items` order.
+    var dynamicLayoutEnabled: Bool = false
+
+    init(items: [HomeCardItem], dynamicLayoutEnabled: Bool = false) {
+        self.items = items
+        self.dynamicLayoutEnabled = dynamicLayoutEnabled
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case items, dynamicLayoutEnabled
+    }
+
+    // 新字段用 decodeIfPresent 兼容旧 UserDefaults 数据 / decodeIfPresent keeps old stored data decodable.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.items = try c.decode([HomeCardItem].self, forKey: .items)
+        self.dynamicLayoutEnabled = try c.decodeIfPresent(Bool.self, forKey: .dynamicLayoutEnabled) ?? false
+    }
 
     /// 默认配置：全部启用，标准顺序
     /// Default: all enabled, standard order.
     static let `default` = HomeLayoutPreference(items: [
         HomeCardItem(type: .dailyPlan, enabled: true),
         HomeCardItem(type: .minimalPlan, enabled: true),
-        HomeCardItem(type: .learningHeatmap, enabled: true),
-        HomeCardItem(type: .hrvStatus, enabled: true),
-        HomeCardItem(type: .diary, enabled: true),
-        HomeCardItem(type: .homeAsk, enabled: true),
-        HomeCardItem(type: .examRoleSimulator, enabled: true),
-        HomeCardItem(type: .examReversePlanner, enabled: true),
-        HomeCardItem(type: .unregisteredExamsReminder, enabled: true),
         HomeCardItem(type: .flashcardReview, enabled: true),
-        HomeCardItem(type: .memoryClimate, enabled: true),
+        HomeCardItem(type: .upcomingExams, enabled: true),
+        HomeCardItem(type: .unregisteredExamsReminder, enabled: true),
+        HomeCardItem(type: .weeklyFocus, enabled: true),
+        HomeCardItem(type: .subjectSnapshot, enabled: true),
+        HomeCardItem(type: .learningHeatmap, enabled: true),
+        HomeCardItem(type: .streakProgress, enabled: true),
+        HomeCardItem(type: .trendChart, enabled: true),
+        HomeCardItem(type: .hrvStatus, enabled: true),
+        HomeCardItem(type: .bodyMindTrend, enabled: true),
+        HomeCardItem(type: .diary, enabled: true),
+        HomeCardItem(type: .habitInsight, enabled: true),
         HomeCardItem(type: .quickActions, enabled: true),
         HomeCardItem(type: .studyTimer, enabled: true),
-        HomeCardItem(type: .streakProgress, enabled: true),
-        HomeCardItem(type: .plant, enabled: true),
+        HomeCardItem(type: .homeAsk, enabled: true),
+        HomeCardItem(type: .examReversePlanner, enabled: true),
+        HomeCardItem(type: .examRoleSimulator, enabled: true),
         HomeCardItem(type: .studySuggestions, enabled: true),
-        HomeCardItem(type: .trendChart, enabled: true),
-        HomeCardItem(type: .upcomingExams, enabled: true),
-        HomeCardItem(type: .examDayReadiness, enabled: false),
-        HomeCardItem(type: .dailyQuote, enabled: true),
-        HomeCardItem(type: .recentGrades, enabled: true),
-        HomeCardItem(type: .habitInsight, enabled: false),
+        HomeCardItem(type: .memoryClimate, enabled: true),
+        HomeCardItem(type: .plant, enabled: true),
         HomeCardItem(type: .brainUsage, enabled: true),
+        HomeCardItem(type: .dailyQuote, enabled: true),
+        HomeCardItem(type: .recentGrades, enabled: false),
+        HomeCardItem(type: .examDayReadiness, enabled: false),
     ])
     
     /// 当前启用的卡片类型（按顺序）
@@ -192,10 +228,11 @@ struct HomeLayoutPreference: Codable, Equatable {
         else {
             return .default
         }
-        // 兼容：如果存储的 items 数量不对（新增/删除卡片类型），用默认覆盖
-        // Backwards-compat: if the stored items count mismatches HomeCardType.allCases
-        // (cards added/removed), merge with defaults instead of dropping data.
-        if decoded.items.count != HomeCardType.allCases.count {
+        // 兼容：已存类型集合与当前 HomeCardType 不一致（新增/删除卡片类型）时合并，
+        // 保留用户的顺序与开关，新类型按默认位置插入。
+        // Backwards-compat: when the stored type set differs from HomeCardType.allCases,
+        // merge while preserving the user's order and toggles; new types are inserted at default positions.
+        if Set(decoded.items.map(\.type)) != Set(HomeCardType.allCases) || decoded.items.count != HomeCardType.allCases.count {
             return mergeWithDefault(decoded)
         }
         return decoded
@@ -214,15 +251,29 @@ struct HomeLayoutPreference: Codable, Equatable {
         UserDefaults.standard.removeObject(forKey: userDefaultsKey)
     }
 
-    /// 合并已保存配置与默认配置：保留用户对已知类型的设置，补充新增类型
-    /// Merge saved config with default: preserve user choices for known types, add new ones.
-    private static func mergeWithDefault(_ saved: HomeLayoutPreference) -> HomeLayoutPreference {
-        var mergedItems: [HomeCardItem] = []
-        let savedMap = Dictionary(saved.items.map { ($0.type, $0.enabled) }, uniquingKeysWith: { first, _ in first })
-        for defaultItem in HomeLayoutPreference.default.items {
-            let enabled = savedMap[defaultItem.type] ?? defaultItem.enabled
-            mergedItems.append(HomeCardItem(type: defaultItem.type, enabled: enabled))
+    /// 合并已保存配置与默认配置：保留用户已有的顺序与开关，
+    /// 新增类型插到默认列表中其前一个已存在类型之后（找不到则放最前）。
+    /// Merge saved config with default: keep the user's order and toggles; insert each new type
+    /// after its nearest preceding default neighbour that already exists (or at the front).
+    static func mergeWithDefault(_ saved: HomeLayoutPreference) -> HomeLayoutPreference {
+        var result: [HomeCardItem] = []
+        var seen = Set<HomeCardType>()
+        for item in saved.items where !seen.contains(item.type) {
+            seen.insert(item.type)
+            result.append(item)
         }
-        return HomeLayoutPreference(items: mergedItems)
+        let defaults = HomeLayoutPreference.default.items
+        for (index, item) in defaults.enumerated() where !seen.contains(item.type) {
+            var insertAt = 0
+            for prev in defaults[..<index].reversed() {
+                if let pos = result.firstIndex(where: { $0.type == prev.type }) {
+                    insertAt = pos + 1
+                    break
+                }
+            }
+            result.insert(item, at: insertAt)
+            seen.insert(item.type)
+        }
+        return HomeLayoutPreference(items: result, dynamicLayoutEnabled: saved.dynamicLayoutEnabled)
     }
 }

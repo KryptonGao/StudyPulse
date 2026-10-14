@@ -26,7 +26,7 @@ AI 自测 / 相似题 / 思维导图 / 错题辩论、习惯洞察、长期时�
 依赖：本地包 `SwiftStreamingMarkdown`（位于 `Packages/`）；Vendored 包 `swift-cmark` / `swift-markdown` / `highlightswift` / `iosMath`（位于 `Packages/Vendored/`）。
 存储：SwiftData 实体层（`Models/SwiftData/StudyPulseModels.swift`，@Model 实体）作为持久化后端，采用版本化 schema 迁移（`Models/SwiftData/Schema/` 下 `StudyPulseSchemaV1`–`V4` + `StudyPulseMigrationPlan`，当前生产 schema V4）；进程内单例 `ModelContainerFactory.makeContainer()`，启动时由 `ModelContainerFactory.migrateFromJSONIfNeeded(context:)` 一次性从老 `~/Documents/*.json` 迁移；视图层继续使用 `nonisolated value type` 的 struct；偏好设置、主页顺序、phase 激活、每日目标保存在 UserDefaults；健康历史 `~/Documents/health_history.json`；学习会话由 `StudySessionRepository` 承载到 SwiftData `StudySessionRecord`（整个 `StudySession` 的 JSON 编码进 `payload: Data`，`startDate` 建索引），老 `study_sessions.json` 启动时合并导入；成就 `~/Documents/achievements.json`。
 应用组：`group.com.chenkai.gao.studypulse`，用于小组件与 Live Activity 数据同步。
-本地化：English、简体中文、繁體中文、日本語、한국（主应用与小组件各自维护五份 Localizable.strings）。
+本地化：English、简体中文、繁體中文、日本語、한국（主应用 `StudyPulse/Localizable.xcstrings` 与小组件 `StudyPulseWidget/Localizable.xcstrings` 各一份 String Catalog，内含五种语言；下文提到的 `*.lproj/Localizable.strings` 为旧格式）。主页新卡片文案使用 `home.*` 命名空间。
 图表：SwiftUI Charts。
 OCR：Vision 框架 `VNRecognizeTextRequest`。
 日历：EventKit（支持具体时间段或全天事件）。
@@ -165,6 +165,8 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
     - `MistakeFilter.swift`：错题筛选与排序。
     - `DailyPlanEngine.swift`：今日 Top-3 计划生成器；从 exam / mistake SRS / routine / task 中按截止日期与紧迫度排序产生 3 条建议。
     - `QuoteProvider.swift`：每日金句；持有 `Color`，是唯一依赖 SwiftUI 的服务。
+    - `HomeInsightsEngine.swift`：主页图表的纯函数聚合（`weeklyFocus` / `subjectSnapshots` / `moodSeries` / `sleepSeries` / `hrvSeries` / `weekStrip` / `weekdaySlotCells`），由 `HomeViewModel.recompute()` 调用；测试见 `HomeInsightsEngineTests`。
+    - `HomeDynamicLayoutEngine.swift`：主页动态排布纯函数；`HomeCardSignals`（各卡片是否有信息 / 紧迫度所需的数据快照）→ `arrange(enabled:signals:)` 过滤无信息卡片并按紧迫度稳定排序（同分保留用户已存顺序）；测试见 `HomeDynamicLayoutEngineTests`。
     - `TimeInvestmentEngine.swift`：`TimeInvestmentAggregator` 纯函数聚合器；按 `InvestmentTarget`（subject / subTask，含子任务后代汇总）从 `[StudySession]` 聚合直接 / 总投入秒数 + 连续打卡天数。
   - `ViewModels/`：22 个 ViewModel（5 主页面 + 1 子页面 + 独立 sheet / 流程 ViewModel）。
     - `HomeViewModel.swift`：`@MainActor ObservableObject`；SRS 概览 / 近期成绩 / 即将到来考试 / 未登记考试 / 图表选科（5 档 `SubjectSelectionRule`）；`recompute()` / `selectChartSubject(rule:)` / `gradesForSubject(_:)` / `generateSuggestions(limit:)`。
@@ -185,7 +187,7 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
     - `ViewModelError.swift`：错误类型。
   - `Views/`：SwiftUI 视图（按子领域拆分子目录）。
     - `ContentView.swift`：根视图。iPhone 使用 `TabView`（5 个标签：Home / Trends / Mistakes / Exams / Settings）；iPad 使用自定义 `NavigationSplitView` 侧栏。同时观察 `IntentActionStore` 处理 Siri Shortcuts 跨进程跳转（监听 `pendingIntentAction`，处理后清空）。
-    - `Home/`：`HomeView.swift` 主页仪表盘（分帧渲染 + 接收 `HomeViewModel`）；`HomeLayoutSettingsView.swift`；`HomeUIState.swift`；`HomeRecomputeModifier.swift`（phase / language 切换时触发 recompute）；`HomeCards/`（11 张卡片：`WelcomeHeaderCard` / `MainStatsCard` / `QuickActionsCard` / `RecentGradesCard` / `TrendChartCard` / `UpcomingExamsCard` / `StudySuggestionsCard` / `HomeAskCard` / `DailyPlanCard` / `DiaryHomeCard` / `HabitInsightCard`）。
+    - `Home/`：`HomeView.swift` 主页仪表盘（分帧渲染 + 接收 `HomeViewModel`）；`HomeLayoutSettingsView.swift`；`HomeUIState.swift`；`HomeRecomputeModifier.swift`（phase / language 切换时触发 recompute）；`HomeCards/`（含共用外观 `HomeCardChrome` + 新增 `OverviewHeroCard`（顶部 4 个带趋势的 KPI，取代 `MainStatsCard`，后者已不再被 `HomeView` 使用）/ `WeeklyFocusCard` / `SubjectSnapshotCard` / `BodyMindTrendCard` / `WeekdaySlotHeatmap`；其余：`WelcomeHeaderCard` / `MainStatsCard` / `QuickActionsCard` / `RecentGradesCard` / `TrendChartCard` / `UpcomingExamsCard` / `StudySuggestionsCard` / `HomeAskCard` / `DailyPlanCard` / `DiaryHomeCard` / `HabitInsightCard`）。
     - `Trends/`：`TrendsView.swift` 趋势分析（顶部可选 `LearningHeatmapView`，受 `AppPreferences.learningHeatmapOnTrends` 控制）。
     - `Exam/`：`ExamView.swift` / `ExamCalendarView.swift`（Phase 3 拆分后 + 3 sub-files：`ExamCalendarModels` / `ExamCalendarDayCell` / `ExamCalendarItemRow`）/ `ExamDetailView.swift`（Phase 3 拆分后 + 4 sub-files：`ChecklistRowView` / `RelatedMistakeCard` / `ReviewSectionRow` / `LinkedMistakesListView`；入口改为 `examId: UUID` 从 `container.examRepo` 实时查 `liveExam`）/ `ComprehensiveExamDetailView.swift`（综合考试详情）/ `ExamDetailEditView.swift` / `NewExamSetView.swift` / `ExamReviewView.swift` / `ScorePredictionEngine.swift` / `ScorePredictionSheet.swift` / `ScorePrediction/`（`SingleSubjectPrediction` / `ComprehensivePrediction` / `PredictionDiscussionEntry`）。
     - `Grade/`：`AddGradeView.swift` / `SubjectScoreCard.swift`。
@@ -759,7 +761,9 @@ PersonalBaselines 30 天个人基线：
 - recentGrades：近期成绩。
 - habitInsight：习惯洞察卡（基于 90 天 `StudySession` 由 `HabitInsightEngine.computeInsights(...)` 派生 4 类 PatternKind：peakEfficiency / procrastination / streakDay / weakDay；默认 enabled = false）。
 
-`HomeLayoutSettingsView` 提供拖动重新排序与每项启用 / 禁用开关，然后保存回 UserDefaults。`HomeLayoutPreference.mergeWithDefault` 当未来版本新增卡片类型时保留用户的选择。
+`HomeLayoutSettingsView` 提供拖动重新排序与每项启用 / 禁用开关，然后保存回 UserDefaults。`HomeLayoutPreference.mergeWithDefault` 当未来版本新增卡片类型时保留用户已存的顺序与开关，新类型按默认位置插到其前一个已存在类型之后。
+
+**动态排布**：`HomeLayoutPreference.dynamicLayoutEnabled`（默认 false，`decodeIfPresent` 兼容旧数据）。开启后 `HomeView.dynamicCards` 用 `HomeDynamicLayoutEngine.arrange(...)` 隐藏无信息卡片并按紧迫度自动排序，`HomeLayoutSettingsView` 锁定拖动排序（editMode 置 inactive + `.moveDisabled`），各卡片的启用开关仍有效；关闭后恢复用户自定义顺序。新增 `HomeCardType` 时必须同步补 `hasInformation` / `priority` 两个 switch。
 
 iPad 渲染：`HomeView.iPadDynamicCards` 按"块"渲染：全宽卡片（`isFullWidth: true`）脱离 2 列网格独占整行，普通卡片每 2 个成行。`HomeView` 顶部 `LearningHeatmapView` 是全宽卡片，默认在顶部位置。
 

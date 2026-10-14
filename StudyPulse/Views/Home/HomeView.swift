@@ -33,6 +33,7 @@ struct HomeView: View {
     @Environment(RepositoryContainer.self) private var container
     @State private var viewModel: HomeViewModel
     @Environment(HealthKitManager.self) private var hrvManager: HealthKitManager
+    @Environment(AchievementManager.self) private var achievementManager
 
     /// UI 临时状态聚合(分阶段渲染 / 模态 / 报告导出)。详见 `HomeUIState`。
     @State private var uiState = HomeUIState()
@@ -59,9 +60,9 @@ struct HomeView: View {
                 LazyVStack(spacing: 20) {
                     // 顶部欢迎区域（全宽）
                     WelcomeHeaderCard()
-                    // 主要统计卡片（全宽，4 个指标横排）
+                    // 总览 KPI 卡（全宽，4 个带趋势的指标）
                     if uiState.renderPhase >= 1 {
-                        MainStatsCard()
+                        OverviewHeroCard(viewModel: viewModel)
                     }
 
                     if uiState.renderPhase >= 2 {
@@ -212,7 +213,11 @@ struct HomeView: View {
     @ViewBuilder
     private var dynamicCards: some View {
         let layout = HomeLayoutPreference.load()
-        let enabledTypes = layout.enabledTypes
+        // 动态排布:隐藏无信息卡片并按紧迫度自动排序;关闭时沿用用户自定义顺序
+        // Dynamic layout: hide empty cards and order by urgency; off keeps the user's custom order
+        let enabledTypes = layout.dynamicLayoutEnabled
+            ? HomeDynamicLayoutEngine.arrange(enabled: layout.enabledTypes, signals: cardSignals)
+            : layout.enabledTypes
 
         if isRegularWidth {
             // iPad: 按 enabledTypes 顺序渲染；全宽卡片独占一行，其他 2 列成行
@@ -226,6 +231,33 @@ struct HomeView: View {
                 }
             }
         }
+    }
+
+    /// 动态排布所需的数据快照 / Data snapshot feeding the dynamic layout engine.
+    private var cardSignals: HomeCardSignals {
+        var signals = HomeCardSignals()
+        // 占位项("今日无事")不算信息 / the "nothing today" placeholder is not information
+        signals.dailyPlanCount = viewModel.dailyPlan.filter { $0.kind != .placeholder }.count
+        signals.minimalPlanActive = viewModel.minimalPlan.isActive
+        signals.dueFlashcards = viewModel.srsOverview.dueCount
+        if let next = viewModel.upcomingExams.map(\.examDate).min() {
+            signals.nextExamDays = OverviewHeroCard.daysUntil(next)
+        }
+        signals.unregisteredExamCount = viewModel.unregisteredExams.count
+        signals.weeklyFocusHasData = viewModel.weeklyFocus.totalMinutes + viewModel.weeklyFocus.previousTotalMinutes > 0
+        signals.subjectSnapshotCount = viewModel.subjectSnapshots.count
+        signals.hasActivityHistory = achievementManager.snapshot.logs.contains { $0.totalActivityPoints > 0 }
+        signals.currentStreak = achievementManager.currentStreak
+        signals.recentGradeCount = viewModel.recentGrades.count
+        signals.healthDataAvailable = hrvManager.hrvEnabled || hrvManager.bodyStatusAuthorized
+        signals.hasBodyMindData = viewModel.hasBodyMindData
+        signals.diaryEnabled = container.envManager.preferences.diaryEnabled
+        signals.hasDiaryToday = container.diaryRepo.todayEntry() != nil
+        signals.completedSessionCount = container.studySessionRepo.sessions.filter(\.completed).count
+        signals.memoryClimateSubjectCount = viewModel.memoryClimate.subjects.count
+        signals.plantEnabled = container.envManager.preferences.plantCardEnabled
+        signals.hour = Calendar.current.component(.hour, from: Date())
+        return signals
     }
 
     /// iPad 上的卡片布局：把 enabledTypes 切成"块"——全宽卡片独立成块，
@@ -286,8 +318,12 @@ struct HomeView: View {
             DailyPlanCard(items: viewModel.dailyPlan)
                 .contextMenu { shareCardMenu(for: type) }
         case .minimalPlan:
-            MinimalCompletionPlanCard(result: viewModel.minimalPlan)
-                .contextMenu { shareCardMenu(for: type) }
+            // 仅在状态不佳触发压缩计划时显示,避免与 Top-3 重复占位
+            // Shown only when the compressed plan is active, to avoid duplicating Top-3.
+            if viewModel.minimalPlan.isActive {
+                MinimalCompletionPlanCard(result: viewModel.minimalPlan)
+                    .contextMenu { shareCardMenu(for: type) }
+            }
         case .studyTimer:
             StudyTimerCard()
                 .contextMenu { shareCardMenu(for: type) }
@@ -371,6 +407,25 @@ struct HomeView: View {
         case .examReversePlanner:
             ExamReversePlannerHomeCard {
                 uiState.showingExamReversePlanner = true
+            }
+        case .weeklyFocus:
+            if viewModel.weeklyFocus.totalMinutes + viewModel.weeklyFocus.previousTotalMinutes > 0 {
+                WeeklyFocusCard(summary: viewModel.weeklyFocus)
+                    .contextMenu { shareCardMenu(for: type) }
+            }
+        case .subjectSnapshot:
+            if !viewModel.subjectSnapshots.isEmpty {
+                SubjectSnapshotCard(snapshots: viewModel.subjectSnapshots)
+                    .contextMenu { shareCardMenu(for: type) }
+            }
+        case .bodyMindTrend:
+            if viewModel.hasBodyMindData {
+                BodyMindTrendCard(
+                    mood: viewModel.moodSeries,
+                    sleep: viewModel.sleepSeries,
+                    hrv: viewModel.hrvSeries
+                )
+                .contextMenu { shareCardMenu(for: type) }
             }
         }
     }
@@ -490,6 +545,9 @@ struct HomeView: View {
         case .brainUsage: return "Brain Usage".localized()
         case .examRoleSimulator: return "考场人格模拟器".localized()
         case .examReversePlanner: return "exam.reverse.planner.title".localized()
+        case .weeklyFocus: return "home.weeklyFocus.title".localized()
+        case .subjectSnapshot: return "home.subjects.title".localized()
+        case .bodyMindTrend: return "home.bodyMind.title".localized()
         }
     }
 
@@ -571,6 +629,24 @@ struct HomeView: View {
                     ExamRoleSimulatorHomeCard(onOpen: {})
                 case .examReversePlanner:
                     ExamReversePlannerHomeCard(onOpen: {})
+                case .weeklyFocus:
+                    WeeklyFocusCard(summary: viewModel.weeklyFocus)
+                case .subjectSnapshot:
+                    if !viewModel.subjectSnapshots.isEmpty {
+                        SubjectSnapshotCard(snapshots: viewModel.subjectSnapshots)
+                    } else {
+                        Text("No data in this period".localized())
+                    }
+                case .bodyMindTrend:
+                    if viewModel.hasBodyMindData {
+                        BodyMindTrendCard(
+                            mood: viewModel.moodSeries,
+                            sleep: viewModel.sleepSeries,
+                            hrv: viewModel.hrvSeries
+                        )
+                    } else {
+                        Text("No data in this period".localized())
+                    }
                 }
             }
             .frame(maxWidth: .infinity)

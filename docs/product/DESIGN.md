@@ -201,24 +201,53 @@ The Home tab is the only place in the app with a non-fixed layout. The
 order and visibility of its cards come from `HomeLayoutPreference`
 (UserDefaults-persisted).
 
-### 8.1 Default card order
-1. **HRV Readiness** — `HRVStatusCard`
-2. **Exam Grade Reminder** — `UnregisteredExamsReminderCard` (3–7 day
-   window after an exam with no grade; auto-hides if no matches)
-3. **Quick Actions** — `QuickActionsCard`
-4. **Study Suggestions** — `StudySuggestionsCard`
-5. **Trend Chart** — `ChartSectionView` (auto-hides when no recent grades)
-6. **Upcoming Exams** — `UpcomingExamsSection` (auto-hides when empty)
-7. **Daily Quote** — `DailyQuoteCard` (date-of-year rotation)
-8. **Recent Grades** — `RecentGradesSection` (auto-hides when empty)
+### 8.1 Information hierarchy and default card order
+`WelcomeHeaderCard` and `OverviewHeroCard` are pinned at the top and are
+not configurable. The hero shows four KPI tiles with trends: average
+score rate (+ sparkline / delta), today's focus (ring vs. goal), streak
+(+ 7-day activity strip) and the next exam countdown.
+
+The configurable cards are ordered in layers so the page reads top-down
+as *today → progress → state → tools → more*:
+
+1. **Today** — `dailyPlan`, `minimalPlan` (only when the compressed plan
+   is active), `flashcardReview` (only when reviews are due),
+   `upcomingExams`, `unregisteredExamsReminder`
+2. **Progress** — `weeklyFocus` (7-day stacked bars by intensity + goal
+   line + week-over-week), `subjectSnapshot` (per-subject rate, sparkline,
+   delta; weakest first), `learningHeatmap`, `streakProgress`, `trendChart`
+3. **State** — `hrvStatus`, `bodyMindTrend` (mood / sleep / HRV, 14 days),
+   `diary`, `habitInsight` (weekday × time-slot heatmap)
+4. **Tools** — `quickActions`, `studyTimer`, `homeAsk`,
+   `examReversePlanner`, `examRoleSimulator`
+5. **More** — `studySuggestions`, `memoryClimate`, `plant`, `brainUsage`,
+   `dailyQuote`; `recentGrades` and `examDayReadiness` are off by default.
+
+Cards with no data hide instead of showing an empty placeholder.
+Shared chrome lives in `HomeCardChrome.swift` (`HomeCardContainer`,
+`HomeCardHeader`, `HomeSparkline`, `HomeDeltaBadge`); new cards should use
+`.cardSkin()` (via `HomeCardContainer`), not `.glassCard`, so exported
+images keep their background. Derived chart series are computed in
+`HomeInsightsEngine` (pure functions) and published by `HomeViewModel`.
 
 ### 8.2 Layout rules
 - iPhone: single-column `VStack`.
-- iPad: 2-column `LazyVGrid` with 16 pt spacing.
+- iPad: 2-column `LazyVGrid` with 16 pt spacing; `isFullWidth` cards
+  (`learningHeatmap`, `habitInsight`, `memoryClimate`, …) take a full row.
 - `HomeLayoutSettingsView` provides drag-to-reorder and toggle switches;
   empty toggles hide the card on next render.
-- `mergeWithDefault` keeps the user's choices when a new card type is
-  added in a future version.
+- `mergeWithDefault` keeps the user's saved order and toggles when a new
+  card type is added; each new type is inserted after its nearest
+  preceding neighbour in the default list.
+- **Dynamic layout** (`HomeLayoutPreference.dynamicLayoutEnabled`, off by
+  default): when on, `HomeDynamicLayoutEngine` hides cards that carry no
+  information (no due reviews, no exams, no data yet…) and orders the rest by
+  urgency — compressed plan, exams within 3 days, due reviews and Today's Top 3
+  first; action cards (quick actions, quote…) last; an evening diary prompt
+  rises when today has no entry. Ties keep the user's saved order. While on,
+  drag-to-reorder is locked in `HomeLayoutSettingsView` (lock icons, editMode
+  inactive) but per-card switches still apply; turning it off restores the
+  custom order untouched.
 
 ### 8.3 HRV card detail levels
 User-controllable via `HRVDetailLevel` (UserDefaults `hrv_detail_level`):
