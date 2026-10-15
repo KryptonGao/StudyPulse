@@ -60,6 +60,11 @@ struct HomeView: View {
                 LazyVStack(spacing: 20) {
                     // 顶部欢迎区域（全宽）
                     WelcomeHeaderCard()
+                    // 今日 Top-3 置顶:首屏先回答「今天最重要的一件事」
+                    // Today's Top 3 is pinned first so the first screen answers "what matters today".
+                    if uiState.renderPhase >= 1 && isDailyPlanPinned {
+                        cardView(for: .dailyPlan)
+                    }
                     // 总览 KPI 卡（全宽，4 个带趋势的指标）
                     if uiState.renderPhase >= 1 {
                         OverviewHeroCard(viewModel: viewModel)
@@ -93,15 +98,19 @@ struct HomeView: View {
                 }
             }
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        uiState.showingReportOptions = true
+                // 设置入口:不再只藏在头像里
+                // Settings entry: no longer hidden behind the avatar only.
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationLink {
+                        SettingsView()
                     } label: {
-                        Image(systemName: "square.and.arrow.up")
+                        Image(systemName: "gearshape")
                             .font(.subheadline.weight(.semibold))
                     }
-                    .accessibilityLabel("Share Report".localized())
-                    .disabled(uiState.isExporting)
+                    .accessibilityLabel("Settings".localized())
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    shareMenu
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -215,9 +224,12 @@ struct HomeView: View {
         let layout = HomeLayoutPreference.load()
         // 动态排布:隐藏无信息卡片并按紧迫度自动排序;关闭时沿用用户自定义顺序
         // Dynamic layout: hide empty cards and order by urgency; off keeps the user's custom order
+        // 置顶的 dailyPlan 已在顶部单独渲染,这里排除避免重复
+        // dailyPlan is rendered pinned at the top, so exclude it here to avoid duplication.
+        let listTypes = layout.enabledTypes.filter { $0 != .dailyPlan }
         let enabledTypes = layout.dynamicLayoutEnabled
-            ? HomeDynamicLayoutEngine.arrange(enabled: layout.enabledTypes, signals: cardSignals)
-            : layout.enabledTypes
+            ? HomeDynamicLayoutEngine.arrange(enabled: listTypes, signals: cardSignals)
+            : listTypes
 
         if isRegularWidth {
             // iPad: 按 enabledTypes 顺序渲染；全宽卡片独占一行，其他 2 列成行
@@ -309,38 +321,44 @@ struct HomeView: View {
         return chunks
     }
 
-    /// 根据卡片类型返回对应视图；数据不足时自动隐藏
+    /// 根据卡片类型返回对应视图,并统一挂上长按分享菜单(原先每个分支各挂一次)。
+    /// Returns the card for a type and attaches the long-press share menu once
+    /// (previously repeated in every branch).
     @ViewBuilder
     private func cardView(for type: HomeCardType) -> some View {
-        // 每个分支都用 `.contextMenu` 包一层，支持长按分享该卡片。
+        if isShareable(type) {
+            cardContent(for: type)
+                .contextMenu { shareCardMenu(for: type) }
+        } else {
+            cardContent(for: type)
+        }
+    }
+
+    /// 根据卡片类型返回对应视图；数据不足时自动隐藏
+    @ViewBuilder
+    private func cardContent(for type: HomeCardType) -> some View {
         switch type {
         case .dailyPlan:
             DailyPlanCard(items: viewModel.dailyPlan)
-                .contextMenu { shareCardMenu(for: type) }
         case .minimalPlan:
             // 仅在状态不佳触发压缩计划时显示,避免与 Top-3 重复占位
             // Shown only when the compressed plan is active, to avoid duplicating Top-3.
             if viewModel.minimalPlan.isActive {
                 MinimalCompletionPlanCard(result: viewModel.minimalPlan)
-                    .contextMenu { shareCardMenu(for: type) }
             }
         case .studyTimer:
             StudyTimerCard()
-                .contextMenu { shareCardMenu(for: type) }
         case .hrvStatus:
             HRVStatusCard()
-                .contextMenu { shareCardMenu(for: type) }
         case .unregisteredExamsReminder:
             if !viewModel.unregisteredExams.isEmpty {
                 UnregisteredExamsReminderCard(unregisteredExams: viewModel.unregisteredExams)
-                    .contextMenu { shareCardMenu(for: type) }
             }
         case .flashcardReview:
             if viewModel.srsOverview.dueCount > 0 {
                 FlashcardReviewHomeCard(overview: viewModel.srsOverview) {
                     uiState.showingFlashcards = true
                 }
-                .contextMenu { shareCardMenu(for: type) }
             }
         case .memoryClimate:
             if !viewModel.memoryClimate.subjects.isEmpty {
@@ -350,56 +368,42 @@ struct HomeView: View {
                 ) {
                     uiState.showingFlashcards = true
                 }
-                .contextMenu { shareCardMenu(for: type) }
             }
         case .quickActions:
             QuickActionsCard()
-                .contextMenu { shareCardMenu(for: type) }
         case .studySuggestions:
             StudySuggestionsCard(viewModel: viewModel)
-                .contextMenu { shareCardMenu(for: type) }
         case .trendChart:
             if !viewModel.recentGrades.isEmpty {
                 TrendChartCard(viewModel: viewModel)
-                    .contextMenu { shareCardMenu(for: type) }
             }
         case .upcomingExams:
             if !viewModel.upcomingExams.isEmpty {
                 UpcomingExamsCard()
-                    .contextMenu { shareCardMenu(for: type) }
             }
         case .examDayReadiness:
             ExamDayReadinessCard(viewModel: viewModel)
-                .contextMenu { shareCardMenu(for: type) }
         case .dailyQuote:
             DailyQuoteCard(quote: QuoteProvider.dailyQuote())
-                .contextMenu { shareCardMenu(for: type) }
         case .streakProgress:
             StreakHomeCard()
-                .contextMenu { shareCardMenu(for: type) }
         case .recentGrades:
             if !viewModel.recentGrades.isEmpty {
                 RecentGradesCard()
-                    .contextMenu { shareCardMenu(for: type) }
             }
         case .learningHeatmap:
             LearningHeatmapView()
-                .contextMenu { shareCardMenu(for: type) }
         case .plant:
             PlantHomeCard()
-                .contextMenu { shareCardMenu(for: type) }
         case .homeAsk:
-            // HomeAskCard 自带 Button 弹出 sheet,不参与长按分享(不能导出"输入框"图片)
+            // HomeAskCard 自带 Button 弹出 sheet,不参与分享(不能导出"输入框"图片)
             HomeAskCard()
         case .diary:
             DiaryHomeCard()
-                .contextMenu { shareCardMenu(for: type) }
         case .habitInsight:
             HabitInsightCard()
-                .contextMenu { shareCardMenu(for: type) }
         case .brainUsage:
             BrainUsageCard()
-                .contextMenu { shareCardMenu(for: type) }
         case .examRoleSimulator:
             ExamRoleSimulatorHomeCard {
                 uiState.showingExamRoleSimulator = true
@@ -411,12 +415,10 @@ struct HomeView: View {
         case .weeklyFocus:
             if viewModel.weeklyFocus.totalMinutes + viewModel.weeklyFocus.previousTotalMinutes > 0 {
                 WeeklyFocusCard(summary: viewModel.weeklyFocus)
-                    .contextMenu { shareCardMenu(for: type) }
             }
         case .subjectSnapshot:
             if !viewModel.subjectSnapshots.isEmpty {
                 SubjectSnapshotCard(snapshots: viewModel.subjectSnapshots)
-                    .contextMenu { shareCardMenu(for: type) }
             }
         case .bodyMindTrend:
             if viewModel.hasBodyMindData {
@@ -425,9 +427,82 @@ struct HomeView: View {
                     sleep: viewModel.sleepSeries,
                     hrv: viewModel.hrvSeries
                 )
-                .contextMenu { shareCardMenu(for: type) }
             }
         }
+    }
+
+    /// 是否允许分享为图片:交互入口类卡片(AI 输入框 / 模拟器入口)不参与。
+    /// Whether a card can be shared as an image; interactive entry cards are excluded.
+    private func isShareable(_ type: HomeCardType) -> Bool {
+        switch type {
+        case .homeAsk, .examRoleSimulator, .examReversePlanner: return false
+        default: return true
+        }
+    }
+
+    /// 卡片当前是否真的会渲染出内容(与 `cardContent` 的显示条件保持一致)。
+    /// Whether the card currently renders content (mirrors `cardContent` conditions).
+    private func hasVisibleContent(_ type: HomeCardType) -> Bool {
+        switch type {
+        case .minimalPlan: return viewModel.minimalPlan.isActive
+        case .unregisteredExamsReminder: return !viewModel.unregisteredExams.isEmpty
+        case .flashcardReview: return viewModel.srsOverview.dueCount > 0
+        case .memoryClimate: return !viewModel.memoryClimate.subjects.isEmpty
+        case .trendChart, .recentGrades: return !viewModel.recentGrades.isEmpty
+        case .upcomingExams: return !viewModel.upcomingExams.isEmpty
+        case .weeklyFocus: return viewModel.weeklyFocus.totalMinutes + viewModel.weeklyFocus.previousTotalMinutes > 0
+        case .subjectSnapshot: return !viewModel.subjectSnapshots.isEmpty
+        case .bodyMindTrend: return viewModel.hasBodyMindData
+        default: return true
+        }
+    }
+
+    /// 当前屏幕上可分享的卡片(用于工具栏分享菜单)。
+    /// Cards currently on screen that can be shared (feeds the toolbar share menu).
+    private var shareableCards: [HomeCardType] {
+        HomeLayoutPreference.load().enabledTypes.filter { isShareable($0) && hasVisibleContent($0) }
+    }
+
+    /// 顶部置顶的「今日 Top-3」是否显示:需启用,且动态排布下无内容时隐藏。
+    /// Whether the pinned Top-3 shows: must be enabled, hidden under dynamic layout when empty.
+    private var isDailyPlanPinned: Bool {
+        let layout = HomeLayoutPreference.load()
+        guard layout.isEnabled(.dailyPlan) else { return false }
+        if layout.dynamicLayoutEnabled {
+            return HomeDynamicLayoutEngine.hasInformation(.dailyPlan, signals: cardSignals)
+        }
+        return true
+    }
+
+    /// 工具栏分享菜单:整页报告 + 逐卡分享(让长按之外也能发现单卡分享)。
+    /// Toolbar share menu: full report + per-card share (makes card sharing discoverable beyond long-press).
+    @ViewBuilder
+    private var shareMenu: some View {
+        Menu {
+            Button {
+                uiState.showingReportOptions = true
+            } label: {
+                Label("Share Report".localized(), systemImage: "doc.richtext")
+            }
+            let cards = shareableCards
+            if !cards.isEmpty {
+                Divider()
+                Section("home.share.card.section".localized()) {
+                    ForEach(cards, id: \.self) { type in
+                        Button {
+                            Task { await renderAndShareSingleCard(type: type) }
+                        } label: {
+                            Label(cardShareTitle(for: type), systemImage: type.icon)
+                        }
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: "square.and.arrow.up")
+                .font(.subheadline.weight(.semibold))
+        }
+        .accessibilityLabel("Share Report".localized())
+        .disabled(uiState.isExporting || uiState.isRenderingReport)
     }
 
     /// 单卡片长按分享：contextMenu 内显示的按钮。

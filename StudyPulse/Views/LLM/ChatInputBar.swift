@@ -142,12 +142,14 @@ struct ChatInputBar: View {
                         .font(.system(size: 32))
                         .foregroundStyle(.red)
                 }
+                .accessibilityLabel("a11y.stopGenerating".localized())
             } else {
                 Button(action: submit) {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.system(size: 32))
                         .foregroundStyle(canSend ? Color.accentColor : Color.secondary)
                 }
+                .accessibilityLabel("a11y.send".localized())
                 .disabled(!canSend)
             }
         }
@@ -191,6 +193,7 @@ struct ChatInputBar: View {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundStyle(.white, .black.opacity(0.55))
                             }
+                            .accessibilityLabel("a11y.removeAttachment".localized())
                             .offset(x: 5, y: -5)
                         }
                     }

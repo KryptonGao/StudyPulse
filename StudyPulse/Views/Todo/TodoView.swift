@@ -95,7 +95,13 @@ struct TodoView: View {
     private var mainContent: some View {
         if viewModel.allEntries.isEmpty && viewModel.pastEntries.isEmpty {
             VStack(spacing: 0) {
-                filterChips
+                // 完全没有数据时筛选 chip 没有意义,隐藏;
+                // 但已选了某个筛选导致无结果时必须保留,否则用户无法切回「全部」。
+                // With no data at all the chips are noise, so hide them; keep them when a
+                // non-"All" filter produced the empty result, otherwise the user can't switch back.
+                if viewModel.typeFilter != .all {
+                    filterChips
+                }
                 emptyState
             }
         } else if viewModel.viewMode == .calendar {

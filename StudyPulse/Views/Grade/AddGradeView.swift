@@ -74,8 +74,13 @@ private extension AddGradeView {
         Section(header: Text("Exam Details".localized())) {
             HStack {
                 Text("Exam Name".localized())
-                TextField("Name".localized(), text: $viewModel.examName)
-                    .multilineTextAlignment(.trailing)
+                // 占位符显示自动带出的名称;留空保存时就用它
+                // The placeholder shows the auto-filled name, which is used when left empty.
+                TextField(
+                    viewModel.suggestedExamName.isEmpty ? "Name".localized() : viewModel.suggestedExamName,
+                    text: $viewModel.examName
+                )
+                .multilineTextAlignment(.trailing)
             }
 
             DatePicker("Exam Date".localized(), selection: $viewModel.selectedDate, in: ...Date(), displayedComponents: .date)
@@ -83,6 +88,14 @@ private extension AddGradeView {
             examTypePicker
 
             examAssociationPicker
+
+            // Save 不可用时说明原因,而不是静默置灰
+            // Explain why Save is disabled instead of greying it out silently.
+            if let hint = viewModel.saveBlockerHint {
+                Label(hint, systemImage: "info.circle")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -236,7 +249,7 @@ private extension AddGradeView {
                     presentationMode.wrappedValue.dismiss()
                 }
                 .fontWeight(.semibold)
-                .disabled(viewModel.examName.isEmpty || viewModel.subjectScores.isEmpty)
+                .disabled(!viewModel.canSave)
             }
         }
     }
@@ -263,6 +276,7 @@ struct ScoreControlView: View {
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(value <= 0 ? .gray : .blue)
                 }
+                .accessibilityLabel("a11y.decrease".localized())
                 .buttonStyle(.plain)
                 
                 Text(String(format: "%.1f", value))
@@ -275,6 +289,7 @@ struct ScoreControlView: View {
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(value >= Double(max) ? .gray : .blue)
                 }
+                .accessibilityLabel("a11y.increase".localized())
                 .buttonStyle(.plain)
             }
             
@@ -326,6 +341,7 @@ struct RankingControlView: View {
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor((ranking ?? 1) <= 1 ? .gray : .blue)
                 }
+                .accessibilityLabel("a11y.decrease".localized())
                 .buttonStyle(.plain)
                 .contentShape(Rectangle())
                 
@@ -347,6 +363,7 @@ struct RankingControlView: View {
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(.blue)
                 }
+                .accessibilityLabel("a11y.increase".localized())
                 .buttonStyle(.plain)
                 .contentShape(Rectangle())
             }

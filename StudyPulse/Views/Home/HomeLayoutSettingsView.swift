@@ -35,7 +35,7 @@ struct HomeLayoutSettingsView: View {
                 Section {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         HStack(spacing: 12) {
-                            Image(systemName: dynamicEnabled ? "lock.fill" : "line.3.horizontal")
+                            Image(systemName: item.type == .dailyPlan ? "pin.fill" : (dynamicEnabled ? "lock.fill" : "line.3.horizontal"))
                                 .font(.system(size: 14))
                                 .foregroundColor(.secondary)
                                 .frame(width: 24)
@@ -44,8 +44,17 @@ struct HomeLayoutSettingsView: View {
                                 .foregroundColor(.accentColor)
                                 .frame(width: 28)
 
-                            Text(item.type.displayName)
-                                .font(.system(size: 16))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.type.displayName)
+                                    .font(.system(size: 16))
+                                // Top-3 始终置顶,在此说明避免用户困惑
+                                // Top 3 is always pinned first; explain it here to avoid confusion.
+                                if item.type == .dailyPlan {
+                                    Text("home.layout.pinned".localized())
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
 
                             Spacer()
 
@@ -53,7 +62,7 @@ struct HomeLayoutSettingsView: View {
                                 .labelsHidden()
                         }
                         .padding(.vertical, 4)
-                        .moveDisabled(dynamicEnabled)
+                        .moveDisabled(dynamicEnabled || item.type == .dailyPlan)
                     }
                     .onMove { source, destination in
                         items.move(fromOffsets: source, toOffset: destination)

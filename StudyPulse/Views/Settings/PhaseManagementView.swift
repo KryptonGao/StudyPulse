@@ -33,6 +33,7 @@ struct PhaseManagementView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add".localized())
             }
         }
         .containerBackground(.clear, for: .navigation)

@@ -28,6 +28,7 @@ struct SessionGoalPickerRow: View {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.secondary)
                     }
+                    .accessibilityLabel("a11y.clearGoal".localized())
                     .buttonStyle(.plain)
                 }
             }

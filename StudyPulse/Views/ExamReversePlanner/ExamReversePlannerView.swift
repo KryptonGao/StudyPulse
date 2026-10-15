@@ -73,6 +73,7 @@ struct ExamReversePlannerView: View {
                     } label: {
                         Image(systemName: "xmark")
                     }
+                    .accessibilityLabel("Close".localized())
                     .disabled(viewModel.phase == .loading)
                 }
                 if !showingEditor && viewModel.phase != .loading {
@@ -84,6 +85,7 @@ struct ExamReversePlannerView: View {
                         } label: {
                             Image(systemName: "plus")
                         }
+                        .accessibilityLabel("Add".localized())
                     }
                 }
             }

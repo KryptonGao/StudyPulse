@@ -244,6 +244,7 @@ struct DiaryCalendarView: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(systemName.contains("left") ? "a11y.previous".localized() : "a11y.next".localized())
     }
 
     @ViewBuilder

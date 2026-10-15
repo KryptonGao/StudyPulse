@@ -56,6 +56,7 @@ private struct FullscreenZoomableView: View {
                             .foregroundColor(.white)
                             .padding(8)
                     }
+                    .accessibilityLabel("Close".localized())
                     .padding(.trailing, 8)
                     .padding(.top, 8)
                 }

@@ -208,6 +208,7 @@ struct StudyTimerSetupSheet: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("a11y.decrease".localized())
 
                 Text("\(Int(customMinutes)) min")
                     .font(.system(size: 20, weight: .semibold, design: .monospaced))
@@ -222,6 +223,7 @@ struct StudyTimerSetupSheet: View {
                         .font(.system(size: 28))
                         .foregroundColor(.secondary)
                 }
+                .accessibilityLabel("a11y.increase".localized())
                 .buttonStyle(.plain)
             }
         }

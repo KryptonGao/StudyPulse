@@ -50,7 +50,7 @@ struct SubjectScoreCard: View {
     let history: [Grade]
     /// 新增:接收显示模式
     /// New: receives the display mode from the parent.
-    let displayMode: String
+    let displayMode: TrendsDisplayMode
     @Environment(RepositoryContainer.self) private var container
     /// 入场动画
     /// Entry animation.
@@ -105,7 +105,7 @@ struct SubjectScoreCard: View {
                         VStack(alignment: .leading, spacing: 4) {
                             // 根据模式切换显示内容
                             // Switch display content based on `displayMode`.
-                            if displayMode == "score" {
+                            if displayMode == .score {
                             HStack(alignment: .firstTextBaseline, spacing: 4) {
                                 Text(String(format: "%.1f", g.score))
                                     .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -164,7 +164,7 @@ struct SubjectScoreCard: View {
                                         ranking: $0.ranking
                                     )
                                 },
-                                color: displayMode == "score" ? .blue : .indigo
+                                color: displayMode == .score ? .blue : .indigo
                             )
                         ],
                         displayMode: displayMode,
@@ -249,8 +249,8 @@ struct miniChartView: View {
     /// Whether to render the Y axis as a percentage (kept for future use; currently unused).
     var showYAxisAsPercentage: Bool = false
     /// 接收显示模式:score / ranking
-    /// Display mode passed in: "score" / "ranking".
-    var displayMode: String
+    /// Display mode passed in: score / ranking.
+    var displayMode: TrendsDisplayMode
     /// 科目满分(用于按比例显示颜色)
     /// Subject full score (used for proportional color mapping).
     var fullScore: Double = 100
@@ -273,7 +273,7 @@ struct miniChartView: View {
     }
 
     var body: some View {
-        if displayMode == "ranking" {
+        if displayMode == .ranking {
             // 排名仍用折线图(排名只有 1 个维度,不适合饼/直方图/热力)
             // Ranking still uses a line chart (ranking is 1-D, so pie/histogram/heatmap don't apply).
             rankingLineChart
@@ -341,7 +341,7 @@ struct miniChartView: View {
                 Grade(subject: "Chinese", score: 105.0, date: Date().addingTimeInterval(-86400 * 5)),
                 Grade(subject: "Chinese", score: 112.0, date: Date())
             ],
-            displayMode: "score"
+            displayMode: .score
         )
         .environment(RepositoryContainer())
 
@@ -353,7 +353,7 @@ struct miniChartView: View {
                 Grade(subject: "Mathematics", score: 100.0, date: Date().addingTimeInterval(-86400 * 5)),
                 Grade(subject: "Mathematics", score: 89.0, date: Date())
             ],
-            displayMode: "ranking"
+            displayMode: .ranking
         )
         .environment(RepositoryContainer())
     }

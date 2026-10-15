@@ -48,6 +48,7 @@ struct VoiceMemoRecordingSheet: View {
                                 .resizable()
                                 .frame(width: 50, height: 50)
                         }
+                        .accessibilityLabel("a11y.discardRecording".localized())
                         .tint(.red)
                     }
 
@@ -66,6 +67,7 @@ struct VoiceMemoRecordingSheet: View {
                             .resizable()
                             .frame(width: 80, height: 80)
                     }
+                    .accessibilityLabel((manager.isRecording && !manager.isPaused) ? "a11y.pause".localized() : "a11y.record".localized())
                     .tint(manager.isRecording && !manager.isPaused ? .orange : .red)
                     .disabled(!manager.hasPermission)
 
@@ -81,6 +83,7 @@ struct VoiceMemoRecordingSheet: View {
                                 .resizable()
                                 .frame(width: 50, height: 50)
                         }
+                        .accessibilityLabel("a11y.saveRecording".localized())
                         .tint(.green)
                     }
                 }

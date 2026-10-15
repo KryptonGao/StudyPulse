@@ -190,6 +190,7 @@ struct FlashcardStudyView: View {
                 .foregroundStyle(viewModel.showingCalculator ? .white : .primary)
                 .shadow(color: .black.opacity(0.18), radius: 6, x: 0, y: 3)
         }
+        .accessibilityLabel("a11y.calculator".localized())
         .accessibilityLabel("Calculator".localized())
         .padding(.top, 8)
         .padding(.trailing, 16)

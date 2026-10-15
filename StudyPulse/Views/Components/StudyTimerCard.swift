@@ -202,6 +202,7 @@ struct StudyTimerCard: View {
                         .frame(width: 44, height: 44)
                         .background(Circle().fill(Color.red.opacity(0.12)))
                 }
+                .accessibilityLabel("a11y.cancelTimer".localized())
                 .buttonStyle(.plain)
 
                 Spacer()
@@ -216,6 +217,7 @@ struct StudyTimerCard: View {
                             .frame(width: 56, height: 56)
                             .background(Circle().fill(Color.orange))
                     }
+                    .accessibilityLabel("a11y.pause".localized())
                     .buttonStyle(.plain)
                 } else if timer.timerState == .paused {
                     Button {
@@ -227,6 +229,7 @@ struct StudyTimerCard: View {
                             .frame(width: 56, height: 56)
                             .background(Circle().fill(Color.green))
                     }
+                    .accessibilityLabel("a11y.resume".localized())
                     .buttonStyle(.plain)
                 }
 
@@ -241,6 +244,7 @@ struct StudyTimerCard: View {
                         .frame(width: 44, height: 44)
                         .background(Circle().fill(Color(.tertiarySystemFill)))
                 }
+                .accessibilityLabel("a11y.openTimer".localized())
                 .buttonStyle(.plain)
             }
         }

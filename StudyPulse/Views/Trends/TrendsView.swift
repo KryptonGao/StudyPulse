@@ -21,10 +21,9 @@ struct TrendsView: View {
     @State private var viewModel: TrendsViewModel
     @State private var showingAddGrade = false
 
-    // score = ranking =
     /// 卡片显示模式：score / ranking
     /// Card display mode: score / ranking.
-    @State var trendsShowingMode = "score"
+    @State var trendsShowingMode: TrendsDisplayMode = .score
     @State private var selectedRadarSubject: String?
 
     init(container: RepositoryContainer) {
@@ -118,46 +117,17 @@ struct TrendsView: View {
                 )
             }
             .toolbar {
-                //  /  
+                // 视图选项:显示模式 / 图表类型 / 热力图,全部就地切换(无需再进设置)
+                // View options: display mode / chart type / heatmap, all switchable in place.
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button {
-                            trendsShowingMode = "score"
-                        } label: {
-                            Label("", systemImage: "chart.bar.fill")
-                        }
-                        
-                        Button {
-                            trendsShowingMode = "ranking"
-                        } label: {
-                            Label("", systemImage: "trophy.fill")
-                        }
-
-                        Divider()
-
-                        // 90 天热力图开关（持久化到 AppPreferences）
-                        Toggle(isOn: Binding(
-                            get: { container.envManager.preferences.learningHeatmapOnTrends },
-                            set: { container.envManager.preferences.learningHeatmapOnTrends = $0 }
-                        )) {
-                            Label("Show Learning Heatmap".localized(), systemImage: "square.grid.4x3.fill")
-                        }
-                    } label: {
-                        if trendsShowingMode == "score" {
-                            Image(systemName: "chart.bar.fill")
-                                .symbolVariant(.circle.fill)
-                        } else {
-                            Image(systemName: "trophy.fill")
-                                .symbolVariant(.circle.fill)
-                        }
-                    }
+                    viewOptionsMenu
                 }
-                
-                // 
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddGrade = true }) {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add New Grade".localized())
                 }
                 ToolbarItem(placement: .principal) {
                     PhaseSelectorView()
@@ -173,6 +143,40 @@ struct TrendsView: View {
             .onChange(of: container.mistakeRepo.filteredMistakeSets) { _, _ in viewModel.recompute() }
             .onChange(of: container.subjectRepo.subjects) { _, _ in viewModel.recompute() }
         }
+    }
+
+    /// 工具栏「视图选项」菜单:用 Picker 提供选中态与完整的 VoiceOver 文案。
+    /// Toolbar view-options menu; Pickers give selection state and full VoiceOver labels.
+    private var viewOptionsMenu: some View {
+        Menu {
+            Picker("trends.menu.displayMode".localized(), selection: $trendsShowingMode) {
+                ForEach(TrendsDisplayMode.allCases) { mode in
+                    Label(mode.localizedName, systemImage: mode.icon).tag(mode)
+                }
+            }
+
+            Picker("Chart Type".localized(), selection: Binding(
+                get: { container.envManager.preferences.chartType },
+                set: { container.envManager.preferences.chartType = $0 }
+            )) {
+                ForEach(ChartType.allCases) { type in
+                    Label(type.localizedDisplayName, systemImage: type.icon).tag(type)
+                }
+            }
+
+            Divider()
+
+            // 90 天热力图开关（持久化到 AppPreferences）
+            Toggle(isOn: Binding(
+                get: { container.envManager.preferences.learningHeatmapOnTrends },
+                set: { container.envManager.preferences.learningHeatmapOnTrends = $0 }
+            )) {
+                Label("Show Learning Heatmap".localized(), systemImage: "square.grid.4x3.fill")
+            }
+        } label: {
+            Image(systemName: "slider.horizontal.3")
+        }
+        .accessibilityLabel("trends.menu.title".localized())
     }
 
     private var selectedRadarSnapshot: SubjectRadarSnapshot? {
@@ -268,7 +272,7 @@ struct TrendsView: View {
 struct SubjectDetailView: View {
     let subject: String
     @Environment(RepositoryContainer.self) private var container
-    @Binding var displayMode: String // 修复2：删除重复的 displayMode 声明
+    @Binding var displayMode: TrendsDisplayMode
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     @State private var selectedRange: TimeRange = .all
@@ -335,7 +339,7 @@ struct SubjectDetailView: View {
                     HStack(spacing: 20) {
                         VStack(alignment: .leading, spacing: 8) {
                             // 
-                            if displayMode == "score" {
+                            if displayMode == .score {
                                 Text("Average Score".localized())
                                     .font(.subheadline)
                                     .foregroundColor(Color(.secondaryLabel))
@@ -369,7 +373,7 @@ struct SubjectDetailView: View {
                             
                             if let latest = filteredGrades.last {
                                 // 4
-                                if displayMode == "score" {
+                                if displayMode == .score {
                                     Text(String(format: "%.1f", latest.score))
                                         .font(.system(size: 28, weight: .bold, design: .rounded))
                                         .foregroundStyle(scoreColor(latest.score))
@@ -431,7 +435,7 @@ struct SubjectDetailView: View {
                 
                 //  displayMode /
                 if !filteredGrades.isEmpty {
-                    if displayMode == "score" {
+                    if displayMode == .score {
                         TrendChartView(
                             grades: filteredGrades,
                             fullScore: container.fullScore(for: subject),
@@ -498,7 +502,7 @@ struct SubjectDetailView: View {
                                 Spacer()
                                 
                                 // 6
-                                if displayMode == "score" {
+                                if displayMode == .score {
                                     Text(String(format: "%.1f", grade.score))
                                         .bold()
                                         .foregroundColor(scoreColor(grade.score))
@@ -535,6 +539,7 @@ struct SubjectDetailView: View {
                 Button(action: { showingAddGrade = true }) {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add New Grade".localized())
             }
         }
         .sheet(isPresented: $showingAddGrade) {
