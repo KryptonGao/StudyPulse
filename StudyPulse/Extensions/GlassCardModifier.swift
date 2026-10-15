@@ -3,8 +3,11 @@
 //
 //  玻璃效果修饰符:iOS 26+ 用系统 `glassEffect`;老版本 fallback `.regularMaterial`。
 //  Glass-effect modifier: iOS 26+ uses system `glassEffect`; older falls back to `.regularMaterial`.
-//  默认关闭(由 AppEnvironmentManager.glassEffectEnabled 控制)。
-//  Disabled by default (toggled by AppEnvironmentManager.glassEffectEnabled).
+//  默认关闭(由 AppEnvironmentManager.glassEffectEnabled 控制)。卡片入口统一用 `.cardSkin()`
+//  (`CardSkinRenderer`),它在开启玻璃时才会使用本背景;旧的 `.glassCard(enabled:)` 修饰符已删除。
+//  Disabled by default (toggled by AppEnvironmentManager.glassEffectEnabled). Cards go through
+//  `.cardSkin()` (CardSkinRenderer), which uses this background only when glass is on; the old
+//  `.glassCard(enabled:)` modifier was removed.
 //
 
 import SwiftUI
@@ -35,32 +38,6 @@ struct GlassCardBackground: View {
             // iOS 26 之前没有 glassEffect,regularMaterial 兜底 / Pre-iOS 26 fallback.
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(.regularMaterial)
-        }
-    }
-}
-
-extension View {
-    /// 把当前视图作为玻璃卡片渲染(替换原本的卡片背景)/ Render as a glass card.
-    func glassCard(enabled: Bool, cornerRadius: CGFloat = 18, style: GlassCardBackground.GlassStyle = .regular) -> some View {
-        modifier(GlassCardModifier(enabled: enabled, cornerRadius: cornerRadius, style: style))
-    }
-}
-
-/// 条件性包装:开启时把背景替换为 `GlassCardBackground`,关闭时保留原"二级分组背景"。
-/// Conditional wrapper: when enabled, replaces background with `GlassCardBackground`.
-private struct GlassCardModifier: ViewModifier {
-    let enabled: Bool  // 是否启用 / Whether the glass effect is enabled.
-    let cornerRadius: CGFloat  // 卡片圆角 / Card corner radius.
-    let style: GlassCardBackground.GlassStyle  // 玻璃样式 / Glass style.
-
-    func body(content: Content) -> some View {
-        if enabled {
-            content.background(GlassCardBackground(cornerRadius: cornerRadius, style: style))
-        } else {
-            content.background(  // 保留 `secondarySystemGroupedBackground` 白底 / Keep the original background.
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Color(.secondarySystemGroupedBackground))
-            )
         }
     }
 }

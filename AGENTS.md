@@ -73,7 +73,8 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
     - `Core/`：
       - `RepositoryContainer.swift`：`@Observable @MainActor` 容器。持有 16 个 Repository + `envManager` + `intentStore` + `modelContainer` + `isReady` + `pendingIntentAction`（桥接 `IntentActionStore`）+ 3 个跨域编排子模块（`bulkOps` / `todoAggregator` / `phaseRefresher`，Phase 3 拆分后由独立文件组合）。`asyncInit()` 执行 JSON 迁移 + 各 repo 串行 `loadAll` + 内嵌图片迁移 + 通知/widget 调度 + `RoutineSpawner.runOnce()`；`observeActivePhaseChanges()` 用 0.5s polling 监测 `AppEnvironmentManager.shared.activePhaseId` 变化触发 `recomputeAllFiltered()`；`recomputeAllFiltered()` 重算 6 个 `filtered*` 缓存（grade / mistake / exam / task / routine / diary）；`todoEntries(includeCompleted:phaseId:)` 跨域聚合 Exam + comprehensiveExam + TaskItem + RoutineInstance 为 `TodoEntry`；`bulkClearData(categories:)` 批量清空；并提供 `addGrade` / `addGrades` / `addMistake` / `addMistakes` / `addExams` / `addTask` / `addTasks` / `addDiary` / `addRoutine` / `deleteXxx` / `activatePhase` 等 facade 方法。
       - `AppEnvironmentManager.swift`：全局 `AppPreferences` 管理 + `effectiveAccentColor`（11 档 `ThemeAccent`） + `activePhaseId`。
-      - `AppStyle.swift`：应用设计系统骨架。
+      - `DesignToken.swift`：设计 token（间距 / 圆角 / 透明度 / 字体）。`DesignToken.Font` 基于系统 text style，随 Dynamic Type 缩放。
+      - `AppStyle.swift` 已删除（0 引用）。
       - `CSVDocument.swift`：`FileDocument` 包装 CSV。
       - `DataExportManager.swift`：CSV 导出（`@MainActor` enum）。
       - `ModelContainerFactory.swift`：SwiftData `ModelContainer` 单例工厂 + `migrateFromJSONIfNeeded(context:)` 一次性迁移（UserDefaults flag 避免重复）；`modelTypes` 数组 = `StudyPulseSchemaV4.models`；容器用 `Schema(versionedSchema: StudyPulseSchemaV4.self)` + `migrationPlan: StudyPulseMigrationPlan.self`。
@@ -173,7 +174,7 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
     - `TrendsViewModel.swift`：趋势图数据 + 关注科目聚合。
     - `MistakeViewModel.swift`：错题列表 + 分组 + 搜索。
     - `SubjectMistakesViewModel.swift`：按科目的错题子页。
-    - `ExamViewModel.swift`：考试列表 + 倒计时 + 复盘。
+    - `ExamViewModel.swift` 已随 `ExamView` 删除（由 `TodoViewModel` 取代）。
     - `TodoViewModel.swift`：统一待办聚合 `container.todoEntries(...)`。
     - `AddGradeViewModel.swift` / `NewExamSetViewModel.swift` / `NewMistakeSetViewModel.swift`：模态表单 ViewModel（封装校验、默认值、关联科目 / phase 处理）。
     - `MistakeDetailEditViewModel.swift`：错题编辑 ViewModel（EditSection 枚举 + OCR + 图片管理 + 语音备忘录 + SRS 入队）。
@@ -187,9 +188,9 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
     - `ViewModelError.swift`：错误类型。
   - `Views/`：SwiftUI 视图（按子领域拆分子目录）。
     - `ContentView.swift`：根视图。iPhone 使用 `TabView`（5 个标签：Home / Trends / Mistakes / Exams / Settings）；iPad 使用自定义 `NavigationSplitView` 侧栏。同时观察 `IntentActionStore` 处理 Siri Shortcuts 跨进程跳转（监听 `pendingIntentAction`，处理后清空）。
-    - `Home/`：`HomeView.swift` 主页仪表盘（分帧渲染 + 接收 `HomeViewModel`）；`HomeLayoutSettingsView.swift`；`HomeUIState.swift`；`HomeRecomputeModifier.swift`（phase / language 切换时触发 recompute）；`HomeCards/`（含共用外观 `HomeCardChrome` + 新增 `OverviewHeroCard`（顶部 4 个带趋势的 KPI，取代 `MainStatsCard`，后者已不再被 `HomeView` 使用）/ `WeeklyFocusCard` / `SubjectSnapshotCard` / `BodyMindTrendCard` / `WeekdaySlotHeatmap`；其余：`WelcomeHeaderCard` / `MainStatsCard` / `QuickActionsCard` / `RecentGradesCard` / `TrendChartCard` / `UpcomingExamsCard` / `StudySuggestionsCard` / `HomeAskCard` / `DailyPlanCard` / `DiaryHomeCard` / `HabitInsightCard`）。
+    - `Home/`：`HomeView.swift` 主页仪表盘（分帧渲染 + 接收 `HomeViewModel`）；`HomeLayoutSettingsView.swift`；`HomeUIState.swift`；`HomeRecomputeModifier.swift`（phase / language 切换时触发 recompute）；`HomeCards/`（含共用外观 `HomeCardChrome` + 新增 `OverviewHeroCard`（顶部 4 个带趋势的 KPI，取代并已删除 `MainStatsCard`；图标 / 趋势线跟随主色 `effectiveAccentColor`；无障碍字号下改单列）/ `WeeklyFocusCard` / `SubjectSnapshotCard` / `BodyMindTrendCard` / `WeekdaySlotHeatmap`；其余：`WelcomeHeaderCard` / `QuickActionsCard` / `RecentGradesCard` / `TrendChartCard` / `UpcomingExamsCard` / `StudySuggestionsCard` / `HomeAskCard` / `DailyPlanCard` / `DiaryHomeCard` / `HabitInsightCard`）。
     - `Trends/`：`TrendsView.swift` 趋势分析（顶部可选 `LearningHeatmapView`，受 `AppPreferences.learningHeatmapOnTrends` 控制）。
-    - `Exam/`：`ExamView.swift` / `ExamCalendarView.swift`（Phase 3 拆分后 + 3 sub-files：`ExamCalendarModels` / `ExamCalendarDayCell` / `ExamCalendarItemRow`）/ `ExamDetailView.swift`（Phase 3 拆分后 + 4 sub-files：`ChecklistRowView` / `RelatedMistakeCard` / `ReviewSectionRow` / `LinkedMistakesListView`；入口改为 `examId: UUID` 从 `container.examRepo` 实时查 `liveExam`）/ `ComprehensiveExamDetailView.swift`（综合考试详情）/ `ExamDetailEditView.swift` / `NewExamSetView.swift` / `ExamReviewView.swift` / `ScorePredictionEngine.swift` / `ScorePredictionSheet.swift` / `ScorePrediction/`（`SingleSubjectPrediction` / `ComprehensivePrediction` / `PredictionDiscussionEntry`）。
+    - `Exam/`：`ExamViewMode.swift`（列表 / 月历模式枚举，原 `ExamView.swift` 仅存部分）/ `ExamCalendarView.swift`（Phase 3 拆分后 + 3 sub-files：`ExamCalendarModels` / `ExamCalendarDayCell` / `ExamCalendarItemRow`）/ `ExamDetailView.swift`（Phase 3 拆分后 + 4 sub-files：`ChecklistRowView` / `RelatedMistakeCard` / `ReviewSectionRow` / `LinkedMistakesListView`；入口改为 `examId: UUID` 从 `container.examRepo` 实时查 `liveExam`）/ `ComprehensiveExamDetailView.swift`（综合考试详情）/ `ExamDetailEditView.swift` / `NewExamSetView.swift` / `ExamReviewView.swift` / `ScorePredictionEngine.swift` / `ScorePredictionSheet.swift` / `ScorePrediction/`（`SingleSubjectPrediction` / `ComprehensivePrediction` / `PredictionDiscussionEntry`）。
     - `Grade/`：`AddGradeView.swift` / `SubjectScoreCard.swift`。
     - `Mistake/`：
       - `MistakeView.swift`（Phase 3 拆分后 374 行 + 3 sub-files：`MistakeListCellViews` / `DueReviewBanner` / `SubjectMistakesView`；toolbar 含 PDF 导出 + 加入 SRS 队列按钮）。
@@ -304,7 +305,7 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
 - 全局 `PhaseSelectorView` 胶囊 pill 放在 5 主页面 toolbar `.principal` 位置（Home / Trends / Mistake / Todo / Exam）。
 - 主页 `HomeView` 动态卡片由 `HomeLayoutPreference` 的启用顺序渲染（含 `streakProgress` 连续打卡卡 + `learningHeatmap` 热力图）；iPad 两栏 `LazyVGrid`，iPhone 单列 VStack；`HomeCardType.isFullWidth` 标记全宽卡片（`HomeView.iPadDynamicCards` 按"块"渲染：全宽卡片独占整行，普通卡片每 2 个成行）。
 - 全局自定义背景图：`BackgroundImageView` 全屏 + 模糊 + 暗化遮罩铺在 `ContentView` 底部；5 个主页面根用 `Color(.systemGroupedBackground).opacity(0.4)`；`List` / `Form` 加 `.scrollContentBackground(.hidden)` 才能让底图穿透；**iOS 26 NavigationStack 有默认不透明 `containerBackground`**，必须在 NavigationStack 内的根内容上加 `.containerBackground(.clear, for: .navigation)`；`TabView` 也需加 `.toolbarBackground(.hidden, for: .tabBar)`。
-- Liquid Glass 效果：全局 `AppPreferences.glassEffectEnabled`；卡片 opt-in via `.glassCard(enabled:cornerRadius:)` 修饰符；启用后替换 `Color(.secondarySystemGroupedBackground)` 背景为 iOS 26 `glassEffect`（老系统回退 `.regularMaterial`）；**`glassEffect` 直接套 `Capsule()` 是不透明**，必须用 `Color.clear` + `glassEffect(in: Capsule())` 才有真实透明感。
+- Liquid Glass 效果：全局 `AppPreferences.glassEffectEnabled`；卡片统一走 `.cardSkin()`（`CardSkinRenderer`，开启玻璃时使用 `GlassCardBackground`；旧 `.glassCard(enabled:)` 已删除）；启用后替换 `Color(.secondarySystemGroupedBackground)` 背景为 iOS 26 `glassEffect`（老系统回退 `.regularMaterial`）；**`glassEffect` 直接套 `Capsule()` 是不透明**，必须用 `Color.clear` + `glassEffect(in: Capsule())` 才有真实透明感。
 - 自定义主色：`ThemeAccent` 11 档预设（system / blue / cyan / teal / green / mint / orange / red / pink / purple / indigo）持久化为 `accentPaletteId: String?`；`AppEnvironmentManager.effectiveAccentColor` 是单点消费方；驱动 `ContentView.tint()` / `TrendChartView.tintColor`（line + bar）/ `FlashcardStudyView` 进度条；**状态色（TodoView/ExamView 时间-剩余 / 掌握度 ProgressView）保持按状态着色**，不跟随主色。
 
 业务 / 服务层目录：
@@ -334,7 +335,7 @@ OCR：Vision 框架 `VNRecognizeTextRequest`。
 - 持久化：业务模型由 SwiftData 实体层承载；图片以 `grade_UUID.jpg` / `avatar_UUID.jpg` 写入 `~/Documents/images/`；健康历史 `~/Documents/health_history.json`；学习会话 `StudySessionRecord`（SwiftData，`payload` JSON），老 `~/Documents/study_sessions.json` 在 `StudySessionRepository.refreshFromLegacyJSON()` 中合并导入；成就 `~/Documents/achievements.json`。UserDefaults 保存 `AppPreferences` / `HomeLayoutPreference` / HRV 相关偏好 / `lastSeenAppVersion` / `DailyGoalConfig` / SwiftData 迁移完成 flag / 上次投资目标（`studyPulse.lastInvestmentTarget*`）。App Group 容器保存 `widgetUpcomingExams` / `HRVWidgetData` / `TrendWidgetData`。
 
 扩展与通知目录：
-- `ColorExtensions` / `DateExtensions` / `StringsLocalized` / `GlassCardModifier` 提供跨层使用的辅助。
+- `ColorExtensions` / `DateExtensions` / `StringsLocalized` / `GlassCardModifier`（仅保留 `GlassCardBackground`） 提供跨层使用的辅助。
 - `ExamPrepareNotifications` 使用 `UNUserNotificationCenter` 调度本地通知；先 `getPendingNotificationRequests` 取消该 exam 旧通知（按 `identifier.contains("Exam_<name>_")` 过滤），再按新 `days` 列表重排；空数组 = 关闭通知；过期日期自动跳过。
 
 ---
@@ -398,7 +399,7 @@ ViewModel 到 RepositoryContainer 的调用示例：
 - 已有错题进入 `MistakeDetailEditView`（编辑模式）。
 - 错题入队 SRS 后可在 `FlashcardStudyView` 复习（SM-2 算法调度的会话）；`FlashcardCalculatorView` 调试 SM-2 参数。
 
-`TodoView`（「待办」页，替代原 ExamView）：
+`TodoView`（「待办」页，已取代并删除原 ExamView）：
 - 顶部分类型筛选 chip（All / Exams / Homework / Reading）与「Show Completed」开关。
 - 列表模式按时间分组（Within 1 Week / Within 1 Month / Later），左上角 Past Items 按钮打开过期任务 sheet。
 - 日历模式仅对考试可见（复用 `ExamCalendarView`）。
@@ -407,9 +408,8 @@ ViewModel 到 RepositoryContainer 的调用示例：
 - 详情菜单：编辑 / 切换完成态 / 删除；编辑进入 `TaskDetailEditView`，自动处理 Reminder 同步。
 - 顶部 `PhaseSelectorView` 切换 phase 过滤。
 
-`ExamView`（保留原视图作为考试日历入口）：
-- 列表 / 日历切换（`ExamCalendarView`）。
-- 顶部 `PhaseSelectorView` 切换 phase 过滤。
+考试日历（原 `ExamView` 已删除，日历由 `TodoView` 日历模式承载 `ExamCalendarView`）：
+- 列表 / 日历切换由 `ExamViewMode`（`Views/Exam/ExamViewMode.swift`）持久化。
 - 点击考试进入 `ExamDetailView`（含考场信息 / 考前清单 / 复盘 / 倒计时通知 / 分享给家人）。
 
 `StudyTimerView`（学习计时器主页面）：
@@ -678,7 +678,7 @@ PersonalBaselines 30 天个人基线：
 
 **消费方**：
 - `AccentPalette`：通过 `AppEnvironmentManager.effectiveAccentColor` 驱动 `ContentView.tint()` / `TrendChartView.tintColor` / `FlashcardStudyView` 进度条。
-- `CardSkin`：通过 `CardSkinModifier`（`.glassCard(enabled:cornerRadius:)`）修饰符应用到主页面卡片。
+- `CardSkin`：通过 `.cardSkin()` 修饰符（`CardSkinRenderer`）应用到主页面卡片。
 - `TimerAnimation`：通过 `StudyTimerView` / `StudyTimerLiveActivity` 的动画分支选择。
 - `CardSkinRenderer`：商店内的皮肤预览渲染器。
 
@@ -816,7 +816,7 @@ AppIntents 桥接管线：
 - `AdaptiveGridColumns(compact:regular:spacing:)`：在 compact 尺寸下 compact 栏数，regular 尺寸下 regular 栏数。
 - `adaptiveCardPadding()`：iPhone 加 20pt 外间距，iPad 不加。
 
-各页面的 iPad 最大宽度：PreferencesView 为 640；SettingsView 为 720；ExamView 为 800；TrendsView 为 900；MistakeView 为 900；HomeView 为 1100（使用两栏网格呈现动态卡片）。
+各页面的 iPad 最大宽度：PreferencesView 为 640；SettingsView 为 720；TrendsView 为 900；MistakeView 为 900；HomeView 为 1100（使用两栏网格呈现动态卡片）。
 
 适配原则：
 - iPhone 布局保持不变；所有 iPad 分支都在 `horizontalSizeClass == .regular` 或 `UIDevice.current.userInterfaceIdiom == .pad` 下判断。
@@ -933,6 +933,9 @@ xcodebuild -project StudyPulse.xcodeproj -scheme StudyPulse -configuration Debug
 - `SubjectConfig` 使用 `required(...)` / `elective(...)` 工厂方法构造。
 - 任何用 `Log.xxx.info(...)` 的文件必须 `import os`。
 - **任何 `Codable` struct 持久化在 UserDefaults 中、新增非 optional 字段时**：必须手写 `init(from:)` + `CodingKeys`，所有新字段用 `decodeIfPresent` 给默认值；否则老 JSON 解码会 fatalError 闪退。
+- **字体规范**：禁止 `.font(.system(size:))`（不随 Dynamic Type 缩放）。优先级：`DesignToken.Font` 语义 token → 系统 text style → `.scaledFont(size:weight:design:)`（`Extensions/ScaledFont.swift`，默认字号下外观不变，大字号有放大上限）。几何驱动的字号（计时器数字、头像首字母）在行尾标注 `// fixed-size-ok: <原因>`。提交前运行 `scripts/check_fonts.sh`。
+- **触觉反馈**：统一走 `Managers/Utility/Haptics.swift`（`success` / `warning` / `error` / `selection` / `impact`），不要在业务代码里直接 new `UIImpactFeedbackGenerator`。保存成绩 / 错题 / 考试 / 任务、完成待办、闪卡评分、计时完成均已接入；新增「保存 / 完成」类操作应同步接入。
+- **首页间距与卡片过滤**：卡片间距统一用 `DesignToken.Spacing.cardSpacing`；`HomeView.dynamicCards` 在分块前用 `hasVisibleContent` 剔除会渲染为空的卡片（否则 iPad 网格出现半行空白）。新增 `HomeCardType` 若有「无数据则不渲染」条件，必须同步更新 `hasVisibleContent`。
 - **`Section { ... } header: { ... } footer: { ... }` 必须用 trailing closure 语法**（`Section(header: Text(...))` + `} footer: { ... }` 组合会报 "incorrect argument label in call"）。
 - **Dictionary 唯一键崩溃防御**：涉及从数据 store 聚合的 dict 用 `var d: [K: V] = [:]` + for 循环手动 `d[key] = ...`，**不要用 `Dictionary(uniqueKeysWithValues:)`**（重复键时 fatalError）。
 
@@ -946,7 +949,7 @@ xcodebuild -project StudyPulse.xcodeproj -scheme StudyPulse -configuration Debug
 - 前台激活（`scenePhase == .active`）触发学习会话和 Widget 数据异步加载，避免主线程帧卡顿。
 - `ImageCache` 提供 `NSCache` 缓存的缩略图（最多 50 项，最大 300px），完全线程安全（nonisolated）。
 - `DataFileIO.imagesDir` 用 `NSLock` 缓存路径，避免每次访问都 stat。
-- `ExamRowView` / `ComprehensiveExamRowView` / `UpcomingExamCard` 使用 `daysRemaining` 计算属性替代 `@State + onAppear`，避免不必要的重渲染。
+- `UpcomingExamCard` 使用 `daysRemaining` 计算属性替代 `@State + onAppear`，避免不必要的重渲染。
 - iPad `HomeView` 使用 `LazyVGrid` 呈现仪表盘，保持内存占用低，即使启用了大量卡片。
 - `HomeView` 采用分帧渲染（phased rendering），把动态卡片拆到多个 RunLoop 帧绘制，把首帧 long task 拆成多个小任务，让主线程保持响应。
 - `AvatarView` / `WelcomeHeaderView` / `SettingsView` 的头像加载改为异步 Task，不再在主线程同步读文件 / 解码图片。
@@ -1014,7 +1017,7 @@ AI 代理在本仓库工作时遵循以下规则：
   - `ExamCalendarView`（1008→674 + 3 sub-files：`ExamCalendarModels` / `ExamCalendarDayCell` / `ExamCalendarItemRow`）。
   - `ExamDetailView`（885→639 + 4 sub-files：`ChecklistRowView` / `RelatedMistakeCard` / `ReviewSectionRow` / `LinkedMistakesListView`）。
   - 后续再遇到 800+ 行单文件应继续按此模式拆分；拆分时保持 orchestrator facade 方法签名零修改，避免波及调用方。
-- **`ExamView.body` / `TodoView.body` 链式修饰器过多**（5+ sheet + 3 destination + toolbar + 5+ onChange）会触发类型推导超时，需抽成独立 `ViewModifier`（`ExamViewSheetsAndDestinations` / `TodoViewSheetsAndDestinations`）。
+- **`TodoView.body` 链式修饰器过多**（5+ sheet + 3 destination + toolbar + 5+ onChange）会触发类型推导超时，需抽成独立 `ViewModifier`（`TodoViewSheetsAndDestinations`）。
 - git暂存大概率会被沙箱拦截：权限只允许读取 `.git`，无法创建 `index.lock`。需要申请一次 Git 写权限来完成暂存和提交。
 
 ## 19. 八荣八耻
