@@ -49,7 +49,7 @@ struct StudySessionReviewSheet: View {
             if let goal = session.goal {
                 VStack(alignment: .leading, spacing: 8) {
                     Label(goal.title, systemImage: goal.source.icon)
-                        .font(.system(size: 14, weight: .semibold))
+                        .scaledFont(size: 14, weight: .semibold)
                     HStack(spacing: 10) {
                         Text(goal.progressText)
                             .font(.caption.weight(.medium))
@@ -143,7 +143,7 @@ struct StudySessionReviewSheet: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(session.intensity.displayName)
-                        .font(.system(size: 18, weight: .bold))
+                        .scaledFont(size: 18, weight: .bold)
                     Text(session.startDate, format: .dateTime.month().day().hour().minute())
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -151,7 +151,7 @@ struct StudySessionReviewSheet: View {
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("\(session.durationSeconds / 60) min")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .scaledFont(size: 22, weight: .bold, design: .rounded)
                         .foregroundColor(Color(hex: session.intensity.colorHex))
                     Text("\(samples.count) HR samples".localized())
                         .font(.caption2)
@@ -179,7 +179,7 @@ struct StudySessionReviewSheet: View {
     private var chartSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Heart Rate Curve".localized())
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
 
             HeartRateChartView(
                 samples: samples,
@@ -236,7 +236,7 @@ struct StudySessionReviewSheet: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Text("AI Stress Interpretation".localized())
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                         Spacer()
                         Button {
                             runAI()

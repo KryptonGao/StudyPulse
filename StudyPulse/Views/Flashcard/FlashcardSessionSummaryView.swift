@@ -29,7 +29,7 @@ struct FlashcardSessionSummaryView: View {
                     ))
                     .frame(width: 96, height: 96)
                 Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 56))
+                    .scaledFont(size: 56)
                     .foregroundStyle(.green)
             }
 

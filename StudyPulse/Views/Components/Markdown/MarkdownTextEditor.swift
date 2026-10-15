@@ -240,7 +240,7 @@ struct MarkdownKeyboardToolbar: View {
     private func toolbarButton(_ systemName: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: 20, weight: .medium))
+                .scaledFont(size: 20, weight: .medium)
                 .frame(width: 44, height: 44)
                 .foregroundColor(.primary)
                 .contentShape(Rectangle())
@@ -289,7 +289,7 @@ struct MarkdownKeyboardToolbar: View {
             }
         } label: {
             Image(systemName: "list.bullet")
-                .font(.system(size: 20, weight: .medium))
+                .scaledFont(size: 20, weight: .medium)
                 .frame(width: 44, height: 44)
                 .foregroundColor(.primary)
                 .contentShape(Rectangle())
@@ -318,7 +318,7 @@ struct MarkdownKeyboardToolbar: View {
             }
         } label: {
             Image(systemName: "function")
-                .font(.system(size: 20, weight: .medium))
+                .scaledFont(size: 20, weight: .medium)
                 .frame(width: 44, height: 44)
                 .foregroundColor(.primary)
                 .contentShape(Rectangle())

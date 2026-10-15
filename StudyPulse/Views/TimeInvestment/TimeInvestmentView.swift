@@ -294,7 +294,7 @@ struct TimeInvestmentView: View {
                     .frame(width: 3)
                     .clipShape(Capsule())
                 Image(systemName: depth == 1 ? "arrow.turn.down.right" : "circle.fill")
-                    .font(depth == 1 ? .caption : .system(size: 6))
+                    .scaledFont(size: depth == 1 ? 12 : 6)
                     .foregroundStyle(themeColor)
                     .frame(width: 18)
                 Text(task.name)
@@ -536,7 +536,7 @@ private struct RewardUnlockToast: View {
         .onAppear {
             guard !didTriggerFeedback else { return }
             didTriggerFeedback = true
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            Haptics.success()
         }
     }
 }

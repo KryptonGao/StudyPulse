@@ -101,7 +101,7 @@ struct ExamDetailView: View {
     private var missingExamView: some View {
         VStack(spacing: 16) {
             Image(systemName: "questionmark.folder")
-                .font(.system(size: 50))
+                .scaledFont(size: 50)
                 .foregroundColor(.secondary)
             Text("Exam not found".localized())
                 .font(.headline)
@@ -394,7 +394,7 @@ struct ExamDetailView: View {
         HStack(spacing: 1) {
             ForEach(1...5, id: \.self) { i in
                 Image(systemName: i <= importance ? "star.fill" : "star")
-                    .font(.system(size: 10))
+                    .scaledFont(size: 10)
                     .foregroundColor(i <= importance ? Color.orange : Color.gray.opacity(0.3))
             }
         }

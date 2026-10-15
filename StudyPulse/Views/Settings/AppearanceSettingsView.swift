@@ -40,7 +40,7 @@ struct AppearanceSettingsView: View {
                             Label("Chart Type".localized(), systemImage: "chart.xyaxis.line")
                             Spacer()
                             Text(container.envManager.preferences.chartType.localizedDisplayName)
-                                .font(.system(size: 14))
+                                .scaledFont(size: 14)
                                 .foregroundColor(.secondary)
                         }
                     }

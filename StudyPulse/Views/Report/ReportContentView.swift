@@ -39,7 +39,7 @@ struct ReportContentView: View {
                 Image(systemName: "book.closed.fill")
                     .foregroundStyle(.blue)
                 Text("StudyPulse Learning Report".localized())
-                    .font(.system(size: 22, weight: .bold))
+                    .scaledFont(size: 22, weight: .bold)
             }
             HStack(spacing: 6) {
                 if !report.profile.username.isEmpty {
@@ -128,7 +128,7 @@ struct ReportContentView: View {
     private func statTile(value: String, label: String, color: Color) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(value)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .scaledFont(size: 20, weight: .bold, design: .rounded)
                 .foregroundColor(color)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)

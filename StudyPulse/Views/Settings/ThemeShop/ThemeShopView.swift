@@ -81,7 +81,7 @@ struct ThemeShopView: View {
             Image(systemName: "ladybug.fill")
                 .foregroundColor(.white)
             Text("theme.shop.debugBanner".localized())
-                .font(.system(size: 13, weight: .semibold))
+                .scaledFont(size: 13, weight: .semibold)
                 .foregroundColor(.white)
             Spacer()
         }
@@ -111,9 +111,9 @@ struct LivePreviewSection: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
                 Image(systemName: "eye.fill")
-                    .font(.system(size: 13, weight: .semibold))
+                    .scaledFont(size: 13, weight: .semibold)
                 Text("theme.shop.preview.title".localized())
-                    .font(.system(size: 15, weight: .bold))
+                    .scaledFont(size: 15, weight: .bold)
                 Spacer()
             }
             .foregroundColor(.secondary)
@@ -122,18 +122,18 @@ struct LivePreviewSection: View {
                 ForEach(0..<3, id: \.self) { i in
                     HStack(spacing: 10) {
                         Image(systemName: ["book.fill", "flame.fill", "chart.line.uptrend.xyaxis"][i])
-                            .font(.system(size: 16, weight: .semibold))
+                            .scaledFont(size: 16, weight: .semibold)
                             .foregroundColor(accent.color)
                         Text([
                                 "Live Preview Card".localized(),
                                 "Live Preview Card".localized(),
                                 "Live Preview Card".localized()
                             ][i])
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                             .foregroundColor(.primary)
                         Spacer()
                         Text("\(i * 25 + 10)")
-                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                            .scaledFont(size: 14, weight: .bold, design: .monospaced)
                             .foregroundColor(accent.color)
                     }
                     .padding(.horizontal, 14)
@@ -157,15 +157,15 @@ struct LivePreviewSection: View {
                             .frame(width: 60, height: 60)
                             .rotationEffect(.degrees(-90))
                         Text("25:00")
-                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                            .scaledFont(size: 12, weight: .bold, design: .monospaced)
                             .foregroundColor(animation.primaryColor)
                     }
                     VStack(alignment: .leading, spacing: 4) {
                         Text(animation.localizedName)
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                             .foregroundColor(.primary)
                         Text(animation.localizedDescription)
-                            .font(.system(size: 12))
+                            .scaledFont(size: 12)
                             .foregroundColor(.secondary)
                             .lineLimit(2)
                     }
@@ -217,9 +217,9 @@ struct ThemeShopSectionView<Item: ThemeShopItemViewable>: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
                 Image(systemName: section.headerIcon)
-                    .font(.system(size: 13, weight: .semibold))
+                    .scaledFont(size: 13, weight: .semibold)
                 Text(section.title)
-                    .font(.system(size: 15, weight: .bold))
+                    .scaledFont(size: 15, weight: .bold)
                 Spacer()
             }
             .foregroundColor(.secondary)
@@ -305,7 +305,7 @@ enum ThemeShopItemPreviewRenderer {
             TimerAnimationPreview(animation: anim)
         } else {
             Image(systemName: item.icon)
-                .font(.system(size: 20, weight: .semibold))
+                .scaledFont(size: 20, weight: .semibold)
         }
     }
 }
@@ -324,7 +324,7 @@ private struct AccentPreview: View {
             )
             .overlay(
                 Image(systemName: accent.icon)
-                    .font(.system(size: 20, weight: .semibold))
+                    .scaledFont(size: 20, weight: .semibold)
                     .foregroundColor(.white)
             )
     }
@@ -348,7 +348,7 @@ private struct CardSkinPreview: View {
             )
             .overlay(
                 Image(systemName: skin.icon)
-                    .font(.system(size: 20, weight: .semibold))
+                    .scaledFont(size: 20, weight: .semibold)
                     .foregroundColor(skin.accentColor)
             )
     }
@@ -369,7 +369,7 @@ private struct TimerAnimationPreview: View {
                 )
                 .rotationEffect(.degrees(-90))
             Image(systemName: animation.icon)
-                .font(.system(size: 18, weight: .semibold))
+                .scaledFont(size: 18, weight: .semibold)
                 .foregroundColor(animation.primaryColor)
         }
     }
@@ -395,7 +395,7 @@ struct ThemeShopItemCard<Preview: View>: View {
 
                 if isSelected {
                     Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 18))
+                        .scaledFont(size: 18)
                         .foregroundStyle(.white)
                         .background(
                             Circle()
@@ -405,7 +405,7 @@ struct ThemeShopItemCard<Preview: View>: View {
                         .offset(x: 6, y: -6)
                 } else if !isUnlocked {
                     Image(systemName: "lock.fill")
-                        .font(.system(size: 11, weight: .bold))
+                        .scaledFont(size: 11, weight: .bold)
                         .foregroundStyle(.white)
                         .padding(5)
                         .background(
@@ -418,14 +418,14 @@ struct ThemeShopItemCard<Preview: View>: View {
             }
 
             Text(title)
-                .font(.system(size: 11, weight: .semibold))
+                .scaledFont(size: 11, weight: .semibold)
                 .foregroundColor(.primary)
                 .lineLimit(1)
                 .frame(maxWidth: 80)
 
             if !isUnlocked {
                 Text(unlockHint)
-                    .font(.system(size: 9))
+                    .scaledFont(size: 9)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)

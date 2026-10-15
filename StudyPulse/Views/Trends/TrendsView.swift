@@ -333,7 +333,7 @@ struct SubjectDetailView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     // 
                     Text(subject.localized())
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .scaledFont(size: 24, weight: .bold, design: .rounded)
                         .foregroundColor(Color(.label))
                     
                     HStack(spacing: 20) {
@@ -345,7 +345,7 @@ struct SubjectDetailView: View {
                                     .foregroundColor(Color(.secondaryLabel))
                                     .tracking(0.5)
                                 Text(String(format: "%.1f", averageScore))
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .scaledFont(size: 28, weight: .bold, design: .rounded)
                                     .foregroundStyle(scoreColor(averageScore))
                             } else {
                                 Text("Average Rank".localized())
@@ -353,7 +353,7 @@ struct SubjectDetailView: View {
                                     .foregroundColor(Color(.secondaryLabel))
                                     .tracking(0.5)
                                 Text(averageRank == 0 ? "N/A".localized() : "\(averageRank)")
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .scaledFont(size: 28, weight: .bold, design: .rounded)
                                     .foregroundStyle(
                                         LinearGradient(
                                             colors: [.indigo, .purple],
@@ -375,12 +375,12 @@ struct SubjectDetailView: View {
                                 // 4
                                 if displayMode == .score {
                                     Text(String(format: "%.1f", latest.score))
-                                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                                        .scaledFont(size: 28, weight: .bold, design: .rounded)
                                         .foregroundStyle(scoreColor(latest.score))
                                 } else {
                                     let rank = latest.ranking ?? 0
                                     Text(rank == 0 ? "N/A".localized() : "\(rank)")
-                                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                                        .scaledFont(size: 28, weight: .bold, design: .rounded)
                                         .foregroundStyle(
                                             LinearGradient(
                                                 colors: [.indigo, .purple],

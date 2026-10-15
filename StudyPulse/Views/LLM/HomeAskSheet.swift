@@ -329,7 +329,7 @@ private struct DataSnapshotBlock: View {
             .buttonStyle(.plain)
             if expanded {
                 Text(snapshot)
-                    .font(.system(size: 10, design: .monospaced))
+                    .scaledFont(size: 10, design: .monospaced)
                     .foregroundColor(.secondary)
                     .padding(8)
                     .background(

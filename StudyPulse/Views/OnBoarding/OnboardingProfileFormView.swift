@@ -44,7 +44,7 @@ struct OnboardingProfileFormView: View {
             iconBadge
             VStack(spacing: 6) {
                 Text(step.title)
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .scaledFont(size: 26, weight: .bold, design: .rounded)
                     .multilineTextAlignment(.center)
                 Text(step.subtitle)
                     .font(.subheadline)
@@ -72,7 +72,7 @@ struct OnboardingProfileFormView: View {
                         .strokeBorder(step.color.opacity(0.2), lineWidth: 1)
                 )
             Image(systemName: step.icon)
-                .font(.system(size: 64, weight: .medium))
+                .scaledFont(size: 64, weight: .medium)
                 .foregroundStyle(step.color.gradient)
                 .symbolRenderingMode(.hierarchical)
         }

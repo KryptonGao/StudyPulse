@@ -90,15 +90,15 @@ struct BodyMindTrendCard: View {
         let latest = values.last ?? 0
         return HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(format(latest, metric: metric))
-                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .scaledFont(size: 26, weight: .bold, design: .rounded)
                 .monospacedDigit()
             Text(metric.unit)
-                .font(.system(size: 12, weight: .medium))
+                .scaledFont(size: 12, weight: .medium)
                 .foregroundStyle(.secondary)
             HomeDeltaBadge(delta: latest - average, format: metric == .hrv ? "%.0f" : "%.1f")
             Spacer(minLength: 0)
             Text(String(format: "home.bodyMind.avg".localized(), format(average, metric: metric) + metric.unit))
-                .font(.system(size: 11))
+                .scaledFont(size: 11)
                 .foregroundStyle(.secondary)
         }
     }

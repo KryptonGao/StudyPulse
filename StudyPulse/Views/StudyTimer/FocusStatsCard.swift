@@ -8,7 +8,7 @@ struct FocusStatsCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Label("Focus Efficiency".localized(), systemImage: "target")
-                    .font(.system(size: 14, weight: .semibold))
+                    .scaledFont(size: 14, weight: .semibold)
                 Spacer()
                 Text("\(stats.totalSessions) sessions".localized())
                     .font(.caption)
@@ -74,9 +74,9 @@ struct FocusStatsCard: View {
         VStack(spacing: 4) {
             Image(systemName: icon)
                 .foregroundColor(color)
-                .font(.system(size: 14))
+                .scaledFont(size: 14)
             Text(value)
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .scaledFont(size: 15, weight: .bold, design: .rounded)
                 .monospacedDigit()
             Text(title)
                 .font(.caption2)

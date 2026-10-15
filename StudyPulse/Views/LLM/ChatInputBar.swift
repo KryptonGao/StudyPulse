@@ -139,14 +139,14 @@ struct ChatInputBar: View {
             if isStreaming, let onCancel {
                 Button(action: onCancel) {
                     Image(systemName: "stop.circle.fill")
-                        .font(.system(size: 32))
+                        .scaledFont(size: 32)
                         .foregroundStyle(.red)
                 }
                 .accessibilityLabel("a11y.stopGenerating".localized())
             } else {
                 Button(action: submit) {
                     Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 32))
+                        .scaledFont(size: 32)
                         .foregroundStyle(canSend ? Color.accentColor : Color.secondary)
                 }
                 .accessibilityLabel("a11y.send".localized())
@@ -169,7 +169,7 @@ struct ChatInputBar: View {
             }
         } label: {
             Image(systemName: "plus")
-                .font(.system(size: 25, weight: .regular))
+                .scaledFont(size: 25, weight: .regular)
                 .frame(width: 36, height: 36)
                 .foregroundStyle(.primary)
         }

@@ -200,7 +200,7 @@ struct OnboardingView: View {
 
                 VStack(spacing: 12) {
                     Text(config.appName)
-                        .font(.system(size: 40, weight: .bold, design: .rounded))
+                        .scaledFont(size: 40, weight: .bold, design: .rounded)
                         .multilineTextAlignment(.center)
 
                     Text(config.introText)
@@ -240,7 +240,7 @@ struct OnboardingView: View {
                 .shadow(color: config.primaryColor.opacity(0.4), radius: 24, y: 12)
 
             Image(systemName: config.iconSymbol)
-                .font(.system(size: 56, weight: .semibold))
+                .scaledFont(size: 56, weight: .semibold)
                 .foregroundStyle(.white)
                 .symbolRenderingMode(.hierarchical)
         }
@@ -272,7 +272,7 @@ struct OnboardingView: View {
                         .foregroundStyle(.secondary)
 
                     Text(feature.title)
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .scaledFont(size: 30, weight: .bold, design: .rounded)
                         .multilineTextAlignment(.center)
 
                     Text(feature.description)
@@ -310,7 +310,7 @@ struct OnboardingView: View {
                 )
 
             Image(systemName: feature.icon)
-                .font(.system(size: 96, weight: .medium))
+                .scaledFont(size: 96, weight: .medium)
                 .foregroundStyle(feature.color.gradient)
                 .symbolRenderingMode(.hierarchical)
         }

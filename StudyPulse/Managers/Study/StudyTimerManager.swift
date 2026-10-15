@@ -290,6 +290,7 @@ final class StudyTimerManager {
                 source: .timer
             )
             persist(session)
+            Haptics.success()
             lastUnlockedRewards = timeInvestmentRepository?.evaluateRewards(
                 sessions: sessions,
                 now: .now

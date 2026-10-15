@@ -50,7 +50,7 @@ struct DifficultyPicker: View {
                         }
                     } label: {
                         Image(systemName: index <= difficulty ? "star.fill" : "star")
-                            .font(.system(size: starSize, weight: .semibold))
+                            .scaledFont(size: starSize, weight: .semibold)
                             .foregroundStyle(starColor(for: index))
                             .symbolRenderingMode(.hierarchical)
                     }

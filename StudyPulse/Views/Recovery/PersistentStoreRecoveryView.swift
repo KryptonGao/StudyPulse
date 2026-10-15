@@ -16,7 +16,7 @@ struct PersistentStoreRecoveryView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     Image(systemName: "externaldrive.badge.exclamationmark")
-                        .font(.system(size: 54, weight: .semibold))
+                        .scaledFont(size: 54, weight: .semibold)
                         .foregroundStyle(.orange)
                         .accessibilityHidden(true)
 

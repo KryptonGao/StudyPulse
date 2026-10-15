@@ -29,7 +29,7 @@ struct ExamCalendarDayCell: View {
                         .stroke(Color(.systemBlue), lineWidth: 1.5)
                 }
                 Text(Calendar.current.component(.day, from: date), format: .number)
-                    .font(.system(size: 14, weight: isToday ? .bold : .medium))
+                    .scaledFont(size: 14, weight: isToday ? .bold : .medium)
                     .foregroundColor(numberColor)
             }
             .frame(width: 26, height: 26)

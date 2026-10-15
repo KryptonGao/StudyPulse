@@ -36,7 +36,7 @@ struct HomeLayoutSettingsView: View {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         HStack(spacing: 12) {
                             Image(systemName: item.type == .dailyPlan ? "pin.fill" : (dynamicEnabled ? "lock.fill" : "line.3.horizontal"))
-                                .font(.system(size: 14))
+                                .scaledFont(size: 14)
                                 .foregroundColor(.secondary)
                                 .frame(width: 24)
 
@@ -46,7 +46,7 @@ struct HomeLayoutSettingsView: View {
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(item.type.displayName)
-                                    .font(.system(size: 16))
+                                    .scaledFont(size: 16)
                                 // Top-3 始终置顶,在此说明避免用户困惑
                                 // Top 3 is always pinned first; explain it here to avoid confusion.
                                 if item.type == .dailyPlan {

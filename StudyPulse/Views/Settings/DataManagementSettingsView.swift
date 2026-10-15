@@ -695,20 +695,20 @@ struct BulkDeleteConfirmSheet: View {
                     .fill(Color.red.opacity(0.15))
                     .frame(width: 92, height: 92)
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 52, weight: .bold))
+                    .scaledFont(size: 52, weight: .bold)
                     .foregroundColor(.red)
             }
             Text("DANGER".localized())
-                .font(.system(size: 22, weight: .heavy, design: .rounded))
+                .scaledFont(size: 22, weight: .heavy, design: .rounded)
                 .foregroundColor(.red)
                 .tracking(2)
             Text("This action CANNOT be undone. All selected data will be permanently erased from this device.".localized())
-                .font(.system(size: 14, weight: .medium))
+                .scaledFont(size: 14, weight: .medium)
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
             Text("Please export your data first if you may need it later.".localized())
-                .font(.system(size: 13))
+                .scaledFont(size: 13)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -729,7 +729,7 @@ struct BulkDeleteConfirmSheet: View {
     private var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Select data to delete".localized())
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
                 .foregroundColor(.secondary)
             VStack(spacing: 0) {
                 ForEach(BulkClearCategory.allCases) { cat in
@@ -760,10 +760,10 @@ struct BulkDeleteConfirmSheet: View {
     private var phraseSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Type the following to confirm".localized())
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
                 .foregroundColor(.secondary)
             Text(requiredPhrase)
-                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .scaledFont(size: 14, weight: .medium, design: .rounded)
                 .foregroundColor(.red)
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -776,7 +776,7 @@ struct BulkDeleteConfirmSheet: View {
                         .stroke(Color.red.opacity(0.3), lineWidth: 1)
                 )
             TextField(requiredPhrase, text: $confirmPhrase, axis: .vertical)
-                .font(.system(size: 14, design: .rounded))
+                .scaledFont(size: 14, design: .rounded)
                 .foregroundColor(.primary)
                 .lineLimit(2...4)
                 .padding(10)
@@ -790,7 +790,7 @@ struct BulkDeleteConfirmSheet: View {
                 )
             if !confirmPhrase.isEmpty && !phraseMatches {
                 Text("Phrase does not match. Please type it exactly.".localized())
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .foregroundColor(.red)
             }
         }
@@ -806,7 +806,7 @@ struct BulkDeleteConfirmSheet: View {
                 Text("Permanently Delete".localized())
                     .fontWeight(.bold)
             }
-            .font(.system(size: 16))
+            .scaledFont(size: 16)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .foregroundColor(.white)
@@ -834,20 +834,20 @@ private struct BulkDeleteCategoryRow: View {
                         .fill(Color.red.opacity(0.12))
                         .frame(width: 36, height: 36)
                     Image(systemName: category.systemImage)
-                        .font(.system(size: 18, weight: .semibold))
+                        .scaledFont(size: 18, weight: .semibold)
                         .foregroundColor(.red)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(category.displayName)
-                        .font(.system(size: 15, weight: .medium))
+                        .scaledFont(size: 15, weight: .medium)
                         .foregroundColor(.primary)
                     Text("\(count) " + "item(s)".localized())
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .foregroundColor(.secondary)
                 }
                 Spacer()
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
+                    .scaledFont(size: 22)
                     .foregroundColor(isSelected ? .red : Color(.tertiaryLabel))
             }
             .padding(.horizontal, 12)

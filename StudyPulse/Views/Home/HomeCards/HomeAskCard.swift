@@ -50,7 +50,7 @@ struct HomeAskCard: View {
                         ))
                         .frame(width: 36, height: 36)
                     Image(systemName: "text.bubble.fill")
-                        .font(.system(size: 16, weight: .semibold))
+                        .scaledFont(size: 16, weight: .semibold)
                         .foregroundColor(.white)
                 }
 
@@ -62,7 +62,7 @@ struct HomeAskCard: View {
                         if container.envManager.llmConfig.isConfigured {
                             HStack(spacing: 2) {
                                 Image(systemName: "sparkles")
-                                    .font(.system(size: 9, weight: .bold))
+                                    .scaledFont(size: 9, weight: .bold)
                                 Text("AI".localized())
                                     .font(.caption2.weight(.bold))
                             }
@@ -79,7 +79,7 @@ struct HomeAskCard: View {
                 }
                 Spacer()
                 Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 22))
+                    .scaledFont(size: 22)
                     .foregroundStyle(.tertiary)
             }
             .padding(DesignToken.Spacing.cardPadding)

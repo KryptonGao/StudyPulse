@@ -31,7 +31,7 @@ struct HealthDataLLMConsentSheet: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 18) {
                 Image(systemName: "heart.text.square.fill")
-                    .font(.system(size: 46))
+                    .scaledFont(size: 46)
                     .foregroundStyle(.teal.gradient)
 
                 Text("Allow health data in AI requests?".localized())

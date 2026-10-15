@@ -104,10 +104,10 @@ struct AIQuizResultView: View {
                 
                 VStack(spacing: 2) {
                     Text("\(gradingResponse.totalScore)")
-                        .font(.system(size: 48, weight: .bold))
+                        .scaledFont(size: 48, weight: .bold)
                         .foregroundColor(scoreColor)
                     Text("满分 100".localized())
-                        .font(.system(size: 11))
+                        .scaledFont(size: 11)
                         .foregroundColor(.secondary)
                 }
             }

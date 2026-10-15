@@ -55,7 +55,7 @@ struct DiaryHomeCard: View {
                     // 今日 emoji(只读,无 Button,确保 NavigationLink 可点)
                     // Today's emoji (read-only; plain Text so NavigationLink stays tappable).
                     Text(today?.moodEmoji ?? "➕")
-                        .font(.system(size: 48))
+                        .scaledFont(size: 48)
                         .frame(width: 72, height: 72)
                         .background(
                             Circle()

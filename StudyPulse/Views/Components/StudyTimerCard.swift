@@ -24,19 +24,19 @@ struct StudyTimerCard: View {
             // Header
             HStack {
                 Text("Study Timer".localized())
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
                     .foregroundColor(.primary)
 
                 Spacer()
 
                 if timer.timerState == .running || timer.timerState == .paused {
                     Image(systemName: "liveactivity")
-                        .font(.system(size: 16))
+                        .scaledFont(size: 16)
                         .foregroundColor(.green)
                 }
 
                 Image(systemName: intensityIcon)
-                    .font(.system(size: 18))
+                    .scaledFont(size: 18)
                     .foregroundColor(intensityColor)
             }
 
@@ -86,16 +86,16 @@ struct StudyTimerCard: View {
 
             HStack(spacing: 8) {
                 Image(systemName: intensityIcon)
-                    .font(.system(size: 20))
+                    .scaledFont(size: 20)
                     .foregroundColor(intensityColor)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(intensityTitle)
-                        .font(.system(size: 16, weight: .semibold))
+                        .scaledFont(size: 16, weight: .semibold)
                         .foregroundColor(.primary)
                     Text(String(format: "Recommended: %d min session".localized(),
                                timer.recommendedDurationSeconds / 60))
-                        .font(.system(size: 13))
+                        .scaledFont(size: 13)
                         .foregroundColor(.secondary)
                 }
 
@@ -114,10 +114,10 @@ struct StudyTimerCard: View {
                     } label: {
                         VStack(spacing: 4) {
                             Text("\(preset.seconds / 60)")
-                                .font(.system(size: 22, weight: .bold))
+                                .scaledFont(size: 22, weight: .bold)
                                 .foregroundColor(preset.isRecommended ? .white : .primary)
                             Text("min")
-                                .font(.system(size: 11))
+                                .scaledFont(size: 11)
                                 .foregroundColor(preset.isRecommended ? .white.opacity(0.8) : .secondary)
                         }
                         .frame(maxWidth: .infinity)
@@ -135,10 +135,10 @@ struct StudyTimerCard: View {
                 } label: {
                     VStack(spacing: 4) {
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 20, weight: .bold))
+                            .scaledFont(size: 20, weight: .bold)
                             .foregroundColor(.secondary)
                         Text("More".localized())
-                            .font(.system(size: 11))
+                            .scaledFont(size: 11)
                             .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity)
@@ -170,7 +170,7 @@ struct StudyTimerCard: View {
         VStack(spacing: 12) {
             // Large countdown
             Text(formatTime(timer.remainingSeconds))
-                .font(.system(size: 42, weight: .bold, design: .monospaced))
+                .scaledFont(size: 42, weight: .bold, design: .monospaced)
                 .foregroundColor(.primary)
 
             // Progress bar
@@ -188,7 +188,7 @@ struct StudyTimerCard: View {
 
             // Intensity label
             Text(timer.currentIntensity?.displayName ?? "")
-                .font(.system(size: 13, weight: .medium))
+                .scaledFont(size: 13, weight: .medium)
                 .foregroundColor(intensityColor)
 
             // Controls
@@ -197,7 +197,7 @@ struct StudyTimerCard: View {
                     timer.cancel()
                 } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 18, weight: .semibold))
+                        .scaledFont(size: 18, weight: .semibold)
                         .foregroundColor(.red)
                         .frame(width: 44, height: 44)
                         .background(Circle().fill(Color.red.opacity(0.12)))
@@ -212,7 +212,7 @@ struct StudyTimerCard: View {
                         timer.pause()
                     } label: {
                         Image(systemName: "pause.fill")
-                            .font(.system(size: 22))
+                            .scaledFont(size: 22)
                             .foregroundColor(.white)
                             .frame(width: 56, height: 56)
                             .background(Circle().fill(Color.orange))
@@ -224,7 +224,7 @@ struct StudyTimerCard: View {
                         timer.resume()
                     } label: {
                         Image(systemName: "play.fill")
-                            .font(.system(size: 22))
+                            .scaledFont(size: 22)
                             .foregroundColor(.white)
                             .frame(width: 56, height: 56)
                             .background(Circle().fill(Color.green))
@@ -239,7 +239,7 @@ struct StudyTimerCard: View {
                     showingTimer = true
                 } label: {
                     Image(systemName: "arrow.up.left.and.arrow.down.right")
-                        .font(.system(size: 14, weight: .semibold))
+                        .scaledFont(size: 14, weight: .semibold)
                         .foregroundColor(.secondary)
                         .frame(width: 44, height: 44)
                         .background(Circle().fill(Color(.tertiarySystemFill)))

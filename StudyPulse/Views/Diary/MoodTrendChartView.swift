@@ -281,7 +281,7 @@ struct MoodTrendChartView: View {
     private var emptyState: some View {
         VStack(spacing: 12) {
             Image(systemName: "chart.xyaxis.line")
-                .font(.system(size: 56))
+                .scaledFont(size: 56)
                 .foregroundColor(.secondary.opacity(0.6))
             Text("No data in this period".localized())
                 .font(.subheadline)

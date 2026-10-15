@@ -53,7 +53,7 @@ struct UserAgreementView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
                 Image(systemName: "doc.text.fill")
-                    .font(.system(size: 32))
+                    .scaledFont(size: 32)
                     .foregroundStyle(.white)
                     .frame(width: 56, height: 56)
                     .background(
@@ -148,7 +148,7 @@ struct UserAgreementView: View {
     private var footerCard: some View {
         VStack(spacing: 12) {
             Image(systemName: "checkmark.shield.fill")
-                .font(.system(size: 36))
+                .scaledFont(size: 36)
                 .foregroundStyle(
                     LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
                 )

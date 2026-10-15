@@ -107,7 +107,7 @@ struct LLMDebugSheet: View {
     private var emptyView: some View {
         VStack(spacing: 12) {
             Image(systemName: "ladybug")
-                .font(.system(size: 48))
+                .scaledFont(size: 48)
                 .foregroundColor(.secondary)
             Text("暂无 LLM 调用记录".localized())
                 .font(.headline)
@@ -123,7 +123,7 @@ struct LLMDebugSheet: View {
     private var pendingView: some View {
         VStack(spacing: 12) {
             Image(systemName: "hourglass")
-                .font(.system(size: 40))
+                .scaledFont(size: 40)
                 .foregroundColor(.secondary)
             Text("该模块还没有 LLM 调用".localized())
                 .font(.headline)

@@ -273,7 +273,7 @@ struct ScoreControlView: View {
             HStack(spacing: 20) {
                 Button { decrease() } label: {
                     Image(systemName: "minus.circle")
-                        .font(.system(size: 20, weight: .semibold))
+                        .scaledFont(size: 20, weight: .semibold)
                         .foregroundColor(value <= 0 ? .gray : .blue)
                 }
                 .accessibilityLabel("a11y.decrease".localized())
@@ -281,12 +281,12 @@ struct ScoreControlView: View {
                 
                 Text(String(format: "%.1f", value))
                     .contentTransition(.numericText(value: value))
-                    .font(.system(size: 40, weight: .bold, design: .monospaced))
+                    .scaledFont(size: 40, weight: .bold, design: .monospaced)
                     .foregroundColor(color)
                 
                 Button { increase() } label: {
                     Image(systemName: "plus.circle")
-                        .font(.system(size: 20, weight: .semibold))
+                        .scaledFont(size: 20, weight: .semibold)
                         .foregroundColor(value >= Double(max) ? .gray : .blue)
                 }
                 .accessibilityLabel("a11y.increase".localized())
@@ -338,7 +338,7 @@ struct RankingControlView: View {
                     }
                 } label: {
                     Image(systemName: "minus.circle")
-                        .font(.system(size: 20, weight: .semibold))
+                        .scaledFont(size: 20, weight: .semibold)
                         .foregroundColor((ranking ?? 1) <= 1 ? .gray : .blue)
                 }
                 .accessibilityLabel("a11y.decrease".localized())
@@ -348,7 +348,7 @@ struct RankingControlView: View {
                 // 排名输入框（居中 + 动画）
                 TextField("", value: $ranking, format: .number)
                     .contentTransition(.numericText()) // 👈 数字动画！
-                    .font(.system(size: 40, weight: .bold, design: .monospaced))
+                    .scaledFont(size: 40, weight: .bold, design: .monospaced)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
                     .keyboardType(.numberPad)
@@ -360,7 +360,7 @@ struct RankingControlView: View {
                     }
                 } label: {
                     Image(systemName: "plus.circle")
-                        .font(.system(size: 20, weight: .semibold))
+                        .scaledFont(size: 20, weight: .semibold)
                         .foregroundColor(.blue)
                 }
                 .accessibilityLabel("a11y.increase".localized())

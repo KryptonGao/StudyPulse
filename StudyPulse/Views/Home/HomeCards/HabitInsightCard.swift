@@ -41,7 +41,7 @@ struct HabitInsightCard: View {
             if !slotCells.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("home.habit.heatmap".localized())
-                        .font(.system(size: 12, weight: .semibold))
+                        .scaledFont(size: 12, weight: .semibold)
                         .foregroundStyle(.secondary)
                     WeekdaySlotHeatmap(cells: slotCells, tint: container.envManager.effectiveAccentColor)
                 }

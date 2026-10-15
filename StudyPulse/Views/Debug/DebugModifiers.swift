@@ -253,7 +253,7 @@ struct LLMCallIndicator: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: info.error == nil ? "sparkles" : "exclamationmark.triangle.fill")
-                                .font(.system(size: 9))
+                                .scaledFont(size: 9)
                             Text(caller)
                                 .font(.caption2.weight(.semibold))
                             Text("·")
@@ -278,7 +278,7 @@ struct LLMCallIndicator: View {
                 } else {
                     HStack(spacing: 4) {
                         Image(systemName: "sparkles")
-                            .font(.system(size: 9))
+                            .scaledFont(size: 9)
                         Text("\(caller) · 未触发")
                             .font(.caption2)
                     }

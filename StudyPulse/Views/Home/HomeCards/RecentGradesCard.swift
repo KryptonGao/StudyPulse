@@ -26,7 +26,7 @@ struct RecentGradesCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Recent Grades".localized())
-                .font(.system(size: 18, weight: .semibold))
+                .scaledFont(size: 18, weight: .semibold)
                 .foregroundColor(.primary)
 
             VStack(spacing: 10) {
@@ -62,18 +62,18 @@ struct CompactGradeRow: View {
                     .frame(width: 40, height: 40)
 
                 Text("\(Int(grade.score))")
-                    .font(.system(size: 14, weight: .bold))
+                    .scaledFont(size: 14, weight: .bold)
                     .foregroundColor(scoreColor)
                     .debugInspectAuto(grade.score, label: "score")
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(grade.subject.localized())
-                    .font(.system(size: 15, weight: .semibold))
+                    .scaledFont(size: 15, weight: .semibold)
                     .foregroundColor(.primary)
 
                 Text(grade.date, style: .date)
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .foregroundColor(.secondary)
             }
 
@@ -81,7 +81,7 @@ struct CompactGradeRow: View {
 
             if let ranking = grade.ranking {
                 Text("#\(ranking)")
-                    .font(.system(size: 13, weight: .medium))
+                    .scaledFont(size: 13, weight: .medium)
                     .foregroundColor(.secondary)
             }
         }

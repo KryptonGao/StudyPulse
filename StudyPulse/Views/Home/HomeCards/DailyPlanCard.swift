@@ -67,16 +67,16 @@ struct DailyPlanCard: View {
                     )
                     .frame(width: 36, height: 36)
                 Image(systemName: "sparkles")
-                    .font(.system(size: 16, weight: .semibold))
+                    .scaledFont(size: 16, weight: .semibold)
                     .foregroundColor(.white)
             }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Today's Top 3".localized())
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
                     .foregroundColor(.primary)
                 Text(subtitleText)
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(size: 12, weight: .medium)
                     .foregroundColor(.secondary)
             }
             Spacer()
@@ -100,13 +100,13 @@ struct DailyPlanCard: View {
     private var placeholderRow: some View {
         HStack(spacing: 12) {
             Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 22))
+                .scaledFont(size: 22)
                 .foregroundColor(.mint)
             VStack(alignment: .leading, spacing: 2) {
                 Text("All clear".localized())
-                    .font(.system(size: 15, weight: .semibold))
+                    .scaledFont(size: 15, weight: .semibold)
                 Text("Pick something to study or add a routine.".localized())
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .foregroundColor(.secondary)
             }
             Spacer()
@@ -154,14 +154,14 @@ private struct PlanItemRow: View {
                         .fill(item.color.opacity(0.18))
                         .frame(width: 32, height: 32)
                     Text("\(rank)")
-                        .font(.system(size: 14, weight: .bold))
+                        .scaledFont(size: 14, weight: .bold)
                         .foregroundColor(item.color)
                 }
 
                 // 类型图标
                 // Item-type icon
                 Image(systemName: item.icon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .scaledFont(size: 16, weight: .semibold)
                     .foregroundColor(item.color)
                     .frame(width: 22)
 
@@ -169,17 +169,17 @@ private struct PlanItemRow: View {
                 // Title + reason text
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.title)
-                        .font(.system(size: 15, weight: .semibold))
+                        .scaledFont(size: 15, weight: .semibold)
                         .foregroundColor(.primary)
                         .lineLimit(1)
                     Text(item.reason)
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
                 Spacer(minLength: 8)
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
+                    .scaledFont(size: 12, weight: .semibold)
                     .foregroundColor(.secondary.opacity(0.6))
             }
             .padding(.vertical, 10)
@@ -210,7 +210,7 @@ private struct PlanItemRow: View {
             object: nil,
             userInfo: ["item": item]
         )
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        Haptics.impact(.light)
     }
 }
 
@@ -228,7 +228,7 @@ struct MinimalCompletionPlanCard: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 25, weight: .semibold))
+                    .scaledFont(size: 25, weight: .semibold)
                     .foregroundStyle(.green)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Minimum Viable Plan".localized())

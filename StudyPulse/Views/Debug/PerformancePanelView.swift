@@ -125,14 +125,14 @@ struct PerformancePanelView: View {
                     Text("debug.lastLag".localized())
                     Spacer()
                     Text(String(format: "%.0f ms", ms))
-                        .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                        .scaledFont(size: 14, weight: .semibold, design: .monospaced)
                         .foregroundStyle(.orange)
                 }
                 HStack {
                     Text("When".localized())
                     Spacer()
                     Text(ts.formatted(date: .omitted, time: .standard))
-                        .font(.system(size: 12, design: .monospaced))
+                        .scaledFont(size: 12, design: .monospaced)
                         .foregroundStyle(.secondary)
                 }
             } else {
@@ -149,17 +149,17 @@ struct PerformancePanelView: View {
     private func statRow(title: String, value: String, unit: String, color: Color, systemImage: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
-                .font(.system(size: 18))
+                .scaledFont(size: 18)
                 .foregroundStyle(color)
                 .frame(width: 28)
             Text(title)
-                .font(.system(size: 15))
+                .scaledFont(size: 15)
             Spacer()
             Text(value)
-                .font(.system(size: 20, weight: .bold, design: .monospaced))
+                .scaledFont(size: 20, weight: .bold, design: .monospaced)
                 .foregroundStyle(color)
             Text(unit)
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(.secondary)
         }
     }

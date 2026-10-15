@@ -246,7 +246,7 @@ private struct FilterChip: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: systemImage)
-                .font(.system(size: 11))
+                .scaledFont(size: 11)
             Text(title)
                 .font(.caption)
                 .lineLimit(1)
@@ -275,17 +275,17 @@ private struct LogEntryRow: View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
                 Text(Self.timeFormatter.string(from: entry.timestamp))
-                    .font(.system(size: 11, design: .monospaced))
+                    .scaledFont(size: 11, design: .monospaced)
                     .foregroundColor(.secondary)
                 Text(entry.level.displayName)
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .scaledFont(size: 10, weight: .bold, design: .monospaced)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 1)
                     .background(entry.level.badgeColor.opacity(0.18))
                     .foregroundColor(entry.level.badgeColor)
                     .clipShape(RoundedRectangle(cornerRadius: 3))
                 Text(entry.category)
-                    .font(.system(size: 10, design: .monospaced))
+                    .scaledFont(size: 10, design: .monospaced)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 1)
                     .background(Color(.tertiarySystemFill))
@@ -294,7 +294,7 @@ private struct LogEntryRow: View {
                 Spacer(minLength: 0)
             }
             Text(entry.message)
-                .font(.system(size: 12, design: .monospaced))
+                .scaledFont(size: 12, design: .monospaced)
                 .foregroundColor(.primary)
                 .lineLimit(3)
         }
@@ -327,7 +327,7 @@ private struct LogEntryDetailSheet: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Text(entry.message)
-                        .font(.system(size: 13, design: .monospaced))
+                        .scaledFont(size: 13, design: .monospaced)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -365,7 +365,7 @@ private struct LogEntryDetailSheet: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 90, alignment: .leading)
             Text(value)
-                .font(.system(size: 13, design: .monospaced))
+                .scaledFont(size: 13, design: .monospaced)
                 .textSelection(.enabled)
             Spacer(minLength: 0)
         }

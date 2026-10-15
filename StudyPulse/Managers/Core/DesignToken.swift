@@ -76,20 +76,24 @@ enum DesignToken {
     }
     
     // MARK: - Font & Typography (字体规范)
+    /// 语义字体 token:基于系统 text style,自动随 Dynamic Type 缩放(rounded 设计)。
+    /// 括号内为默认内容尺寸下的 pt 值。非标准字号请用 `.scaledFont(size:)`。
+    /// Semantic font tokens built on system text styles, so they scale with Dynamic Type.
+    /// Point values in parentheses are at the default content size. Use `.scaledFont(size:)` for off-scale sizes.
     enum Font {
         /// 大标题 (28pt) - 页面顶部大标题
-        static let titleLarge: SwiftUI.Font = .system(size: 28, weight: .bold, design: .rounded)
+        static let titleLarge: SwiftUI.Font = .system(.title, design: .rounded, weight: .bold)
         /// 中标题 (22pt) - 主要栏目、二级页面标题
-        static let titleMedium: SwiftUI.Font = .system(size: 22, weight: .bold, design: .rounded)
-        /// 小标题 (18pt) - 卡片标题、模态框标题
-        static let titleSmall: SwiftUI.Font = .system(size: 18, weight: .semibold, design: .rounded)
+        static let titleMedium: SwiftUI.Font = .system(.title2, design: .rounded, weight: .bold)
+        /// 小标题 (17pt) - 卡片标题、模态框标题
+        static let titleSmall: SwiftUI.Font = .system(.headline, design: .rounded, weight: .semibold)
         /// 强调正文 (16pt) - 列表大文字、正文重点
-        static let bodyBold: SwiftUI.Font = .system(size: 16, weight: .semibold, design: .rounded)
+        static let bodyBold: SwiftUI.Font = .system(.callout, design: .rounded, weight: .semibold)
         /// 标准正文 (15pt) - 卡片正文、列表条目文字
-        static let body: SwiftUI.Font = .system(size: 15, weight: .regular, design: .rounded)
+        static let body: SwiftUI.Font = .system(.subheadline, design: .rounded, weight: .regular)
         /// 次要正文 (13pt) - 描述文字、小副标题
-        static let subheadline: SwiftUI.Font = .system(size: 13, weight: .regular, design: .rounded)
+        static let subheadline: SwiftUI.Font = .system(.footnote, design: .rounded, weight: .regular)
         /// 辅助/辅助信息 (11pt) - 脚注、时间戳、次要标签
-        static let caption: SwiftUI.Font = .system(size: 11, weight: .regular, design: .rounded)
+        static let caption: SwiftUI.Font = .system(.caption2, design: .rounded, weight: .regular)
     }
 }

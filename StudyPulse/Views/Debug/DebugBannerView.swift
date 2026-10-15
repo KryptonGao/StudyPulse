@@ -55,19 +55,19 @@ struct DebugBannerView: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "ladybug.fill")
-                    .font(.system(size: 13, weight: .semibold))
+                    .scaledFont(size: 13, weight: .semibold)
                 Text("DEBUG MODE ON".localized())
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .scaledFont(size: 12, weight: .bold, design: .monospaced)
                 if activeSubToggles > 0 {
                     Text("·")
-                        .font(.system(size: 12, weight: .bold))
+                        .scaledFont(size: 12, weight: .bold)
                     Text("\(activeSubToggles) " + "active".localized())
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .scaledFont(size: 11, weight: .medium, design: .monospaced)
                         .opacity(0.85)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
+                    .scaledFont(size: 11, weight: .semibold)
                     .opacity(0.7)
             }
             .foregroundColor(.black.opacity(0.85))
@@ -110,19 +110,19 @@ private struct ToastRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 6) {
             Image(systemName: iconName)
-                .font(.system(size: 11, weight: .bold))
+                .scaledFont(size: 11, weight: .bold)
                 .foregroundColor(badgeColor)
                 .frame(width: 14)
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 4) {
                     Text(Self.timeFormatter.string(from: entry.timestamp))
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                        .scaledFont(size: 9, weight: .semibold, design: .monospaced)
                         .foregroundColor(.black.opacity(0.6))
                     Text(entry.category)
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .scaledFont(size: 9, weight: .bold, design: .monospaced)
                         .foregroundColor(badgeColor)
                     Text(entry.level.rawValue.uppercased())
-                        .font(.system(size: 8, weight: .heavy, design: .monospaced))
+                        .scaledFont(size: 8, weight: .heavy, design: .monospaced)
                         .padding(.horizontal, 3)
                         .padding(.vertical, 1)
                         .background(badgeColor)
@@ -131,7 +131,7 @@ private struct ToastRow: View {
                     Spacer(minLength: 0)
                 }
                 Text(entry.message)
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .scaledFont(size: 10, weight: .medium, design: .monospaced)
                     .foregroundColor(.black.opacity(0.85))
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)

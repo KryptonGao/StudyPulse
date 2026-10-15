@@ -92,7 +92,7 @@ struct DiaryEntryEditView: View {
                     entry.moodScore = score
                 } label: {
                     Text(emoji)
-                        .font(.system(size: isSelected ? 40 : 30))
+                        .scaledFont(size: isSelected ? 40 : 30)
                         .padding(8)
                         .background(
                             Capsule()

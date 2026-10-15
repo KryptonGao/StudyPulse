@@ -28,7 +28,7 @@ struct VoiceMemoRecordingSheet: View {
                 // 大号时间码:分:秒.厘秒(0.01s 精度)
                 // Large timer: mm:ss.cs (0.01s precision).
                 Text(timeString(from: manager.currentTime))
-                    .font(.system(size: 64, weight: .thin, design: .monospaced))
+                    .scaledFont(size: 64, weight: .thin, design: .monospaced)
                     .monospacedDigit()
                     .padding(.top, 40)
 

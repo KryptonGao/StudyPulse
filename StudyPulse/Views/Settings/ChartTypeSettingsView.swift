@@ -53,17 +53,17 @@ private struct ChartTypeRow: View {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(isSelected ? Color.blue.opacity(0.18) : Color(.tertiarySystemFill))
                 Image(systemName: type.icon)
-                    .font(.system(size: 20, weight: .semibold))
+                    .scaledFont(size: 20, weight: .semibold)
                     .foregroundColor(isSelected ? .blue : .primary)
             }
             .frame(width: 44, height: 44)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(type.localizedDisplayName)
-                    .font(.system(size: 15, weight: .semibold))
+                    .scaledFont(size: 15, weight: .semibold)
                     .foregroundColor(.primary)
                 Text(type.localizedDescription)
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -72,7 +72,7 @@ private struct ChartTypeRow: View {
 
             if isSelected {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 20))
+                    .scaledFont(size: 20)
                     .foregroundColor(.blue)
             }
         }

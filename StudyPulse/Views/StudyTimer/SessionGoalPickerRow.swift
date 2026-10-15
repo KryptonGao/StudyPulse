@@ -45,13 +45,13 @@ struct SessionGoalPickerRow: View {
         Button(action: onEdit) {
             HStack(spacing: 12) {
                 Image(systemName: goal.source.icon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .scaledFont(size: 16, weight: .semibold)
                     .foregroundColor(.white)
                     .frame(width: 36, height: 36)
                     .background(Circle().fill(sourceColor(goal.source)))
                 VStack(alignment: .leading, spacing: 3) {
                     Text(goal.title.isEmpty ? goal.sourceTitle ?? goal.source.displayName : goal.title)
-                        .font(.system(size: 14, weight: .semibold))
+                        .scaledFont(size: 14, weight: .semibold)
                         .foregroundColor(.primary)
                         .lineLimit(1)
                     HStack(spacing: 6) {
@@ -81,13 +81,13 @@ struct SessionGoalPickerRow: View {
         Button(action: onEdit) {
             HStack(spacing: 10) {
                 Image(systemName: "target")
-                    .font(.system(size: 16))
+                    .scaledFont(size: 16)
                     .foregroundColor(.secondary)
                     .frame(width: 36, height: 36)
                     .background(Circle().fill(Color(.tertiarySystemFill)))
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Set a focus goal".localized())
-                        .font(.system(size: 14, weight: .medium))
+                        .scaledFont(size: 14, weight: .medium)
                         .foregroundColor(.primary)
                     Text("Todo · Mistake · Knowledge · Custom".localized())
                         .font(.caption2)

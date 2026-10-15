@@ -109,7 +109,7 @@ struct ExamRoleSimulatorView: View {
             VStack(spacing: DesignToken.Spacing.large) {
                 VStack(spacing: DesignToken.Spacing.medium) {
                     Image(systemName: "person.crop.circle.badge.questionmark")
-                        .font(.system(size: 52))
+                        .scaledFont(size: 52)
                         .foregroundStyle(.purple)
                     Text("它观察你如何分配时间、跳题和修改答案，不判断你的性格。".localized())
                         .font(DesignToken.Font.body)
@@ -380,7 +380,7 @@ private struct ExamSimulationResultView: View {
                 if let analysis = simulation.analysis {
                     VStack(spacing: 12) {
                         Image(systemName: analysis.role.symbol)
-                            .font(.system(size: 48))
+                            .scaledFont(size: 48)
                             .foregroundStyle(.purple)
                         Text(analysis.isStable && validAnalyzedCount >= 3
                              ? "你的常见考场模式".localized()
@@ -430,7 +430,7 @@ private struct ExamSimulationResultView: View {
                 } else {
                     VStack(spacing: 16) {
                         Image(systemName: "wifi.exclamationmark")
-                            .font(.system(size: 44))
+                            .scaledFont(size: 44)
                             .foregroundStyle(.orange)
                         Text("分析暂未完成".localized())
                             .font(DesignToken.Font.titleSmall)

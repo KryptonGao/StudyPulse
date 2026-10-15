@@ -55,13 +55,13 @@ struct ExamCalendarItemRow: View {
             VStack(alignment: .trailing, spacing: 2) {
                 ForEach(0..<item.importance, id: \.self) { _ in
                     Image(systemName: "star.fill")
-                        .font(.system(size: 6))
+                        .scaledFont(size: 6)
                         .foregroundColor(.yellow)
                 }
                 if item.importance < 5 {
                     ForEach(0..<(5 - item.importance), id: \.self) { _ in
                         Image(systemName: "star")
-                            .font(.system(size: 6))
+                            .scaledFont(size: 6)
                             .foregroundColor(Color(.tertiaryLabel))
                     }
                 }

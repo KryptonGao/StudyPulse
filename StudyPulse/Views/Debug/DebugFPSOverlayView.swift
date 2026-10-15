@@ -43,15 +43,15 @@ struct DebugFPSOverlayView: View {
     private var compactChip: some View {
         HStack(spacing: 6) {
             Image(systemName: "speedometer")
-                .font(.system(size: 10, weight: .semibold))
+                .scaledFont(size: 10, weight: .semibold)
             Text(String(format: "%.0f", fpsMonitor.currentFPS))
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .scaledFont(size: 11, weight: .bold, design: .monospaced)
             Text("·")
-                .font(.system(size: 10))
+                .scaledFont(size: 10)
             Text(String(format: "%.0fM", memoryMB))
-                .font(.system(size: 10, design: .monospaced))
+                .scaledFont(size: 10, design: .monospaced)
             Image(systemName: "chevron.left")
-                .font(.system(size: 9, weight: .semibold))
+                .scaledFont(size: 9, weight: .semibold)
                 .opacity(0.6)
         }
         .foregroundColor(.white)
@@ -73,7 +73,7 @@ struct DebugFPSOverlayView: View {
             HStack {
                 Spacer()
                 Image(systemName: "chevron.up")
-                    .font(.system(size: 10, weight: .semibold))
+                    .scaledFont(size: 10, weight: .semibold)
                     .opacity(0.6)
             }
         }
@@ -88,11 +88,11 @@ struct DebugFPSOverlayView: View {
     private func row(_ label: String, value: String, color: Color) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .scaledFont(size: 10, weight: .semibold, design: .monospaced)
                 .foregroundColor(.white.opacity(0.7))
             Spacer()
             Text(value)
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .scaledFont(size: 11, weight: .bold, design: .monospaced)
                 .foregroundColor(color)
         }
     }

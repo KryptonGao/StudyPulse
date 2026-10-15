@@ -56,7 +56,7 @@ struct PreferencesView: View {
                                         .frame(width: 36, height: 36)
                                     if container.envManager.effectiveAccent == accent {
                                         Image(systemName: "checkmark")
-                                            .font(.system(size: 14, weight: .bold))
+                                            .scaledFont(size: 14, weight: .bold)
                                             .foregroundColor(.white)
                                     }
                                     Circle()

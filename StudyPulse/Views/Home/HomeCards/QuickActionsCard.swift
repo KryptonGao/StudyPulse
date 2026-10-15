@@ -27,7 +27,7 @@ struct QuickActionsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Quick Actions".localized())
-                .font(.system(size: 18, weight: .semibold))
+                .scaledFont(size: 18, weight: .semibold)
                 .foregroundColor(.primary)
 
             HStack(spacing: 12) {
@@ -161,12 +161,12 @@ struct QuickActionButton<Destination: View>: View {
                     .frame(height: 60)
 
                 Image(systemName: icon)
-                    .font(.system(size: 28))
+                    .scaledFont(size: 28)
                     .foregroundColor(color)
             }
 
             Text(title)
-                .font(.system(size: 13, weight: .medium))
+                .scaledFont(size: 13, weight: .medium)
                 .foregroundColor(.primary)
         }
     }

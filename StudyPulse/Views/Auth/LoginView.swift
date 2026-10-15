@@ -11,7 +11,7 @@ struct LoginView: View {
         NavigationStack {
             VStack(spacing: 22) {
                 Image(systemName: "person.badge.key.fill")
-                    .font(.system(size: 58))
+                    .scaledFont(size: 58)
                     .foregroundStyle(.teal)
                 Text("StudyPulse Cloud AI".localized())
                     .font(.title2.weight(.semibold))

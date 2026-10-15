@@ -111,7 +111,7 @@ struct LLMSettingsView: View {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .fill(Color.teal.opacity(0.12))
                             Image(systemName: "cloud.fill")
-                                .font(.system(size: 32))
+                                .scaledFont(size: 32)
                                 .foregroundColor(.teal)
                         }
                         .frame(width: 64, height: 64)

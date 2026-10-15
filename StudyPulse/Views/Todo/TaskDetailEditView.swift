@@ -157,6 +157,7 @@ struct TaskDetailEditView: View {
         let trimmedTitle = title.trimmingCharacters(in: .whitespaces)
         guard !trimmedTitle.isEmpty else { return }
         isSaving = true
+        Haptics.success()
 
         var updated = originalTask
         updated.title = trimmedTitle

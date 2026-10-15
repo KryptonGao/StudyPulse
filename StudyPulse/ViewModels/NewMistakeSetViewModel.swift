@@ -340,6 +340,7 @@ final class NewMistakeSetViewModel {
             tags: editedTags
         )
         container.addMistake(newMistake)
+        Haptics.success()
 
         // 重排复习通知 / Reschedule review notifications.
         if reviewEnabled {

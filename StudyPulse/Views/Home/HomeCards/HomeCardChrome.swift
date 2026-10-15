@@ -40,7 +40,7 @@ struct HomeCardHeader<Trailing: View>: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: DesignToken.Spacing.small) {
             Image(systemName: icon)
-                .font(.system(size: 15, weight: .semibold))
+                .scaledFont(size: 15, weight: .semibold)
                 .foregroundStyle(tint)
             Text(title)
                 .font(DesignToken.Font.titleSmall)
@@ -128,10 +128,10 @@ struct HomeDeltaBadge: View {
         let color: Color = isFlat ? .secondary : (isGood ? .green : .red)
         HStack(spacing: 2) {
             Image(systemName: isFlat ? "minus" : (value > 0 ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill"))
-                .font(.system(size: 8, weight: .bold))
+                .scaledFont(size: 8, weight: .bold)
             if !isFlat {
                 Text(String(format: format, abs(value)))
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .scaledFont(size: 11, weight: .semibold, design: .rounded)
                     .monospacedDigit()
             }
         }

@@ -291,7 +291,7 @@ struct MistakeCardView: View {
                     HStack(spacing: 1) {
                         ForEach(1...5, id: \.self) { i in
                             Image(systemName: i <= mistake.difficulty ? "star.fill" : "star")
-                                .font(.system(size: 9))
+                                .scaledFont(size: 9)
                                 .foregroundStyle(i <= mistake.difficulty ? Color.orange : Color.gray.opacity(0.3))
                         }
                     }

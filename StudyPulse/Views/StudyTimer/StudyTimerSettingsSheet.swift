@@ -66,10 +66,10 @@ struct StudyTimerSetupSheet: View {
     private var completedBadge: some View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 28))
+                .scaledFont(size: 28)
                 .foregroundColor(.green)
             Text("Session Complete!".localized())
-                .font(.system(size: 20, weight: .bold))
+                .scaledFont(size: 20, weight: .bold)
                 .foregroundColor(.primary)
         }
         .padding(.vertical, 8)
@@ -78,16 +78,16 @@ struct StudyTimerSetupSheet: View {
     private var recommendationHeader: some View {
         VStack(spacing: 6) {
             Image(systemName: StudyIntensityUI.icon)
-                .font(.system(size: 36))
+                .scaledFont(size: 36)
                 .foregroundColor(themeColor)
 
             Text(StudyIntensityUI.title)
-                .font(.system(size: 22, weight: .bold))
+                .scaledFont(size: 22, weight: .bold)
                 .foregroundColor(.primary)
 
             Text(String(format: "Recommended: %d min".localized(),
                        timer.recommendedDurationSeconds / 60))
-                .font(.system(size: 15))
+                .scaledFont(size: 15)
                 .foregroundColor(.secondary)
         }
     }
@@ -101,14 +101,14 @@ struct StudyTimerSetupSheet: View {
                 } label: {
                     VStack(spacing: 6) {
                         Text("\(preset.minutes)")
-                            .font(.system(size: 26, weight: .bold))
+                            .scaledFont(size: 26, weight: .bold)
                             .foregroundColor(selectedPreset == preset.minutes ? .white : .primary)
                         Text("min")
-                            .font(.system(size: 12))
+                            .scaledFont(size: 12)
                             .foregroundColor(selectedPreset == preset.minutes ? .white.opacity(0.8) : .secondary)
                         if preset.isRecommended {
                             Text("Recommended".localized())
-                                .font(.system(size: 9, weight: .semibold))
+                                .scaledFont(size: 9, weight: .semibold)
                                 .foregroundColor(selectedPreset == preset.minutes ? .white.opacity(0.7) : themeColor)
                         }
                     }
@@ -195,7 +195,7 @@ struct StudyTimerSetupSheet: View {
     private var customDurationSection: some View {
         VStack(spacing: 8) {
             Text("Custom Duration".localized())
-                .font(.system(size: 13, weight: .medium))
+                .scaledFont(size: 13, weight: .medium)
                 .foregroundColor(.secondary)
 
             HStack {
@@ -204,14 +204,14 @@ struct StudyTimerSetupSheet: View {
                     selectedPreset = nil
                 } label: {
                     Image(systemName: "minus.circle.fill")
-                        .font(.system(size: 28))
+                        .scaledFont(size: 28)
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("a11y.decrease".localized())
 
                 Text("\(Int(customMinutes)) min")
-                    .font(.system(size: 20, weight: .semibold, design: .monospaced))
+                    .scaledFont(size: 20, weight: .semibold, design: .monospaced)
                     .foregroundColor(.primary)
                     .frame(minWidth: 80)
 
@@ -220,7 +220,7 @@ struct StudyTimerSetupSheet: View {
                     selectedPreset = nil
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 28))
+                        .scaledFont(size: 28)
                         .foregroundColor(.secondary)
                 }
                 .accessibilityLabel("a11y.increase".localized())
@@ -236,9 +236,9 @@ struct StudyTimerSetupSheet: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "play.fill")
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
                 Text("Start Focus".localized())
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
             }
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
@@ -429,12 +429,12 @@ struct StudyTimerQuickThemeSheet: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "paintpalette.fill")
-                    .font(.system(size: 18, weight: .medium))
+                    .scaledFont(size: 18, weight: .medium)
                 Text("Browse All Themes".localized())
-                    .font(.system(size: 15, weight: .semibold))
+                    .scaledFont(size: 15, weight: .semibold)
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
+                    .scaledFont(size: 13, weight: .semibold)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
@@ -471,7 +471,7 @@ struct StudyTimerQuickThemeSheet: View {
             }
 
             Text(anim.localizedName)
-                .font(.system(size: 13, weight: .medium))
+                .scaledFont(size: 13, weight: .medium)
                 .foregroundColor(.primary)
         }
         .padding(.vertical, 12)

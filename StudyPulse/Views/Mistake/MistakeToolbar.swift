@@ -68,7 +68,7 @@ struct MistakeListToolbarLeading: ToolbarContent {
                         Image(systemName: "rectangle.stack")
                         if dueCount > 0 {
                             Text("\(dueCount)")
-                                .font(.system(size: 10).weight(.bold))
+                                .scaledFont(size: 10, weight: .bold)
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 5)
                                 .padding(.vertical, 1)

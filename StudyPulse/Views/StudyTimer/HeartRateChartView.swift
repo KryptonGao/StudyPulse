@@ -102,7 +102,7 @@ struct HeartRateChartView: View {
                     .symbolSize(80)
                     .annotation(position: .top, spacing: 4) {
                         Text(a.note.prefix(8))
-                            .font(.system(size: 9, weight: .medium))
+                            .scaledFont(size: 9, weight: .medium)
                             .padding(.horizontal, 4)
                             .padding(.vertical, 2)
                             .background(Capsule().fill(Color.orange.opacity(0.15)))
@@ -202,10 +202,10 @@ struct HeartRateChartView: View {
     private func statItem(label: String, value: String, color: Color = .primary) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
-                .font(.system(size: 10))
+                .scaledFont(size: 10)
                 .foregroundColor(.secondary)
             Text(value)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .scaledFont(size: 14, weight: .semibold, design: .rounded)
                 .foregroundColor(color)
         }
     }
@@ -220,13 +220,13 @@ struct HeartRateChartView: View {
     private var emptyState: some View {
         VStack(spacing: 8) {
             Image(systemName: "heart.text.square")
-                .font(.system(size: 28))
+                .scaledFont(size: 28)
                 .foregroundColor(.secondary)
             Text("No heart-rate data".localized())
-                .font(.system(size: 14, weight: .medium))
+                .scaledFont(size: 14, weight: .medium)
                 .foregroundColor(.secondary)
             Text("Apple Watch may not have been worn or no samples were recorded during this session.".localized())
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }

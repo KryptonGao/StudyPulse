@@ -166,7 +166,7 @@ struct DiaryView: View {
                         logQuickMood(score: score)
                     } label: {
                         Text(emoji)
-                            .font(.system(size: 32))
+                            .scaledFont(size: 32)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                             .background(
@@ -210,7 +210,7 @@ struct DiaryView: View {
     private var emptyState: some View {
         VStack(spacing: 20) {
             Image(systemName: "book")
-                .font(.system(size: 64))
+                .scaledFont(size: 64)
                 .foregroundColor(.secondary.opacity(0.6))
 
             VStack(spacing: 8) {
@@ -258,7 +258,7 @@ struct DiaryRowView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Text(entry.moodEmoji)
-                .font(.system(size: 32))
+                .scaledFont(size: 32)
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {

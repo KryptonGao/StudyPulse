@@ -44,7 +44,7 @@ struct MarkdownPreviewView: View {
     private var emptyPreview: some View {
         VStack(spacing: 8) {
             Image(systemName: "text.viewfinder")
-                .font(.system(size: 32))
+                .scaledFont(size: 32)
                 .foregroundColor(.secondary.opacity(0.5))
             Text("Start typing markdown above")
                 .font(.subheadline)

@@ -21,7 +21,7 @@ struct AnnotationListView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Difficulty Annotations".localized())
-                    .font(.system(size: 14, weight: .semibold))
+                    .scaledFont(size: 14, weight: .semibold)
                 Spacer()
                 Text("\(annotations.count)")
                     .font(.caption.weight(.medium))
@@ -47,11 +47,11 @@ struct AnnotationListView: View {
             HStack(alignment: .top, spacing: 10) {
                 VStack(spacing: 2) {
                     Image(systemName: "exclamationmark.bubble.fill")
-                        .font(.system(size: 14))
+                        .scaledFont(size: 14)
                         .foregroundColor(.orange)
                     if let hr = anno.heartRate {
                         Text("\(Int(hr))")
-                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .scaledFont(size: 10, weight: .semibold, design: .rounded)
                             .foregroundColor(.pink)
                     }
                 }
@@ -59,7 +59,7 @@ struct AnnotationListView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(anno.note)
-                        .font(.system(size: 14))
+                        .scaledFont(size: 14)
                         .foregroundColor(.primary)
                         .lineLimit(3)
                         .multilineTextAlignment(.leading)
@@ -103,10 +103,10 @@ struct AnnotationListView: View {
     private var emptyState: some View {
         VStack(spacing: 6) {
             Image(systemName: "lightbulb")
-                .font(.system(size: 22))
+                .scaledFont(size: 22)
                 .foregroundColor(.secondary)
             Text("Tap a highlighted peak or long-press the chart to log a difficulty.".localized())
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
