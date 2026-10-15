@@ -2,10 +2,10 @@
 //  WelcomeHeaderCard.swift
 //  StudyPulse
 //
-//  主页顶部欢迎区:问候语 + "Ready to study!" 大标题 + 当前日期 + 头像按钮。
-// 点击头像通过 NavigationLink 进入设置。
-//  Home top welcome region: greeting + "Ready to study!" headline + current date + avatar button.
-//  Tapping the avatar navigates to Settings.
+//  主页顶部欢迎区(紧凑单行):问候语 + 当前日期 + 头像按钮。
+//  去掉静态大标题,把首屏让给「今日 Top-3」与 KPI。点击头像通过 NavigationLink 进入设置。
+//  Compact one-line welcome strip: greeting + current date + avatar button. The static headline
+//  is gone so the first screen goes to Today's Top 3 and the KPIs. Tapping the avatar opens Settings.
 //
 //  Extracted from HomeView.swift during card-extraction refactor (2026-07-05).
 //
@@ -22,19 +22,18 @@ struct WelcomeHeaderCard: View {
     @State private var avatarData: Data? = nil
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .center, spacing: DesignToken.Spacing.medium) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(greetingText())
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.secondary)
-
-                Text("Ready to study!".localized())
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(DesignToken.Font.titleMedium)
                     .foregroundColor(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
 
                 Text(currentDateText())
-                    .font(.system(size: 14))
+                    .font(.footnote)
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
             }
 
             Spacer()
@@ -43,11 +42,12 @@ struct WelcomeHeaderCard: View {
                 AvatarView(
                     username: container.profileRepo.profile.username,
                     avatarData: avatarData,
-                    size: 50,
+                    size: 40,
                     showBorder: true
                 )
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Settings".localized())
         }
         .task {
             avatarData = await container.loadAvatarAsync()

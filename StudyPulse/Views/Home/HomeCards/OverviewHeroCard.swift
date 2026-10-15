@@ -6,6 +6,8 @@
 //  iPhone 2x2,iPad 单行 4 项。取代只有静态数字的 MainStatsCard。
 //  Home top overview: 4 KPI tiles with trends (average rate / today's focus / streak / next exam).
 //  2x2 on iPhone, a single row on iPad. Replaces the number-only MainStatsCard.
+//  配色:图标 / 趋势线 / 进度环统一跟随主色(`effectiveAccentColor`);仅「考试临近」数值保留状态红。
+//  Colors: icons / sparkline / ring follow the accent color; only the urgent-exam value keeps status red.
 //
 
 import SwiftUI
@@ -16,14 +18,20 @@ struct OverviewHeroCard: View {
     @Environment(RepositoryContainer.self) private var container
     @Environment(AchievementManager.self) private var achievementManager
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var isWide: Bool { sizeClass == .regular || isIPad }
+    /// 无障碍字号下改为单列,避免 2x2 小磚把文字截断成「…」。
+    /// At accessibility sizes use a single column so 2x2 tiles don't truncate text to "…".
+    private var isAccessibilitySize: Bool { dynamicTypeSize.isAccessibilitySize }
     private var accent: Color { container.envManager.effectiveAccentColor }
 
     var body: some View {
         let tiles = [AnyView(averageTile), AnyView(focusTile), AnyView(streakTile), AnyView(examTile)]
         VStack(spacing: DesignToken.Spacing.medium) {
-            if isWide {
+            if isAccessibilitySize {
+                ForEach(tiles.indices, id: \.self) { tiles[$0] }
+            } else if isWide {
                 HStack(spacing: DesignToken.Spacing.medium) {
                     ForEach(tiles.indices, id: \.self) { tiles[$0] }
                 }
@@ -43,7 +51,7 @@ struct OverviewHeroCard: View {
     /// 平均得分率 + 最近 8 次 sparkline + 变化
     private var averageTile: some View {
         let trend = viewModel.averageRateTrend
-        return HeroTile(icon: "chart.line.uptrend.xyaxis", tint: .cyan, title: "Average".localized()) {
+        return HeroTile(icon: "chart.line.uptrend.xyaxis", tint: accent, title: "Average".localized()) {
             if let rate = viewModel.overallAverageRate {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     HeroValue(text: String(format: "%.0f", rate), unit: "%")
@@ -54,7 +62,7 @@ struct OverviewHeroCard: View {
             }
         } footer: {
             if trend.count >= 2 {
-                HomeSparkline(values: trend, tint: .cyan, height: 26)
+                HomeSparkline(values: trend, tint: accent, height: 26)
             } else {
                 HeroCaption(text: "home.hero.noGrades".localized())
             }
@@ -66,11 +74,11 @@ struct OverviewHeroCard: View {
         let minutes = achievementManager.todayLog.focusMinutes
         let target = achievementManager.snapshot.config.focusMinutesTarget
         let progress = target > 0 ? min(Double(minutes) / Double(target), 1) : 0
-        return HeroTile(icon: "timer", tint: .orange, title: "home.hero.focusToday".localized()) {
+        return HeroTile(icon: "timer", tint: accent, title: "home.hero.focusToday".localized()) {
             HStack(alignment: .center) {
                 HeroValue(text: "\(minutes)", unit: "min".localized())
                 Spacer(minLength: 4)
-                ProgressRing(progress: progress, tint: .orange)
+                ProgressRing(progress: progress, tint: accent)
                     .frame(width: 30, height: 30)
             }
         } footer: {
@@ -84,7 +92,7 @@ struct OverviewHeroCard: View {
     private var streakTile: some View {
         let strip = HomeInsightsEngine.weekStrip(logs: achievementManager.snapshot.logs)
         return NavigationLink(destination: AchievementsView()) {
-            HeroTile(icon: "flame.fill", tint: .red, title: "home.hero.streak".localized()) {
+            HeroTile(icon: "flame.fill", tint: accent, title: "home.hero.streak".localized()) {
                 HeroValue(text: "\(achievementManager.currentStreak)", unit: "home.unit.days".localized())
             } footer: {
                 WeekStripView(days: strip, tint: accent)
@@ -96,7 +104,7 @@ struct OverviewHeroCard: View {
     /// 最近一场考试倒数
     private var examTile: some View {
         let exam = viewModel.upcomingExams.min { $0.examDate < $1.examDate }
-        return HeroTile(icon: "calendar.badge.exclamationmark", tint: .purple, title: "home.hero.nextExam".localized()) {
+        return HeroTile(icon: "calendar.badge.exclamationmark", tint: accent, title: "home.hero.nextExam".localized()) {
             if let exam {
                 let days = Self.daysUntil(exam.examDate)
                 HeroValue(
@@ -140,17 +148,18 @@ private struct HeroTile<Value: View, Footer: View>: View {
     let title: String
     @ViewBuilder var value: () -> Value
     @ViewBuilder var footer: () -> Footer
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 5) {
                 Image(systemName: icon)
-                    .font(.system(size: 11, weight: .bold))
+                    .scaledFont(size: 11, weight: .bold)
                     .foregroundStyle(tint)
                 Text(title)
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(size: 12, weight: .medium)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
             }
             value()
             footer()
@@ -172,14 +181,14 @@ private struct HeroValue: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 3) {
             Text(text)
-                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .scaledFont(size: 26, weight: .bold, design: .rounded)
                 .monospacedDigit()
                 .foregroundStyle(tint)
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
             if let unit {
                 Text(unit)
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(size: 12, weight: .medium)
                     .foregroundStyle(.secondary)
             }
         }
@@ -188,12 +197,13 @@ private struct HeroValue: View {
 
 private struct HeroCaption: View {
     let text: String
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         Text(text)
-            .font(.system(size: 11))
+            .scaledFont(size: 11)
             .foregroundStyle(.secondary)
-            .lineLimit(1)
+            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
     }
 }
 

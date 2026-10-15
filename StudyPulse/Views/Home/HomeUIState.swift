@@ -34,8 +34,8 @@ struct HomeUIState {
     // MARK: - 分阶段渲染
     // MARK: - Phased Rendering
 
-    /// 0 = 仅 WelcomeHeader 1 = WelcomeHeader + MainStatsCard 2 = 全部
-    /// 0 = only WelcomeHeader; 1 = + MainStatsCard; 2 = all dynamic cards.
+    /// 0 = 仅 WelcomeHeader 1 = WelcomeHeader + OverviewHeroCard 2 = 全部
+    /// 0 = only WelcomeHeader; 1 = + OverviewHeroCard; 2 = all dynamic cards.
     /// 用于首次进入页面时分 3 帧渲染,避免一次性构建所有复杂子视图。
     /// Used to render in 3 frames on first entry, avoiding building every complex sub-view in a single pass.
     var renderPhase: Int = 0

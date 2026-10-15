@@ -57,8 +57,8 @@ struct HomeView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 // 外层用 LazyVStack 避免屏外卡片参与布局
                 // Use LazyVStack at the outer level so off-screen cards skip layout
-                LazyVStack(spacing: 20) {
-                    // 顶部欢迎区域（全宽）
+                LazyVStack(spacing: DesignToken.Spacing.cardSpacing) {
+                    // 顶部欢迎区域(紧凑单行)
                     WelcomeHeaderCard()
                     // 今日 Top-3 置顶:首屏先回答「今天最重要的一件事」
                     // Today's Top 3 is pinned first so the first screen answers "what matters today".
@@ -227,9 +227,14 @@ struct HomeView: View {
         // 置顶的 dailyPlan 已在顶部单独渲染,这里排除避免重复
         // dailyPlan is rendered pinned at the top, so exclude it here to avoid duplication.
         let listTypes = layout.enabledTypes.filter { $0 != .dailyPlan }
-        let enabledTypes = layout.dynamicLayoutEnabled
+        // 无论是否动态排布,都剔除当前会渲染为空的卡片:否则 iPad 网格按「启用清单」分块后,
+        // 空卡片仍占一个格子,留下半行空白。
+        // Whether or not dynamic layout is on, drop cards that currently render empty; otherwise the
+        // iPad grid chunks by the enabled list and an empty card still occupies a cell (half-row gap).
+        let enabledTypes = (layout.dynamicLayoutEnabled
             ? HomeDynamicLayoutEngine.arrange(enabled: listTypes, signals: cardSignals)
             : listTypes
+        ).filter(hasVisibleContent)
 
         if isRegularWidth {
             // iPad: 按 enabledTypes 顺序渲染；全宽卡片独占一行，其他 2 列成行
@@ -237,7 +242,7 @@ struct HomeView: View {
         } else {
             // iPhone：LazyVStack 包装 ForEach 让屏外卡片跳过布局
             // iPhone: wrap ForEach in LazyVStack so off-screen cards skip layout
-            LazyVStack(spacing: 16) {
+            LazyVStack(spacing: DesignToken.Spacing.cardSpacing) {
                 ForEach(enabledTypes, id: \.self) { type in
                     cardView(for: type)
                 }
@@ -276,17 +281,18 @@ struct HomeView: View {
     /// 其余按 2 个一组进网格。这样 heatmap 等宽幅卡片可以出现在任何排序位置。
     @ViewBuilder
     private func iPadDynamicCards(types: [HomeCardType]) -> some View {
-        let columns = [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
+        let spacing = DesignToken.Spacing.cardSpacing
+        let columns = [GridItem(.flexible(), spacing: spacing), GridItem(.flexible(), spacing: spacing)]
         let chunks = makeChunks(from: types)
 
-        LazyVStack(spacing: 16) {
+        LazyVStack(spacing: spacing) {
             ForEach(Array(chunks.enumerated()), id: \.offset) { _, chunk in
                 if chunk.count == 1 && chunk[0].isFullWidth {
                     // 全宽卡片：脱离网格
                     cardView(for: chunk[0])
                 } else {
                     // 1-2 个普通卡片：进 2 列网格
-                    LazyVGrid(columns: columns, spacing: 16) {
+                    LazyVGrid(columns: columns, spacing: spacing) {
                         ForEach(chunk, id: \.self) { type in
                             cardView(for: type)
                         }
@@ -453,6 +459,7 @@ struct HomeView: View {
         case .weeklyFocus: return viewModel.weeklyFocus.totalMinutes + viewModel.weeklyFocus.previousTotalMinutes > 0
         case .subjectSnapshot: return !viewModel.subjectSnapshots.isEmpty
         case .bodyMindTrend: return viewModel.hasBodyMindData
+        case .habitInsight: return container.studySessionRepo.sessions.filter(\.completed).count >= 3
         default: return true
         }
     }
@@ -749,7 +756,7 @@ struct UnregisteredExamsReminderCard: View {
                 Image(systemName: "exclamationmark.bubble.fill")
                     .foregroundColor(.orange)
                 Text("Register Exam Grades".localized())
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
                     .foregroundColor(.primary)
                 Spacer()
             }
@@ -776,7 +783,7 @@ struct UnregisteredExamsReminderCard: View {
                         }
                         Spacer()
                         Image(systemName: "plus.circle")
-                            .font(.system(size: 20))
+                            .scaledFont(size: 20)
                             .foregroundColor(.orange)
                     }
                     .padding(12)
@@ -826,11 +833,11 @@ struct DailyQuoteCard: View {
             Spacer()
             VStack(spacing: 16) {
                 Image(systemName: "quote.bubble.fill")
-                    .font(.system(size: 28))
+                    .scaledFont(size: 28)
                     .foregroundColor(container.envManager.effectiveAccentPalette.color.opacity(0.6))
 
                 Text(quote)
-                    .font(.system(size: 15, weight: .medium, design: .serif))
+                    .scaledFont(size: 15, weight: .medium, design: .serif)
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
@@ -864,7 +871,7 @@ struct FlashcardReviewHomeCard: View {
                         ))
                         .font(.title3)
                     Text("Flashcard Review".localized())
-                        .font(.system(size: 18, weight: .semibold))
+                        .scaledFont(size: 18, weight: .semibold)
                 }
                 Spacer()
                 if overview.dueCount > 0 {
