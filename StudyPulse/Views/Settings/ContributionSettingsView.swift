@@ -147,6 +147,7 @@ struct ContributionSettingsView: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
+                        .accessibilityLabel("a11y.clearSearch".localized())
                         .buttonStyle(.plain)
                     }
                     .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))

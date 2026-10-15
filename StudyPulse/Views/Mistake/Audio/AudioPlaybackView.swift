@@ -36,6 +36,7 @@ struct AudioPlaybackView: View {
                     .resizable()
                     .frame(width: 36, height: 36)
             }
+            .accessibilityLabel(manager.isPlaying ? "a11y.pause".localized() : "a11y.play".localized())
             .tint(.accentColor)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -62,6 +63,7 @@ struct AudioPlaybackView: View {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
                 }
+                .accessibilityLabel("Delete".localized())
             }
         }
         .padding()

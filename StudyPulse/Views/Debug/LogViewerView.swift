@@ -347,6 +347,7 @@ private struct LogEntryDetailSheet: View {
                     } label: {
                         Image(systemName: "doc.on.doc")
                     }
+                    .accessibilityLabel("a11y.copy".localized())
                 }
             }
             .alert("Copied".localized(), isPresented: $copyConfirm) {

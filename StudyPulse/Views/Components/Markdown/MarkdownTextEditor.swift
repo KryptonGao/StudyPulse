@@ -246,6 +246,22 @@ struct MarkdownKeyboardToolbar: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Self.accessibilityName(forSymbol: systemName))
+    }
+
+    /// 工具栏图标按钮的 VoiceOver 名称 / VoiceOver names for the icon-only toolbar buttons.
+    private static func accessibilityName(forSymbol systemName: String) -> String {
+        switch systemName {
+        case "bold": return "a11y.md.bold".localized()
+        case "italic": return "a11y.md.italic".localized()
+        case "textformat.size": return "a11y.md.heading".localized()
+        case "text.quote": return "a11y.md.quote".localized()
+        case "chevron.left.forwardslash.chevron.right": return "a11y.md.inlineCode".localized()
+        case "curlybraces": return "a11y.md.codeBlock".localized()
+        case "link": return "a11y.md.link".localized()
+        case "minus": return "a11y.md.divider".localized()
+        default: return systemName
+        }
     }
 
     /// 把"无序 / 有序 / 待办"三种列表合并到一个按钮:
@@ -279,6 +295,7 @@ struct MarkdownKeyboardToolbar: View {
                 .contentShape(Rectangle())
         }
         .menuStyle(.button)
+        .accessibilityLabel("a11y.md.math".localized())
     }
 
     /// 把"行内公式 / 行间公式"合并到一个按钮:

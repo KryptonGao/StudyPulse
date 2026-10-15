@@ -89,6 +89,7 @@ struct StudyTimerView: View {
                                     .font(.subheadline)
                                     .foregroundColor(activeAnimation.primaryColor)
                             }
+                            .accessibilityLabel("a11y.chooseTimerTheme".localized())
                         }
                     }
                 }

@@ -86,6 +86,7 @@ struct ExamView: View {
             Button(action: { viewModel.showingNewExamSet = true }) {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("New Exam".localized())
         }
         ToolbarItem(placement: .principal) {
             PhaseSelectorView()

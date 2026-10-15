@@ -340,11 +340,13 @@ struct SessionGoalSheet: View {
                     } label: {
                         Image(systemName: "minus.circle.fill").font(.system(size: 28)).foregroundStyle(.secondary)
                     }
+                    .accessibilityLabel("a11y.decrease".localized())
                     Button {
                         targetValue = min(999, targetValue + 1)
                     } label: {
                         Image(systemName: "plus.circle.fill").font(.system(size: 28)).foregroundStyle(.secondary)
                     }
+                    .accessibilityLabel("a11y.increase".localized())
                 }
                 .buttonStyle(.plain)
             }

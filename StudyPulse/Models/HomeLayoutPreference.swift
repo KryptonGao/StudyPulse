@@ -172,8 +172,11 @@ struct HomeLayoutPreference: Codable, Equatable {
         self.dynamicLayoutEnabled = try c.decodeIfPresent(Bool.self, forKey: .dynamicLayoutEnabled) ?? false
     }
 
-    /// 默认配置：全部启用，标准顺序
-    /// Default: all enabled, standard order.
+    /// 默认配置：仅启用核心卡片并开启动态排布，让首屏聚焦「今天最重要的事」；
+    /// 其余卡片保留在布局设置里按需开启。已保存过布局的老用户不受影响（见 `load()`）。
+    /// Default: only core cards are on and dynamic layout is enabled so the first screen focuses
+    /// on "what matters today"; the rest stay one toggle away in layout settings.
+    /// Users with a saved layout are unaffected (see `load()`).
     static let `default` = HomeLayoutPreference(items: [
         HomeCardItem(type: .dailyPlan, enabled: true),
         HomeCardItem(type: .minimalPlan, enabled: true),
@@ -182,27 +185,27 @@ struct HomeLayoutPreference: Codable, Equatable {
         HomeCardItem(type: .unregisteredExamsReminder, enabled: true),
         HomeCardItem(type: .weeklyFocus, enabled: true),
         HomeCardItem(type: .subjectSnapshot, enabled: true),
-        HomeCardItem(type: .learningHeatmap, enabled: true),
         HomeCardItem(type: .streakProgress, enabled: true),
-        HomeCardItem(type: .trendChart, enabled: true),
-        HomeCardItem(type: .hrvStatus, enabled: true),
-        HomeCardItem(type: .bodyMindTrend, enabled: true),
-        HomeCardItem(type: .diary, enabled: true),
-        HomeCardItem(type: .habitInsight, enabled: true),
         HomeCardItem(type: .quickActions, enabled: true),
-        HomeCardItem(type: .studyTimer, enabled: true),
         HomeCardItem(type: .homeAsk, enabled: true),
-        HomeCardItem(type: .examReversePlanner, enabled: true),
-        HomeCardItem(type: .examRoleSimulator, enabled: true),
-        HomeCardItem(type: .studySuggestions, enabled: true),
-        HomeCardItem(type: .memoryClimate, enabled: true),
-        HomeCardItem(type: .plant, enabled: true),
-        HomeCardItem(type: .brainUsage, enabled: true),
-        HomeCardItem(type: .dailyQuote, enabled: true),
+        HomeCardItem(type: .learningHeatmap, enabled: false),
+        HomeCardItem(type: .trendChart, enabled: false),
+        HomeCardItem(type: .hrvStatus, enabled: false),
+        HomeCardItem(type: .bodyMindTrend, enabled: false),
+        HomeCardItem(type: .diary, enabled: false),
+        HomeCardItem(type: .habitInsight, enabled: false),
+        HomeCardItem(type: .studyTimer, enabled: false),
+        HomeCardItem(type: .examReversePlanner, enabled: false),
+        HomeCardItem(type: .examRoleSimulator, enabled: false),
+        HomeCardItem(type: .studySuggestions, enabled: false),
+        HomeCardItem(type: .memoryClimate, enabled: false),
+        HomeCardItem(type: .plant, enabled: false),
+        HomeCardItem(type: .brainUsage, enabled: false),
+        HomeCardItem(type: .dailyQuote, enabled: false),
         HomeCardItem(type: .recentGrades, enabled: false),
         HomeCardItem(type: .examDayReadiness, enabled: false),
-    ])
-    
+    ], dynamicLayoutEnabled: true)
+
     /// 当前启用的卡片类型（按顺序）
     /// Currently enabled card types, in user order.
     var enabledTypes: [HomeCardType] {

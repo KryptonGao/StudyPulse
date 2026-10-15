@@ -137,6 +137,7 @@ struct TagEditorView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
+            .accessibilityLabel("a11y.removeTag".localized())
             .buttonStyle(.plain)
         }
         .foregroundStyle(Color.purple)

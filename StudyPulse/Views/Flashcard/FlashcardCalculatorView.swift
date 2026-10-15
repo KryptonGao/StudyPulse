@@ -242,6 +242,7 @@ struct FlashcardCalculatorView: View {
                         .frame(width: 24, height: 24)
                         .background(Circle().fill(Color.secondary.opacity(0.2)))
                 }
+                .accessibilityLabel("Close".localized())
                 .buttonStyle(.plain)
             }
             .foregroundStyle(.primary)

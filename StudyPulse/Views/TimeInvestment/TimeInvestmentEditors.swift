@@ -80,6 +80,8 @@ struct TimeInvestmentSubjectEditor: View {
                                     )
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel(symbol)
+                            .accessibilityAddTraits(symbolName == symbol ? .isSelected : [])
                         }
                     }
                 }

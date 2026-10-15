@@ -353,6 +353,7 @@ struct TimeInvestmentView: View {
                             .rotationEffect(.degrees(expanded ? 180 : 0))
                             .frame(width: 34, height: 44)
                     }
+                    .accessibilityLabel("a11y.toggleSubtasks".localized())
                 }
             }
             .padding(.leading, CGFloat(depth - 1) * DesignToken.Spacing.large)

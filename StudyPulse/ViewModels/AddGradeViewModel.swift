@@ -150,6 +150,40 @@ final class AddGradeViewModel {
         syncSubjectScores()
     }
 
+    /// 由科目与日期自动带出的考试名,例如「数学 2026-10-15」;未选科目时为空。
+    /// Auto-suggested exam name built from subject(s) + date, e.g. "Math 2026-10-15"; empty with no subject.
+    var suggestedExamName: String {
+        let subjects = isComprehensiveExam ? selectedMultipleSubjects : [selectedSingleSubject].filter { !$0.isEmpty }
+        guard !subjects.isEmpty else { return "" }
+        let dateText = DateFormatters.mediumDate.string(from: selectedDate)
+        let subjectText = isComprehensiveExam
+            ? "Comprehensive Exam".localized()
+            : displayName(forSubject: subjects[0])
+        return "\(subjectText) \(dateText)"
+    }
+
+    /// 实际使用的考试名:用户填写优先,留空则回退到自动名。
+    /// Exam name actually used: the user's input wins, otherwise the suggested name.
+    var resolvedExamName: String {
+        let trimmed = examName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? suggestedExamName : trimmed
+    }
+
+    /// 是否可保存:只要有科目成绩即可(考试名可自动带出)。
+    /// Whether saving is allowed: needs at least one subject score (the name can be auto-filled).
+    var canSave: Bool {
+        !subjectScores.isEmpty && !resolvedExamName.isEmpty
+    }
+
+    /// 禁用保存时给用户看的原因提示;可保存时为 nil。
+    /// Explains why Save is disabled; nil when saving is allowed.
+    var saveBlockerHint: String? {
+        if subjectScores.isEmpty {
+            return "addGrade.hint.selectSubject".localized()
+        }
+        return resolvedExamName.isEmpty ? "addGrade.hint.examName".localized() : nil
+    }
+
     /// 某科目的满分 / Full-score for a subject
     func fullScore(for subject: String) -> Double {
         container.fullScore(for: subject)
@@ -193,7 +227,7 @@ final class AddGradeViewModel {
                 ranking: subjectScore.useRanking ? subjectScore.ranking : nil,
                 importance: importance,
                 date: selectedDate,
-                examName: examName,
+                examName: resolvedExamName,
                 examId: selectedExamID
             )
             // 记录此次成绩对应的满分

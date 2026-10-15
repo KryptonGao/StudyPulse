@@ -4,7 +4,7 @@
 //
 //  错题相关的 ToolbarContent 集合,按"列表 / 详情"两种上下文拆开:
 //  - MistakeListToolbarLeading  : 顶部左边的"复习队列"入口(带 due count 红点)
-//  - MistakeListToolbarTrailing : 顶部右边的"AI Quiz / Tag Graph / PDF / New"
+//  - MistakeListToolbarTrailing : 顶部右边的"工具菜单(AI Quiz / Mind Map / Tag Graph / PDF) + New"
 //  - MistakeDetailToolbar       : 详情页右侧的"Edit / Quick Review / AI"组合
 //
 //  Mistake-related ToolbarContent collection, split by context:
@@ -116,33 +116,33 @@ struct MistakeListToolbarTrailing: ToolbarContent {
     var body: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
             HStack(spacing: 12) {
-                Button(action: onShowAIQuiz) {
-                    Image(systemName: "sparkles.rectangle.stack")
-                }
-                .accessibilityLabel("AI Quiz".localized())
-
-                if hasMistakes || hasTags {
-                    Menu {
-                        if hasMistakes {
-                            Button(action: onShowMindMap) {
-                                Label("Auto Mind Map".localized(), systemImage: "arrow.triangle.branch")
-                            }
+                // 所有工具收进单一「工具」菜单,按用途分组;无错题时对应项置灰而非隐藏,保持可发现
+                // All tools live in one grouped "Tools" menu; items that need data are disabled
+                // (not hidden) so they stay discoverable.
+                Menu {
+                    Section("mistake.tools.ai".localized()) {
+                        Button(action: onShowAIQuiz) {
+                            Label("AI Quiz".localized(), systemImage: "sparkles.rectangle.stack")
                         }
-                        if hasTags {
-                            Button(action: onShowTagGraph) {
-                                Label("Tag Graph".localized(), systemImage: "circle.hexagongrid")
-                            }
+                        Button(action: onShowMindMap) {
+                            Label("Auto Mind Map".localized(), systemImage: "arrow.triangle.branch")
                         }
-                        if hasMistakes {
-                            Button(action: onShowPDFExport) {
-                                Label("Export PDF".localized(), systemImage: "square.and.arrow.up")
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
+                        .disabled(!hasMistakes)
                     }
-                    .accessibilityLabel("More Tools".localized())
+                    Section("mistake.tools.organize".localized()) {
+                        Button(action: onShowTagGraph) {
+                            Label("Tag Graph".localized(), systemImage: "circle.hexagongrid")
+                        }
+                        .disabled(!hasTags)
+                        Button(action: onShowPDFExport) {
+                            Label("Export PDF".localized(), systemImage: "square.and.arrow.up")
+                        }
+                        .disabled(!hasMistakes)
+                    }
+                } label: {
+                    Image(systemName: "wrench.and.screwdriver")
                 }
+                .accessibilityLabel("mistake.tools.menu".localized())
 
                 if UIDevice.current.userInterfaceIdiom == .pad {
                     NavigationLink {
@@ -152,10 +152,12 @@ struct MistakeListToolbarTrailing: ToolbarContent {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("New Mistake".localized())
                 } else {
                     Button(action: onShowNewMistake) {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("New Mistake".localized())
                 }
             }
         }
