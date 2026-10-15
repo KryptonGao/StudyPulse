@@ -220,20 +220,20 @@ struct ContributionSettingsView: View {
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .fill(Color.purple.opacity(0.18))
                 Image(systemName: "hand.raised.fingers.spread.fill")
-                    .font(.system(size: 56, weight: .regular))
+                    .scaledFont(size: 56, weight: .regular)
                     .foregroundColor(.purple)
             }
             .frame(width: 110, height: 110)
 
             Text(document.title)
-                .font(.system(size: 22, weight: .semibold))
+                .scaledFont(size: 22, weight: .semibold)
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text(document.subtitle)
-                .font(.system(size: 14))
+                .scaledFont(size: 14)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -265,14 +265,14 @@ struct ContributionSettingsView: View {
                 Image(systemName: "sparkles")
                     .foregroundColor(.purple)
                 Text("Welcome".localized())
-                    .font(.system(size: 15, weight: .semibold))
+                    .scaledFont(size: 15, weight: .semibold)
                 Spacer()
             }
             if text.contains("**") || text.contains("\n-") || text.contains("`") {
                 MarkdownView(text: text, config: .previewConfig)
             } else {
                 Text(text)
-                    .font(.system(size: 14))
+                    .scaledFont(size: 14)
                     .foregroundColor(.primary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -300,7 +300,7 @@ struct ContributionSettingsView: View {
     private func noResultsView(query: String) -> some View {
         VStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 36))
+                .scaledFont(size: 36)
                 .foregroundColor(.secondary)
             Text("No results found".localized())
                 .font(.headline)
@@ -325,10 +325,10 @@ struct ContributionSettingsView: View {
     private func sectionHeader(section: ContributionSection) -> some View {
         HStack(spacing: 8) {
             Image(systemName: section.icon)
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
                 .foregroundColor(.purple)
             Text(section.title)
-                .font(.system(size: 15, weight: .semibold))
+                .scaledFont(size: 15, weight: .semibold)
                 .foregroundColor(.primary)
             Text("(\(section.items.count))")
                 .font(.caption)
@@ -353,7 +353,7 @@ struct ContributionSettingsView: View {
     private func errorView(message: String) -> some View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 48))
+                .scaledFont(size: 48)
                 .foregroundColor(.orange)
             Text("Contribution Guide Not Available".localized())
                 .font(.headline)
@@ -423,7 +423,7 @@ struct ContributionRow: View {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(Color.purple.opacity(0.12))
                     Image(systemName: item.icon ?? "chevron.right.circle")
-                        .font(.system(size: 16, weight: .semibold))
+                        .scaledFont(size: 16, weight: .semibold)
                         .foregroundColor(.purple)
                 }
                 .frame(width: 30, height: 30)
@@ -439,13 +439,13 @@ struct ContributionRow: View {
         let trimmed = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
             Text(item.title)
-                .font(.system(size: 15, weight: .medium))
+                .scaledFont(size: 15, weight: .medium)
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
         } else {
             highlightedText(item.title, query: trimmed)
-                .font(.system(size: 15, weight: .medium))
+                .scaledFont(size: 15, weight: .medium)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -472,7 +472,7 @@ struct ContributionRow: View {
                 .padding(.vertical, 4)
         } else {
             Text(item.content)
-                .font(.system(size: 14))
+                .scaledFont(size: 14)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }

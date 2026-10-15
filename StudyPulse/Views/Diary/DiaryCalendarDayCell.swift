@@ -50,7 +50,7 @@ struct DiaryCalendarDayCell: View {
                 }
 
                 Text("\(dayNumber)")
-                    .font(.system(size: 14, weight: isToday ? .bold : .medium))
+                    .scaledFont(size: 14, weight: isToday ? .bold : .medium)
                     .foregroundColor(numberColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
@@ -59,7 +59,7 @@ struct DiaryCalendarDayCell: View {
 
             if let entry {
                 Text(entry.moodEmoji)
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .lineLimit(1)
             } else {
                 // 占位保证 cell 高度一致,避免选中/非选中抖动

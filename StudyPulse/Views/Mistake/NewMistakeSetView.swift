@@ -389,7 +389,7 @@ private extension NewMistakeSetView {
     private func imageActionLabel(_ title: String, systemImage: String, showsChevron: Bool = false) -> some View {
         HStack(spacing: 14) {
             Image(systemName: systemImage)
-                .font(.system(size: 20, weight: .medium))
+                .scaledFont(size: 20, weight: .medium)
                 .frame(width: 28)
                 .foregroundStyle(.tint)
             Text(title)

@@ -82,10 +82,10 @@ struct ProfileSettingsView: View {
                     .padding(.top, 8)
                     TextField("Username", text: $username)
                         .multilineTextAlignment(.center)
-                        .font(.system(size: 24, weight: .bold))
+                        .scaledFont(size: 24, weight: .bold)
                         .padding(.top, 4)
                     Text(profileSubtitle)
-                        .font(.system(size: 14))
+                        .scaledFont(size: 14)
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .center)

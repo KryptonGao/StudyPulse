@@ -43,7 +43,7 @@ struct TrendChartCard: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Subject Trend".localized())
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
                     .foregroundColor(.primary)
 
                 Spacer()
@@ -58,7 +58,7 @@ struct TrendChartCard: View {
                 // with a red "prohibited" sign in the exported image.
                 if exportMode {
                     Text(viewModel.chartRule.displayName)
-                        .font(.system(size: 12, weight: .medium))
+                        .scaledFont(size: 12, weight: .medium)
                         .foregroundColor(.blue)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -84,9 +84,9 @@ struct TrendChartCard: View {
                     } label: {
                         HStack(spacing: 4) {
                             Text(viewModel.chartRule.displayName)
-                                .font(.system(size: 12, weight: .medium))
+                                .scaledFont(size: 12, weight: .medium)
                             Image(systemName: "chevron.up.chevron.down")
-                                .font(.system(size: 10))
+                                .scaledFont(size: 10)
                         }
                         .foregroundColor(.blue)
                         .padding(.horizontal, 8)
@@ -101,13 +101,13 @@ struct TrendChartCard: View {
                 VStack(spacing: 12) {
                     HStack {
                         Text(subject.localized())
-                            .font(.system(size: 16, weight: .semibold))
+                            .scaledFont(size: 16, weight: .semibold)
                             .foregroundColor(.primary)
 
                         Spacer()
 
                         Text(String(format: "%d records".localized(), grades.count))
-                            .font(.system(size: 12))
+                            .scaledFont(size: 12)
                             .foregroundColor(.secondary)
                     }
 
@@ -133,10 +133,10 @@ struct TrendChartCard: View {
             } else {
                 VStack(spacing: 12) {
                     Image(systemName: "chart.bar.xaxis")
-                        .font(.system(size: 40))
+                        .scaledFont(size: 40)
                         .foregroundColor(.secondary)
                     Text("Select a subject to view trends".localized())
-                        .font(.system(size: 14))
+                        .scaledFont(size: 14)
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity)
@@ -178,10 +178,10 @@ struct ChartStatisticItem: View {
     var body: some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 16, weight: .bold))
+                .scaledFont(size: 16, weight: .bold)
                 .foregroundColor(color)
             Text(title)
-                .font(.system(size: 11))
+                .scaledFont(size: 11)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)

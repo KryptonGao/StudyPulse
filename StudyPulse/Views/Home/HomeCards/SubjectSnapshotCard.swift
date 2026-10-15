@@ -50,10 +50,10 @@ private struct SubjectSnapshotRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(displayName.localized())
-                    .font(.system(size: 14, weight: .semibold))
+                    .scaledFont(size: 14, weight: .semibold)
                     .lineLimit(1)
                 Text(String(format: "home.subjects.count".localized(), snapshot.count))
-                    .font(.system(size: 11))
+                    .scaledFont(size: 11)
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -63,7 +63,7 @@ private struct SubjectSnapshotRow: View {
 
             VStack(alignment: .trailing, spacing: 2) {
                 Text(String(format: "%.0f%%", snapshot.averageRate * 100))
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .scaledFont(size: 17, weight: .bold, design: .rounded)
                     .monospacedDigit()
                     .foregroundStyle(color)
                 HomeDeltaBadge(delta: snapshot.deltaPoints, format: "%.0f")

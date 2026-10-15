@@ -120,7 +120,7 @@ struct AchievementsView: View {
                         .frame(width: 56, height: 56)
 
                     Image(systemName: def.icon)
-                        .font(.system(size: 24))
+                        .scaledFont(size: 24)
                         .foregroundColor(isUnlocked ? tierColor(for: def.tier) : .gray.opacity(0.5))
                 }
 

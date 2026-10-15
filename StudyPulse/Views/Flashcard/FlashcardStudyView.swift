@@ -203,7 +203,7 @@ struct FlashcardStudyView: View {
     private var emptyState: some View {
         VStack(spacing: 20) {
             Image(systemName: "rectangle.stack.badge.plus")
-                .font(.system(size: 64))
+                .scaledFont(size: 64)
                 .foregroundStyle(.secondary)
             Text("No Mistakes Due".localized())
                 .font(.title2.weight(.semibold))

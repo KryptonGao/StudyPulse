@@ -119,17 +119,17 @@ struct SettingsCategoryRow: View {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(category.tint.opacity(0.15))
                 Image(systemName: category.systemImage)
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
                     .foregroundColor(category.tint)
             }
             .frame(width: 34, height: 34)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(category.title)
-                    .font(.system(size: 16, weight: .medium))
+                    .scaledFont(size: 16, weight: .medium)
                     .foregroundColor(.primary)
                 Text(category.caption)
-                    .font(.system(size: 12, weight: .regular, design: .default))
+                    .scaledFont(size: 12, weight: .regular, design: .default)
                     .textCase(.uppercase)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
@@ -150,17 +150,17 @@ struct SettingsDetailHeader: View {
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .fill(category.tint.opacity(0.18))
                 Image(systemName: category.systemImage)
-                    .font(.system(size: 56, weight: .regular))
+                    .scaledFont(size: 56, weight: .regular)
                     .foregroundColor(category.tint)
             }
             .frame(width: 110, height: 110)
 
             Text(category.title)
-                .font(.system(size: 22, weight: .semibold))
+                .scaledFont(size: 22, weight: .semibold)
                 .foregroundColor(.primary)
 
             Text(category.detailDescription)
-                .font(.system(size: 14))
+                .scaledFont(size: 14)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)

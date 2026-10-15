@@ -104,7 +104,7 @@ struct HRVOnboardingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Image(systemName: "heart.text.square.fill")
-                    .font(.system(size: 56))
+                    .scaledFont(size: 56)
                     .foregroundStyle(.red.gradient)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 8)
@@ -135,7 +135,7 @@ struct HRVOnboardingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Image(systemName: "hand.raised.slash.fill")
-                    .font(.system(size: 56))
+                    .scaledFont(size: 56)
                     .foregroundStyle(.blue.gradient)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 8)
@@ -173,13 +173,13 @@ struct HRVOnboardingView: View {
             VStack(alignment: .leading, spacing: 20) {
                 HStack(spacing: 12) {
                     Image(systemName: "heart.fill")
-                        .font(.system(size: 36))
+                        .scaledFont(size: 36)
                         .foregroundStyle(.pink.gradient)
                     Image(systemName: "wind")
-                        .font(.system(size: 36))
+                        .scaledFont(size: 36)
                         .foregroundStyle(.cyan.gradient)
                     Image(systemName: "bed.double.fill")
-                        .font(.system(size: 36))
+                        .scaledFont(size: 36)
                         .foregroundStyle(.indigo.gradient)
                 }
                 .frame(maxWidth: .infinity)
@@ -227,7 +227,7 @@ struct HRVOnboardingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Image(systemName: "brain.head.profile.fill")
-                    .font(.system(size: 56))
+                    .scaledFont(size: 56)
                     .foregroundStyle(.purple.gradient)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 8)

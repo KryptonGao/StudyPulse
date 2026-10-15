@@ -76,7 +76,7 @@ struct StudySuggestionsCard: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
                 Text("Study Suggestions".localized())
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
                     .foregroundColor(.primary)
 
                 if container.envManager.llmConfig.isConfigured && aiSuggestions != nil {
@@ -88,17 +88,17 @@ struct StudySuggestionsCard: View {
                 Spacer()
 
                 Image(systemName: "lightbulb.fill")
-                    .font(.system(size: 18))
+                    .scaledFont(size: 18)
                     .foregroundColor(.yellow)
             }
 
             if displayed.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 32))
+                        .scaledFont(size: 32)
                         .foregroundColor(.secondary)
                     Text("Start adding grades to get suggestions!".localized())
-                        .font(.system(size: 14))
+                        .scaledFont(size: 14)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
@@ -151,9 +151,9 @@ struct StudySuggestionsCard: View {
     private var aiChip: some View {
         HStack(spacing: 4) {
             Image(systemName: "sparkles")
-                .font(.system(size: 10, weight: .bold))
+                .scaledFont(size: 10, weight: .bold)
             Text("AI".localized())
-                .font(.system(size: 10, weight: .bold))
+                .scaledFont(size: 10, weight: .bold)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 3)
@@ -167,7 +167,7 @@ struct StudySuggestionsCard: View {
         HStack(spacing: 4) {
             ProgressView().scaleEffect(0.55)
             Text("AI".localized())
-                .font(.system(size: 10, weight: .bold))
+                .scaledFont(size: 10, weight: .bold)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 3)
@@ -275,17 +275,17 @@ struct SuggestionRowView: View {
                         .frame(width: 40, height: 40)
 
                     Image(systemName: suggestion.icon)
-                        .font(.system(size: 18, weight: .semibold))
+                        .scaledFont(size: 18, weight: .semibold)
                         .foregroundColor(suggestion.color)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(suggestion.title)
-                        .font(.system(size: 14, weight: .semibold))
+                        .scaledFont(size: 14, weight: .semibold)
                         .foregroundColor(.primary)
 
                     Text(suggestion.description)
-                        .font(.system(size: 13))
+                        .scaledFont(size: 13)
                         .foregroundColor(.secondary)
                         .lineLimit(isExpanded ? nil : 2)
                 }
@@ -298,7 +298,7 @@ struct SuggestionRowView: View {
             if !isExpanded {
                 Button(action: { isExpanded = true }) {
                     Text("Read more".localized())
-                        .font(.system(size: 12, weight: .medium))
+                        .scaledFont(size: 12, weight: .medium)
                         .foregroundColor(.blue)
                 }
             }
@@ -323,7 +323,7 @@ struct PriorityIndicator: View {
                 .fill(color.opacity(0.15))
 
             Text(label)
-                .font(.system(size: 10, weight: .bold))
+                .scaledFont(size: 10, weight: .bold)
                 .foregroundColor(color)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)

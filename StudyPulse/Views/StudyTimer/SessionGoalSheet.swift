@@ -87,7 +87,7 @@ struct SessionGoalSheet: View {
         } label: {
             VStack(spacing: 6) {
                 Image(systemName: src.icon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .scaledFont(size: 16, weight: .semibold)
                     .foregroundColor(selected ? .white : .primary)
                     .frame(width: 36, height: 36)
                     .background(Circle().fill(selected ? Color.accentColor : Color(.tertiarySystemFill)))
@@ -172,7 +172,7 @@ struct SessionGoalSheet: View {
                                         .background(Circle().fill(Color(.tertiarySystemFill)))
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(item.title)
-                                            .font(.system(size: 13, weight: .medium))
+                                            .scaledFont(size: 13, weight: .medium)
                                             .foregroundStyle(.primary)
                                             .lineLimit(1)
                                         if let subtitle = item.subtitle, !subtitle.isEmpty {
@@ -325,12 +325,12 @@ struct SessionGoalSheet: View {
             HStack(spacing: 12) {
                 Stepper(value: $targetValue, in: 1...999, step: 1) {
                     Text("\(Int(targetValue)) \(unitLabel)")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .scaledFont(size: 16, weight: .semibold, design: .rounded)
                         .monospacedDigit()
                 }
                 .labelsHidden()
                 Text("\(Int(targetValue)) \(unitLabel)")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .scaledFont(size: 22, weight: .bold, design: .rounded)
                     .foregroundColor(.accentColor)
                     .frame(minWidth: 90)
                 Spacer()
@@ -338,13 +338,13 @@ struct SessionGoalSheet: View {
                     Button {
                         targetValue = max(1, targetValue - 1)
                     } label: {
-                        Image(systemName: "minus.circle.fill").font(.system(size: 28)).foregroundStyle(.secondary)
+                        Image(systemName: "minus.circle.fill").scaledFont(size: 28).foregroundStyle(.secondary)
                     }
                     .accessibilityLabel("a11y.decrease".localized())
                     Button {
                         targetValue = min(999, targetValue + 1)
                     } label: {
-                        Image(systemName: "plus.circle.fill").font(.system(size: 28)).foregroundStyle(.secondary)
+                        Image(systemName: "plus.circle.fill").scaledFont(size: 28).foregroundStyle(.secondary)
                     }
                     .accessibilityLabel("a11y.increase".localized())
                 }

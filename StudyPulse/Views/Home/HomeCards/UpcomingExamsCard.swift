@@ -34,13 +34,13 @@ struct UpcomingExamsCard: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Upcoming Exams".localized())
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
                     .foregroundColor(.primary)
 
                 Spacer()
 
                 Text("\(upcomingExams.count)")
-                    .font(.system(size: 14, weight: .bold))
+                    .scaledFont(size: 14, weight: .bold)
                     .foregroundColor(.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
@@ -104,11 +104,11 @@ struct CompactExamCard: View, Equatable {
         HStack(spacing: 16) {
             VStack(spacing: 4) {
                 Text(dayString(from: exam.examDate))
-                    .font(.system(size: 20, weight: .bold))
+                    .scaledFont(size: 20, weight: .bold)
                     .foregroundColor(.primary)
 
                 Text(monthString(from: exam.examDate))
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(size: 12, weight: .medium)
                     .foregroundColor(.secondary)
             }
             .frame(width: 60)
@@ -120,13 +120,13 @@ struct CompactExamCard: View, Equatable {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(exam.name)
-                    .font(.system(size: 16, weight: .semibold))
+                    .scaledFont(size: 16, weight: .semibold)
                     .foregroundColor(.primary)
                     .lineLimit(1)
 
                 HStack(spacing: 8) {
                     Text(exam.subject.localized())
-                        .font(.system(size: 12, weight: .medium))
+                        .scaledFont(size: 12, weight: .medium)
                         .foregroundColor(.white)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -142,7 +142,7 @@ struct CompactExamCard: View, Equatable {
                         )
 
                     Text(daysRemainingText)
-                        .font(.system(size: 12, weight: .medium))
+                        .scaledFont(size: 12, weight: .medium)
                         // 3 天内显示红色提醒,其余用次要色
                         // Within 3 days → red (urgent); otherwise secondary color.
                         .foregroundColor(daysRemaining <= 3 ? Color(.systemRed) : .secondary)
@@ -152,7 +152,7 @@ struct CompactExamCard: View, Equatable {
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
                 .foregroundColor(.secondary.opacity(0.5))
         }
         .padding(14)

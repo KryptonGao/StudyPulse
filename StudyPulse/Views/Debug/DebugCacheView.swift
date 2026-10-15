@@ -120,10 +120,10 @@ struct DebugCacheView: View {
                 ForEach(entityCounts, id: \.name) { item in
                     HStack {
                         Text(item.name)
-                            .font(.system(size: 13, design: .monospaced))
+                            .scaledFont(size: 13, design: .monospaced)
                         Spacer()
                         Text("\(item.count)")
-                            .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                            .scaledFont(size: 14, weight: .semibold, design: .monospaced)
                             .foregroundStyle(item.count == -1 ? .red : .primary)
                     }
                 }
@@ -132,10 +132,10 @@ struct DebugCacheView: View {
                 let allTags = container.mistakeRepo.allTags()
                 HStack {
                     Text("Tags".localized())
-                        .font(.system(size: 13, design: .monospaced))
+                        .scaledFont(size: 13, design: .monospaced)
                     Spacer()
                     Text("\(allTags.count)")
-                        .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                        .scaledFont(size: 14, weight: .semibold, design: .monospaced)
                         .foregroundStyle(.primary)
                 }
             }
@@ -144,21 +144,21 @@ struct DebugCacheView: View {
                 Text("Active Phase".localized())
                 Spacer()
                 Text(container.envManager.activePhaseId?.uuidString.prefix(8).description ?? "all")
-                    .font(.system(size: 12, design: .monospaced))
+                    .scaledFont(size: 12, design: .monospaced)
                     .foregroundStyle(.secondary)
             }
             HStack {
                 Text("Glass Effect".localized())
                 Spacer()
                 Text(container.envManager.glassEffectEnabled ? "ON" : "OFF")
-                    .font(.system(size: 12, design: .monospaced))
+                    .scaledFont(size: 12, design: .monospaced)
                     .foregroundStyle(container.envManager.glassEffectEnabled ? .green : .secondary)
             }
             HStack {
                 Text("Accent".localized())
                 Spacer()
                 Text(container.envManager.effectiveAccent.rawValue)
-                    .font(.system(size: 12, design: .monospaced))
+                    .scaledFont(size: 12, design: .monospaced)
                     .foregroundStyle(.secondary)
             }
         } header: {
@@ -265,7 +265,7 @@ struct DebugCacheView: View {
                 .padding(.top, 2)
             VStack(alignment: .leading, spacing: 2) {
                 Text(a.title)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .scaledFont(size: 13, weight: .semibold, design: .rounded)
                 Text(a.detail)
                     .font(.caption2)
                     .foregroundStyle(.secondary)

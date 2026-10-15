@@ -37,10 +37,10 @@ struct WeeklyFocusCard: View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text(Self.hoursText(summary.totalMinutes))
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .scaledFont(size: 28, weight: .bold, design: .rounded)
                     .monospacedDigit()
                 Text("home.weeklyFocus.hours".localized())
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(size: 12, weight: .medium)
                     .foregroundStyle(.secondary)
             }
             if summary.previousTotalMinutes > 0 || summary.totalMinutes > 0 {
@@ -48,7 +48,7 @@ struct WeeklyFocusCard: View {
             }
             Spacer(minLength: 0)
             Text(String(format: "home.weeklyFocus.avg".localized(), Int(summary.dailyAverageMinutes.rounded())))
-                .font(.system(size: 11))
+                .scaledFont(size: 11)
                 .foregroundStyle(.secondary)
         }
     }
@@ -108,7 +108,7 @@ struct WeeklyFocusCard: View {
                 HStack(spacing: 4) {
                     Circle().fill(Color(hex: intensity.colorHex)).frame(width: 7, height: 7)
                     Text(intensity.displayName)
-                        .font(.system(size: 10))
+                        .scaledFont(size: 10)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
@@ -120,7 +120,7 @@ struct WeeklyFocusCard: View {
                         .stroke(Color.secondary.opacity(0.8), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
                         .frame(width: 14, height: 1)
                     Text(String(format: "home.hero.goalMin".localized(), dailyTarget))
-                        .font(.system(size: 10))
+                        .scaledFont(size: 10)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }

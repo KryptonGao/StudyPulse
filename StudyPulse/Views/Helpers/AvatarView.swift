@@ -65,7 +65,7 @@ struct AvatarView: View {
                     )
 
                     Text(initial)
-                        .font(.system(size: size * 0.45, weight: .bold, design: .rounded))
+                        .font(.system(size: size * 0.45, weight: .bold, design: .rounded)) // fixed-size-ok: geometry-derived
                         .foregroundColor(.white)
                 }
             }

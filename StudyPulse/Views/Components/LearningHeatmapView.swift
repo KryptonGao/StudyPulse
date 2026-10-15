@@ -195,14 +195,14 @@ struct LearningHeatmapView: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Image(systemName: "square.grid.4x3.fill")
-                        .font(.system(size: 14, weight: .semibold))
+                        .scaledFont(size: 14, weight: .semibold)
                         .foregroundStyle(accent)
                     Text("heatmap.title".localized())
-                        .font(.system(size: 16, weight: .semibold))
+                        .scaledFont(size: 16, weight: .semibold)
                         .foregroundColor(.primary)
                 }
                 Text("heatmap.subtitle".localized())
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .foregroundColor(.secondary)
             }
             Spacer()
@@ -210,7 +210,7 @@ struct LearningHeatmapView: View {
                 showingManualActivitySheet = true
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 14, weight: .bold))
+                    .scaledFont(size: 14, weight: .bold)
                     .foregroundStyle(accent)
                     .frame(width: 30, height: 30)
                     .background(accent.opacity(0.12), in: Circle())
@@ -220,10 +220,10 @@ struct LearningHeatmapView: View {
             // 90 天活跃天数
             VStack(alignment: .trailing, spacing: 2) {
                 Text("\(activeDaysIn90)")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .scaledFont(size: 18, weight: .bold, design: .rounded)
                     .foregroundStyle(accent)
                 Text("heatmap.activeDays".localized())
-                    .font(.system(size: 11))
+                    .scaledFont(size: 11)
                     .foregroundColor(.secondary)
             }
         }
@@ -242,7 +242,7 @@ struct LearningHeatmapView: View {
             VStack(alignment: .trailing, spacing: 4) {
                 ForEach(1...7, id: \.self) { row in
                     Text(weekdayShortLabel(for: row))
-                        .font(.system(size: 9, weight: .medium))
+                        .scaledFont(size: 9, weight: .medium)
                         .foregroundColor(.secondary)
                         .frame(width: 22, alignment: .trailing)
                         // 隐藏周三/周五/周日，保持简洁（GitHub 风格）
@@ -270,7 +270,7 @@ struct LearningHeatmapView: View {
     private var legend: some View {
         HStack(spacing: 6) {
             Text("heatmap.less".localized())
-                .font(.system(size: 10))
+                .scaledFont(size: 10)
                 .foregroundColor(.secondary)
             ForEach(HeatmapActivityLevel.allCases, id: \.rawValue) { level in
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
@@ -278,12 +278,12 @@ struct LearningHeatmapView: View {
                     .frame(width: 11, height: 11)
             }
             Text("heatmap.more".localized())
-                .font(.system(size: 10))
+                .scaledFont(size: 10)
                 .foregroundColor(.secondary)
             Spacer()
             if let best = bestDay, best.totalActivityPoints > 0 {
                 Text(String(format: "heatmap.bestDay".localized(), best.totalActivityPoints, formatDate(best.date)))
-                    .font(.system(size: 10, weight: .medium))
+                    .scaledFont(size: 10, weight: .medium)
                     .foregroundColor(.secondary)
             }
         }
@@ -429,15 +429,15 @@ private struct HeatmapDayDetailSheet: View {
                             .fill(accent.opacity(cell.level == .none ? 0.12 : cell.level.opacity))
                             .frame(width: 52, height: 52)
                         Image(systemName: cell.level == .none ? "moon.zzz" : "flame.fill")
-                            .font(.system(size: 22, weight: .semibold))
+                            .scaledFont(size: 22, weight: .semibold)
                             .foregroundStyle(cell.level == .none ? Color.secondary : Color.white)
                     }
                     VStack(alignment: .leading, spacing: 4) {
                         Text(dateString)
-                            .font(.system(size: 16, weight: .semibold))
+                            .scaledFont(size: 16, weight: .semibold)
                             .foregroundColor(.primary)
                         Text(activitySummary)
-                            .font(.system(size: 13))
+                            .scaledFont(size: 13)
                             .foregroundColor(.secondary)
                     }
                     Spacer()
@@ -458,21 +458,21 @@ private struct HeatmapDayDetailSheet: View {
                             value: String(format: "heatmap.detail.minutesValue".localized(), log.focusMinutes))
                     HStack {
                         Text("heatmap.detail.totalPoints".localized())
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                             .foregroundColor(.primary)
                         Spacer()
                         Text("\(log.totalActivityPoints)")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .scaledFont(size: 20, weight: .bold, design: .rounded)
                             .foregroundStyle(accent)
                     }
                     .padding(.top, 6)
                 } else {
                     VStack(spacing: 8) {
                         Image(systemName: "tray")
-                            .font(.system(size: 32))
+                            .scaledFont(size: 32)
                             .foregroundColor(.secondary)
                         Text("heatmap.detail.noData".localized())
-                            .font(.system(size: 14))
+                            .scaledFont(size: 14)
                             .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity)
@@ -490,7 +490,7 @@ private struct HeatmapDayDetailSheet: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                     }
                     .accessibilityLabel("Close".localized())
                 }
@@ -513,15 +513,15 @@ private struct HeatmapDayDetailSheet: View {
                     .fill(color.opacity(0.15))
                     .frame(width: 36, height: 36)
                 Image(systemName: icon)
-                    .font(.system(size: 14, weight: .semibold))
+                    .scaledFont(size: 14, weight: .semibold)
                     .foregroundStyle(color)
             }
             Text(title)
-                .font(.system(size: 14))
+                .scaledFont(size: 14)
                 .foregroundColor(.primary)
             Spacer()
             Text(value)
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
                 .foregroundColor(.primary)
         }
     }

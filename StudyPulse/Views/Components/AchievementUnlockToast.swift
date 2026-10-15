@@ -83,7 +83,7 @@ struct AchievementUnlockToast: View, Equatable {
                             .fill(tierColor(for: def.tier).opacity(0.2))
                             .frame(width: 40, height: 40)
                         Image(systemName: def.icon)
-                            .font(.system(size: 18, weight: .semibold))
+                            .scaledFont(size: 18, weight: .semibold)
                             .foregroundColor(tierColor(for: def.tier))
                     }
 

@@ -32,7 +32,7 @@ struct WeekdaySlotHeatmap: View {
                 Color.clear.frame(width: 44, height: 1)
                 ForEach(Self.weekdayOrder, id: \.self) { weekday in
                     Text(symbols[weekday - 1])
-                        .font(.system(size: 10, weight: .medium))
+                        .scaledFont(size: 10, weight: .medium)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
                 }
@@ -40,7 +40,7 @@ struct WeekdaySlotHeatmap: View {
             ForEach(HabitInsight.HourSlot.allCases, id: \.self) { slot in
                 HStack(spacing: 4) {
                     Text(slot.displayName.localized())
-                        .font(.system(size: 10))
+                        .scaledFont(size: 10)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -57,14 +57,14 @@ struct WeekdaySlotHeatmap: View {
             HStack(spacing: 4) {
                 Spacer(minLength: 0)
                 Text("home.habit.less".localized())
-                    .font(.system(size: 10)).foregroundStyle(.secondary)
+                    .scaledFont(size: 10).foregroundStyle(.secondary)
                 ForEach([0.0, 0.25, 0.5, 0.75, 1.0], id: \.self) { ratio in
                     RoundedRectangle(cornerRadius: 2)
                         .fill(ratio == 0 ? Color(.tertiarySystemFill) : tint.opacity(0.2 + 0.8 * ratio))
                         .frame(width: 10, height: 10)
                 }
                 Text("home.habit.more".localized())
-                    .font(.system(size: 10)).foregroundStyle(.secondary)
+                    .scaledFont(size: 10).foregroundStyle(.secondary)
             }
         }
         .accessibilityHidden(true)

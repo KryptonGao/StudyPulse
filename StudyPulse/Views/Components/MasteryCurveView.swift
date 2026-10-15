@@ -78,7 +78,7 @@ struct MasteryCurveView: View {
                     .foregroundStyle(.secondary)
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(String(format: "%.0f%%", currentScore * 100))
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .scaledFont(size: 28, weight: .bold, design: .rounded)
                         .foregroundStyle(scoreColor(score: currentScore))
                         .contentTransition(.numericText())
                     Text(scoreTagline(currentScore))
@@ -92,7 +92,7 @@ struct MasteryCurveView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Text("\(exposureCount)")
-                    .font(.system(size: 22, weight: .semibold, design: .rounded))
+                    .scaledFont(size: 22, weight: .semibold, design: .rounded)
                     .foregroundStyle(tintColor)
                     .contentTransition(.numericText())
             }

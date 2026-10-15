@@ -79,7 +79,7 @@ struct StudyTimerHistoryList: View {
                 "\(todayMinutes) min focused today".localized(),
                 systemImage: "clock.badge.checkmark"
             )
-            .font(.system(size: 13))
+            .scaledFont(size: 13)
             .foregroundColor(.secondary)
 
             Spacer()
@@ -88,7 +88,7 @@ struct StudyTimerHistoryList: View {
                 "\(completedCount) sessions total".localized(),
                 systemImage: "list.clipboard"
             )
-            .font(.system(size: 13))
+            .scaledFont(size: 13)
             .foregroundColor(.secondary)
         }
         .padding(.top, 4)
@@ -97,13 +97,13 @@ struct StudyTimerHistoryList: View {
     private var emptyState: some View {
         VStack(spacing: 8) {
             Image(systemName: "timer")
-                .font(.system(size: 28))
+                .scaledFont(size: 28)
                 .foregroundColor(.secondary)
             Text("No sessions yet".localized())
-                .font(.system(size: 14, weight: .medium))
+                .scaledFont(size: 14, weight: .medium)
                 .foregroundColor(.secondary)
             Text("Start your first focus session to see it here.".localized())
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
@@ -115,11 +115,11 @@ struct StudyTimerHistoryList: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(dayHeader(for: date))
-                    .font(.system(size: 13, weight: .semibold))
+                    .scaledFont(size: 13, weight: .semibold)
                     .foregroundColor(.secondary)
                 Spacer()
                 Text("\(sessions.reduce(0) { $0 + $1.durationSeconds / 60 }) min")
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(size: 12, weight: .medium)
                     .foregroundColor(.secondary)
             }
 
@@ -136,7 +136,7 @@ struct StudyTimerHistoryList: View {
         NavigationLink(value: session.id) {
             HStack(spacing: 10) {
                 Image(systemName: session.intensity.icon)
-                    .font(.system(size: 14))
+                    .scaledFont(size: 14)
                     .foregroundColor(intensityColor(session.intensity))
                     .frame(width: 28, height: 28)
                     .background(Circle().fill(intensityColor(session.intensity).opacity(0.12)))
@@ -144,7 +144,7 @@ struct StudyTimerHistoryList: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(session.intensity.displayName)
-                            .font(.system(size: 14, weight: .medium))
+                            .scaledFont(size: 14, weight: .medium)
                             .foregroundColor(.primary)
                         if let goal = session.goal {
                             Label(goal.title, systemImage: goal.source.icon)
@@ -154,7 +154,7 @@ struct StudyTimerHistoryList: View {
                         }
                     }
                     Text(timeLabel(for: session.startDate))
-                        .font(.system(size: 11))
+                        .scaledFont(size: 11)
                         .foregroundColor(.secondary)
                     if let goal = session.goal {
                         HStack(spacing: 6) {
@@ -176,7 +176,7 @@ struct StudyTimerHistoryList: View {
 
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("\(session.durationSeconds / 60) min")
-                        .font(.system(size: 13, weight: .medium))
+                        .scaledFont(size: 13, weight: .medium)
                         .foregroundColor(session.completed ? .primary : .secondary)
                     if let diff = session.goal?.difficulty {
                         Text(diff.displayName)
@@ -187,18 +187,18 @@ struct StudyTimerHistoryList: View {
 
                 if session.heartRateSampleCount > 0 {
                     Image(systemName: "heart.fill")
-                        .font(.system(size: 11))
+                        .scaledFont(size: 11)
                         .foregroundColor(.pink)
                 }
 
                 if !session.completed {
                     Image(systemName: "xmark.circle")
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .foregroundColor(.red.opacity(0.7))
                 }
                 if let reason = session.goal?.interruptionReason, reason != .none {
                     Image(systemName: reason.icon)
-                        .font(.system(size: 11))
+                        .scaledFont(size: 11)
                         .foregroundColor(.orange)
                 }
             }
@@ -261,7 +261,7 @@ struct HistorySummaryInline: View {
                         "\(todayMinutes) min focused today".localized(),
                         systemImage: "clock.badge.checkmark"
                     )
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .foregroundColor(.secondary)
 
                     Spacer()
@@ -270,11 +270,11 @@ struct HistorySummaryInline: View {
                         "\(timer.totalSessionCount) sessions total".localized(),
                         systemImage: "list.clipboard"
                     )
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .foregroundColor(.secondary)
 
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
+                        .scaledFont(size: 12, weight: .semibold)
                         .foregroundColor(.secondary)
                 }
                 .padding(.top, 4)

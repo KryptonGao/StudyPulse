@@ -350,11 +350,11 @@ struct StudyTimerActiveCard: View {
                         timer.cancel()
                     } icon: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 20, weight: .semibold))
+                            .scaledFont(size: 20, weight: .semibold)
                             .foregroundColor(.red)
                     } label: {
                         Text("End".localized())
-                            .font(.system(size: 12, weight: .medium))
+                            .scaledFont(size: 12, weight: .medium)
                             .foregroundColor(.red.opacity(0.8))
                     } background: {
                         Circle()
@@ -374,11 +374,11 @@ struct StudyTimerActiveCard: View {
                         }
                     } icon: {
                         Image(systemName: timer.timerState == .paused ? "play.fill" : "pause.fill")
-                            .font(.system(size: 30, weight: .bold))
+                            .scaledFont(size: 30, weight: .bold)
                             .foregroundColor(.white)
                     } label: {
                         Text(timer.timerState == .paused ? "Resume".localized() : "Pause".localized())
-                            .font(.system(size: 12, weight: .medium))
+                            .scaledFont(size: 12, weight: .medium)
                             .foregroundColor(activeSecondaryTextColor)
                     } background: {
                         let base = timer.timerState == .paused ? Color.green : themeColor
@@ -408,11 +408,11 @@ struct StudyTimerActiveCard: View {
                         onImmersiveToggle()
                     } icon: {
                         Image(systemName: immersiveLandscapeMode ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
-                            .font(.system(size: 18, weight: .semibold))
+                            .scaledFont(size: 18, weight: .semibold)
                             .foregroundColor(themeColor)
                     } label: {
                         Text(immersiveLandscapeMode ? "Exit Full Screen".localized() : "Full Screen".localized())
-                            .font(.system(size: 12, weight: .medium))
+                            .scaledFont(size: 12, weight: .medium)
                             .foregroundColor(activeSecondaryTextColor)
                     } background: {
                         Circle()
@@ -640,7 +640,7 @@ struct StudyTimerActiveCard: View {
             // Center labels
             VStack(spacing: 8) {
                 Text(formatTime(timer.remainingSeconds))
-                    .font(.system(size: safeTimeFontSize, weight: .bold, design: .monospaced))
+                    .font(.system(size: safeTimeFontSize, weight: .bold, design: .monospaced)) // fixed-size-ok: geometry-derived
                     .foregroundStyle(
                         LinearGradient(
                             colors: [immersiveLandscapeMode ? .white : .primary, themeColor.opacity(0.8)],
@@ -655,13 +655,13 @@ struct StudyTimerActiveCard: View {
                     .frame(maxWidth: timeTextWidth)
 
                 Text(timer.currentIntensity?.displayName ?? "")
-                    .font(.system(size: max(15, safeTimeFontSize * 0.28), weight: .medium))
+                    .font(.system(size: max(15, safeTimeFontSize * 0.28), weight: .medium)) // fixed-size-ok: geometry-derived
                     .foregroundColor(themeColor)
                     .opacity(0.9)
 
                 if let goal = timer.activeGoal ?? timer.draftGoal {
                     Label(goal.title, systemImage: goal.source.icon)
-                        .font(.system(size: max(11, safeTimeFontSize * 0.20), weight: .medium))
+                        .font(.system(size: max(11, safeTimeFontSize * 0.20), weight: .medium)) // fixed-size-ok: geometry-derived
                         .foregroundColor(immersiveLandscapeMode ? Color.white.opacity(0.82) : .secondary)
                         .lineLimit(1)
                         .padding(.horizontal, 8)
@@ -677,7 +677,7 @@ struct StudyTimerActiveCard: View {
                             .scaleEffect(showPausedPulse ? 1.4 : 1.0)
                             .opacity(showPausedPulse ? 0.5 : 1.0)
                         Text("Paused".localized())
-                            .font(.system(size: max(13, timeFontSize * 0.22), weight: .semibold))
+                            .font(.system(size: max(13, timeFontSize * 0.22), weight: .semibold)) // fixed-size-ok: geometry-derived
                             .foregroundColor(.orange)
                     }
                     .padding(.horizontal, 14)
@@ -693,10 +693,10 @@ struct StudyTimerActiveCard: View {
                 if let hr = timer.currentHeartRate {
                     HStack(spacing: 4) {
                         Image(systemName: "heart.fill")
-                            .font(.system(size: 11))
+                            .scaledFont(size: 11)
                             .symbolEffect(.bounce, value: hr)
                         Text("\(Int(hr)) bpm")
-                            .font(.system(size: max(12, timeFontSize * 0.2), weight: .semibold, design: .rounded))
+                            .font(.system(size: max(12, timeFontSize * 0.2), weight: .semibold, design: .rounded)) // fixed-size-ok: geometry-derived
                     }
                     .foregroundColor(.pink)
                     .contentTransition(.numericText())
@@ -711,12 +711,12 @@ struct StudyTimerActiveCard: View {
                     if timer.hrStreamingActive {
                         // 采集已启动,但 Apple Watch 被动采样间隔 5-10 分钟,需等待
                         Text("Waiting for Apple Watch HR (passive sampling ~5-10 min)…".localized())
-                            .font(.system(size: max(10, timeFontSize * 0.16), weight: .medium))
+                            .font(.system(size: max(10, timeFontSize * 0.16), weight: .medium)) // fixed-size-ok: geometry-derived
                             .foregroundColor(activeSecondaryTextColor)
                     } else {
                         // 采集未启动:功能关闭或 HealthKit 未授权
                         Text("HR streaming off — enable in Settings / Health".localized())
-                            .font(.system(size: max(10, timeFontSize * 0.16), weight: .medium))
+                            .font(.system(size: max(10, timeFontSize * 0.16), weight: .medium)) // fixed-size-ok: geometry-derived
                             .foregroundColor(activeSecondaryTextColor.opacity(0.7))
                     }
                 }

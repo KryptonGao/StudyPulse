@@ -557,7 +557,7 @@ struct ScorePredictionDetailView: View {
 
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text("+ \(String(format: "%.1f", gap))")
-                    .font(.system(size: 36, weight: .heavy, design: .rounded))
+                    .scaledFont(size: 36, weight: .heavy, design: .rounded)
                     .foregroundColor(gap > 0 ? Color(.systemOrange) : Color(.systemGreen))
                 Text("pts".localized())
                     .font(.headline)

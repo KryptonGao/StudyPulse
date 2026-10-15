@@ -149,7 +149,7 @@ struct StudySessionDetailView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(s.intensity.displayName)
-                        .font(.system(size: 18, weight: .bold))
+                        .scaledFont(size: 18, weight: .bold)
                     Text(s.startDate, format: .dateTime.month().day().hour().minute())
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -157,7 +157,7 @@ struct StudySessionDetailView: View {
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("\(s.durationSeconds / 60) min")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .scaledFont(size: 22, weight: .bold, design: .rounded)
                         .foregroundColor(Color(hex: s.intensity.colorHex))
                     Text("\(samples.count) HR samples".localized())
                         .font(.caption2)
@@ -191,7 +191,7 @@ struct StudySessionDetailView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Label(goal.title, systemImage: goal.source.icon)
-                            .font(.system(size: 15, weight: .semibold))
+                            .scaledFont(size: 15, weight: .semibold)
                         Spacer()
                         Text(goal.source.displayName)
                             .font(.caption2.weight(.medium))
@@ -205,7 +205,7 @@ struct StudySessionDetailView: View {
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                             Text("\(goal.targetValue.truncatingRemainder(dividingBy: 1)==0 ? String(format:"%.0f", goal.targetValue) : String(format:"%.1f", goal.targetValue)) \(goal.unitLabel)")
-                                .font(.system(size: 14, weight: .semibold))
+                                .scaledFont(size: 14, weight: .semibold)
                         }
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Completed".localized())
@@ -213,7 +213,7 @@ struct StudySessionDetailView: View {
                                 .foregroundStyle(.secondary)
                             if let cv = goal.completedValue {
                                 Text("\(cv.truncatingRemainder(dividingBy: 1)==0 ? String(format:"%.0f", cv) : String(format:"%.1f", cv)) \(goal.unitLabel)")
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .scaledFont(size: 14, weight: .semibold)
                             } else {
                                 Text("--").font(.caption).foregroundStyle(.tertiary)
                             }
@@ -222,7 +222,7 @@ struct StudySessionDetailView: View {
                         if let rate = goal.completionRate {
                             VStack(spacing: 4) {
                                 Text(String(format: "%.0f%%", rate*100))
-                                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                                    .scaledFont(size: 18, weight: .bold, design: .rounded)
                                     .foregroundColor(rate >= 1 ? .green : .primary)
                                 ProgressView(value: rate)
                                     .frame(width: 60)
@@ -276,7 +276,7 @@ struct StudySessionDetailView: View {
     private var chartSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Heart Rate Curve".localized())
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
 
             HeartRateChartView(
                 samples: samples,
@@ -333,7 +333,7 @@ struct StudySessionDetailView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Text("AI Stress Interpretation".localized())
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                         Spacer()
                         Button {
                             runAI()
@@ -373,13 +373,13 @@ struct StudySessionDetailView: View {
     private func emptyHRState(session: StudySession) -> some View {
         VStack(spacing: 12) {
             Image(systemName: "heart.text.square")
-                .font(.system(size: 36))
+                .scaledFont(size: 36)
                 .foregroundColor(.secondary)
             Text("No heart-rate data".localized())
-                .font(.system(size: 16, weight: .semibold))
+                .scaledFont(size: 16, weight: .semibold)
                 .foregroundColor(.secondary)
             Text("Apple Watch may not have been worn or no samples were recorded during this session.".localized())
-                .font(.system(size: 13))
+                .scaledFont(size: 13)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
 
@@ -388,14 +388,14 @@ struct StudySessionDetailView: View {
             HStack(spacing: 24) {
                 VStack(spacing: 4) {
                     Text(session.intensity.displayName)
-                        .font(.system(size: 14, weight: .medium))
+                        .scaledFont(size: 14, weight: .medium)
                     Text(session.startDate, format: .dateTime.month().day().hour().minute())
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 VStack(spacing: 4) {
                     Text("\(session.durationSeconds / 60) min")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .scaledFont(size: 14, weight: .semibold, design: .rounded)
                     Text("Duration".localized())
                         .font(.caption)
                         .foregroundColor(.secondary)

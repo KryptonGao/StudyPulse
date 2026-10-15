@@ -56,7 +56,7 @@ struct SessionGoalRetroSheet: View {
         VStack(alignment: .leading, spacing: 8) {
             if let g = goal {
                 Label(g.title, systemImage: g.source.icon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .scaledFont(size: 16, weight: .semibold)
                 Text(String(format: "Target: %@ %@".localized(), formatTarget(g.targetValue), g.unitLabel))
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -86,7 +86,7 @@ struct SessionGoalRetroSheet: View {
             HStack(spacing: 12) {
                 TextField("Completed".localized(), text: $completedText)
                     .keyboardType(.decimalPad)
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .scaledFont(size: 22, weight: .bold, design: .rounded)
                     .multilineTextAlignment(.center)
                     .frame(width: 90)
                     .padding(.vertical, 8)
@@ -105,7 +105,7 @@ struct SessionGoalRetroSheet: View {
                     if let v = Double(completedText), targetValue > 0 {
                         let rate = min(v / targetValue, 1.0)
                         Text(String(format: "%.0f%%", rate * 100))
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                             .foregroundColor(rate >= 1 ? .green : .primary)
                         ProgressView(value: rate)
                             .frame(width: 80)
@@ -162,7 +162,7 @@ struct SessionGoalRetroSheet: View {
                         } label: {
                             VStack(spacing: 4) {
                                 Image(systemName: d.icon)
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .scaledFont(size: 14, weight: .semibold)
                                 Text(d.displayName)
                                     .font(.caption2.weight(.medium))
                             }

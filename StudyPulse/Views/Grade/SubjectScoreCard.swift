@@ -108,7 +108,7 @@ struct SubjectScoreCard: View {
                             if displayMode == .score {
                             HStack(alignment: .firstTextBaseline, spacing: 4) {
                                 Text(String(format: "%.1f", g.score))
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .scaledFont(size: 28, weight: .bold, design: .rounded)
                                     .foregroundStyle(scoreColor(g.score, fullScore: fullScore))
                                     .debugInspectAuto(g.score, label: "score")
                                 Text("/ \(Int(fullScore))")
@@ -124,7 +124,7 @@ struct SubjectScoreCard: View {
                         } else {
                             if let rank = g.ranking, rank > 0 {
                                 Text("\(rank)")
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .scaledFont(size: 28, weight: .bold, design: .rounded)
                                     .foregroundStyle(scoreColor(g.score, fullScore: fullScore))
                                     .debugInspectAuto(rank, label: "rank")
                                 Text(String(format: "%.1f", g.score))
@@ -132,7 +132,7 @@ struct SubjectScoreCard: View {
                                     .foregroundColor(.secondary)
                             } else {
                                 Text("N/A".localized())
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .scaledFont(size: 28, weight: .bold, design: .rounded)
                                     .foregroundStyle(
                                         LinearGradient(
                                             colors: [.indigo, .purple],

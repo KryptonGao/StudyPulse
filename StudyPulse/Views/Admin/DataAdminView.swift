@@ -62,17 +62,17 @@ struct GradeAdminView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(grade.subject)
-                                    .font(.system(size: 15, weight: .medium))
+                                    .scaledFont(size: 15, weight: .medium)
                                 Text(grade.examName)
-                                    .font(.system(size: 12))
+                                    .scaledFont(size: 12)
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
                             VStack(alignment: .trailing, spacing: 2) {
                                 Text(String(format: "%.1f", grade.score))
-                                    .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                    .scaledFont(size: 16, weight: .bold, design: .monospaced)
                                 Text(grade.date.formatted(date: .numeric, time: .omitted))
-                                    .font(.system(size: 11))
+                                    .scaledFont(size: 11)
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -114,19 +114,19 @@ struct ExamAdminView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(exam.examName)
-                                        .font(.system(size: 15, weight: .medium))
+                                        .scaledFont(size: 15, weight: .medium)
                                     Text(exam.subject)
-                                        .font(.system(size: 12))
+                                        .scaledFont(size: 12)
                                         .foregroundColor(.secondary)
                                 }
                                 Spacer()
                                 VStack(alignment: .trailing, spacing: 2) {
                                     Text(exam.examDate.formatted(date: .numeric, time: .omitted))
-                                        .font(.system(size: 12))
+                                        .scaledFont(size: 12)
                                         .foregroundColor(.secondary)
                                     HStack(spacing: 2) {
-                                        Image(systemName: "star.fill").font(.system(size: 10)).foregroundColor(.yellow)
-                                        Text("\(exam.importance)").font(.system(size: 12)).foregroundColor(.secondary)
+                                        Image(systemName: "star.fill").scaledFont(size: 10).foregroundColor(.yellow)
+                                        Text("\(exam.importance)").scaledFont(size: 12).foregroundColor(.secondary)
                                     }
                                 }
                             }
@@ -150,18 +150,18 @@ struct ExamAdminView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(exam.name)
-                                        .font(.system(size: 15, weight: .medium))
+                                        .scaledFont(size: 15, weight: .medium)
                                     Text(exam.subject.joined(separator: ", "))
-                                        .font(.system(size: 12))
+                                        .scaledFont(size: 12)
                                         .foregroundColor(.secondary)
                                 }
                                 Spacer()
                                 VStack(alignment: .trailing, spacing: 2) {
                                     Text(exam.examDate.formatted(date: .numeric, time: .omitted))
-                                        .font(.system(size: 12))
+                                        .scaledFont(size: 12)
                                         .foregroundColor(.secondary)
                                     Image(systemName: "square.stack.3d.up.fill")
-                                        .font(.system(size: 12))
+                                        .scaledFont(size: 12)
                                         .foregroundColor(.blue)
                                 }
                             }
@@ -254,16 +254,16 @@ struct MistakeAdminView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(mistake.title)
-                    .font(.system(size: 15, weight: .medium))
+                    .scaledFont(size: 15, weight: .medium)
                 if !mistake.subject.isEmpty {
                     Text(mistake.subject)
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .foregroundColor(.secondary)
                 }
             }
             Spacer()
             Text(mistake.date.formatted(date: .numeric, time: .omitted))
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundColor(.secondary)
         }
     }

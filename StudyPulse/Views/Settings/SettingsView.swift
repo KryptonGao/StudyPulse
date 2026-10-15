@@ -55,10 +55,10 @@ struct SettingsView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(container.profileRepo.profile.username)
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
                     .foregroundColor(.primary)
                 Text(profileSubtitle)
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }

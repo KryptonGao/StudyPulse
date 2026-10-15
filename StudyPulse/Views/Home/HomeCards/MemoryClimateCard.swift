@@ -32,7 +32,7 @@ struct MemoryClimateCard: View {
 
                     HStack(spacing: 16) {
                         Image(systemName: dominant.weather.symbolName)
-                            .font(.system(size: 44))
+                            .scaledFont(size: 44)
                             .symbolRenderingMode(.multicolor)
                             .foregroundStyle(weatherColor(dominant.weather))
                             .frame(width: 58)

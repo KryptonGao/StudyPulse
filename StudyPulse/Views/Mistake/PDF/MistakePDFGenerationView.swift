@@ -73,7 +73,7 @@ struct MistakePDFGenerationView: View {
     private var generatingState: some View {
         VStack(spacing: 20) {
             Image(systemName: "doc.text.fill")
-                .font(.system(size: 60))
+                .scaledFont(size: 60)
                 .foregroundColor(.orange)
 
             Text("Generating PDF...".localized())
@@ -98,7 +98,7 @@ struct MistakePDFGenerationView: View {
     private var completedState: some View {
         VStack(spacing: 20) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 60))
+                .scaledFont(size: 60)
                 .foregroundColor(.green)
             Text("PDF Generated".localized())
                 .font(.headline)
@@ -108,7 +108,7 @@ struct MistakePDFGenerationView: View {
     private func errorState(message: String) -> some View {
         VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 60))
+                .scaledFont(size: 60)
                 .foregroundColor(.red)
             Text("Generation Failed".localized())
                 .font(.headline)

@@ -18,7 +18,7 @@ struct ExamDayReadinessCard: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Label("examReadiness.title".localized(), systemImage: "chart.line.uptrend.xyaxis.circle.fill")
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(size: 18, weight: .semibold)
                 Spacer()
                 Button("examReadiness.sheetTitle".localized()) {
                     showingSheet = true
@@ -60,11 +60,11 @@ struct ExamDayReadinessCard: View {
             VStack(alignment: .trailing, spacing: 5) {
                 if let score = readiness.predictedScore {
                     Text(String(format: "%.0f%%", score * 100))
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .scaledFont(size: 30, weight: .bold, design: .rounded)
                         .foregroundStyle(color(for: readiness.riskCategory))
                 } else {
                     Text("—")
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .scaledFont(size: 30, weight: .bold, design: .rounded)
                         .foregroundStyle(.secondary)
                 }
                 Text(riskText(for: readiness.riskCategory))

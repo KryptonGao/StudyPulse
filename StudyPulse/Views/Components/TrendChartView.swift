@@ -128,7 +128,7 @@ struct TrendChartView: View {
 
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text("\(Int(selected.score.rounded()))")
-                                            .font(.system(size: 11, weight: .bold))
+                                            .scaledFont(size: 11, weight: .bold)
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 2)
@@ -216,7 +216,7 @@ struct TrendChartView: View {
 
                                     VStack(spacing: 0) {
                                         Text("\(Int(selected.score.rounded()))")
-                                            .font(.system(size: 11, weight: .bold))
+                                            .scaledFont(size: 11, weight: .bold)
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 2)
@@ -368,7 +368,7 @@ struct TrendChartView: View {
 
                                     VStack(spacing: 0) {
                                         Text("\(Int(selected.score.rounded()))")
-                                            .font(.system(size: 11, weight: .bold))
+                                            .scaledFont(size: 11, weight: .bold)
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 2)
@@ -520,7 +520,7 @@ struct TrendChartView: View {
                         if let xPos = proxy.position(forX: cell.weekday),
                            let yPos = proxy.position(forY: Double(-cell.weekIndex)) {
                             Text(cell.label)
-                                .font(.system(size: 8, weight: .medium))
+                                .scaledFont(size: 8, weight: .medium)
                                 .foregroundColor(cell.intensity > 0.5 ? .white : .primary)
                                 .position(x: xPos, y: yPos)
                         }
@@ -665,7 +665,7 @@ struct TrendChartView: View {
 
                                     VStack(spacing: 0) {
                                         Text("\(selectedBucketCount) 次")
-                                            .font(.system(size: 11, weight: .bold))
+                                            .scaledFont(size: 11, weight: .bold)
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 2)
@@ -743,24 +743,24 @@ private struct ChartCalloutCard: View {
     var body: some View {
         VStack(alignment: .trailing, spacing: 4) {
             Text(grade.subject.uppercased())
-                .font(.system(size: 10, weight: .semibold))
+                .scaledFont(size: 10, weight: .semibold)
                 .tracking(0.5)
                 .foregroundColor(.secondary)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("\(Int(grade.score.rounded()))")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .scaledFont(size: 28, weight: .bold, design: .rounded)
                     .foregroundColor(.primary)
                     .contentTransition(.numericText())
                 Text("/ \(Int(fullScore))")
-                    .font(.system(size: 13, weight: .medium))
+                    .scaledFont(size: 13, weight: .medium)
                     .foregroundColor(.secondary)
             }
             Text(dateText)
-                .font(.system(size: 12, weight: .medium))
+                .scaledFont(size: 12, weight: .medium)
                 .foregroundColor(.secondary)
             if !grade.examName.isEmpty {
                 Text(grade.examName)
-                    .font(.system(size: 10))
+                    .scaledFont(size: 10)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
