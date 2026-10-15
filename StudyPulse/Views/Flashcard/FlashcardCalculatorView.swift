@@ -260,7 +260,8 @@ struct FlashcardCalculatorView: View {
                         .minimumScaleFactor(0.6)
                 }
                 Text(engine.display)
-                    .font(.system(size: 36, weight: .light, design: .rounded).monospacedDigit())
+                    .scaledFont(size: 36, weight: .light, design: .rounded)
+                    .monospacedDigit()
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
                     .foregroundStyle(.primary)
@@ -379,7 +380,7 @@ struct CalcButtonView: View {
     var body: some View {
         Button {
             // 点击反馈
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            Haptics.impact(.light)
             onTap()
         } label: {
             Text(button.label)

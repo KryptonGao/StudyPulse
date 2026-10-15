@@ -173,6 +173,7 @@ final class NewExamSetViewModel {
                 subjectTimeSlots: addToCalendarToggle ? timeSlots : nil
             )
             container.addExams(single: [], comprehensive: [newCompExam])
+            Haptics.success()
 
             if addToCalendarToggle {
                 do {
@@ -226,6 +227,7 @@ final class NewExamSetViewModel {
                 timeSlot: timeSlot
             )
             container.addExams(single: [newExam], comprehensive: [])
+            Haptics.success()
 
             if addToCalendarToggle, let slot = timeSlot {
                 do {

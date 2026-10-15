@@ -156,6 +156,7 @@ final class FlashcardStudyViewModel {
     /// Handle a user rating: update SRS, record handwriting, decide on re-queue.
     func handleRating(_ quality: ReviewQuality) {
         guard let current = currentMistake, let currentItem = currentQueueItem else { return }
+        if quality == .again { Haptics.warning() } else { Haptics.selection() }
         stats.record(quality)
         if let pair = currentItem.interference {
             stats.recordEarlyContrast(pair)

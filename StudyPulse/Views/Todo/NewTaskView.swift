@@ -168,6 +168,7 @@ struct NewTaskView: View {
 
         if !syncToReminders {
             container.addTask(task, syncToReminders: false)
+            Haptics.success()
             isSaving = false
             dismiss()
             return
@@ -184,6 +185,7 @@ struct NewTaskView: View {
                 )
                 await MainActor.run {
                     container.addTask(task, syncToReminders: true, reminderResult: result)
+                    Haptics.success()
                     isSaving = false
                     resultAlertMessage = "Saved and added to system Reminders.".localized()
                     showingResultAlert = true
@@ -192,6 +194,7 @@ struct NewTaskView: View {
                 await MainActor.run {
                     // Reminders 同步失败：仍然把任务存到本地
                     container.addTask(task, syncToReminders: false)
+                    Haptics.success()
                     isSaving = false
                     resultAlertMessage = "Saved to StudyPulse, but Reminders sync failed: \(error.localizedDescription)"
                     showingResultAlert = true

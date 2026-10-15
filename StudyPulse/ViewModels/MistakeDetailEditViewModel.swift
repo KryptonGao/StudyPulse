@@ -248,6 +248,7 @@ final class MistakeDetailEditViewModel {
         }
 
         container.mistakeRepo.update(updatedMistake)
+        Haptics.success()
 
         // 重排 / 取消通知 / Reschedule or cancel the notification.
         if reviewEnabled {

@@ -126,7 +126,13 @@ final class TodoViewModel {
         var updated = task
         updated.isCompleted.toggle()
         container.taskRepo.update(updated, reminderResult: nil)
+        Self.completionHaptic(isCompleted: updated.isCompleted)
         recompute()
+    }
+
+    /// 完成 → 成功反馈;撤销完成 → 轻点反馈 / Success on complete, light tap on undo.
+    private static func completionHaptic(isCompleted: Bool) {
+        if isCompleted { Haptics.success() } else { Haptics.impact(.light) }
     }
 
     /// 切换 Exam 的完成态(目前是 no-op) / Toggle an Exam's completion (no-op).
@@ -137,6 +143,7 @@ final class TodoViewModel {
     /// 切换 RoutineInstance 的完成态并重算 / Toggle a routine instance's completion & recompute.
     func toggleCompletion(for instance: RoutineInstance) {
         container.routineInstanceRepo.setCompletion(instance.id, isCompleted: !instance.isCompleted)
+        Self.completionHaptic(isCompleted: !instance.isCompleted)
         recompute()
     }
 

@@ -236,5 +236,6 @@ final class AddGradeViewModel {
             return grade
         }
         container.addGrades(newGrades)
+        Haptics.success()
     }
 }

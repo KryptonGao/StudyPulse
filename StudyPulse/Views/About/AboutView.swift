@@ -80,7 +80,7 @@ struct AboutView: View {
 
         if versionTapCount >= requiredTaps {
             versionTapCount = 0
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            Haptics.impact(.medium)
             showDebug = true
         }
     }
