@@ -14,11 +14,12 @@
 import SwiftUI
 import SwiftStreamingMarkdown
 
-/// 统一的聊天气泡:user 右对齐小框,assistant 左对齐宽框(上限 600pt)。
-/// 三个 chat 界面 (LLMChatView / AIDiscussionSheet / HomeAskSheet) 都通过本组件渲染。
+/// 统一的聊天气泡:user 右对齐小框;assistant 为玻璃胶囊头部 + 平铺内容(上限 600pt),
+/// 只读上下文(dimmed)保留轻量卡片。样式积木见 `AIChatStyle.swift`。
+/// 三个 chat 界面 (LLMChatView / AIDiscussionSheet / HomeAskSheet / MistakeDebateSheet / CoachConversationView) 都通过本组件渲染。
 /// Unified chat bubble: user → right-aligned compact box,
-/// assistant → left-aligned wide box (max 600pt). Used by the three
-/// chat screens (LLMChatView / AIDiscussionSheet / HomeAskSheet).
+/// assistant → glass-capsule header + flat content (max 600pt), dimmed context keeps a light card. Used by the three
+/// chat screens (LLMChatView / AIDiscussionSheet / HomeAskSheet / MistakeDebateSheet / CoachConversationView).
 struct ChatBubble: View {
     /// 气泡角色(user / assistant)
     /// Bubble role (user or assistant).
@@ -66,6 +67,9 @@ struct ChatBubble: View {
     /// Optional footer content below the bubble
     /// (e.g. HomeAsk's collapsible "data snapshot" block).
     let footer: AnyView?
+    /// 思考阶段的状态文案(如"正在判断需要哪些数据…");为空时显示扫光占位条
+    /// Status line shown while thinking (e.g. "Routing…"); nil shows the sheen bars.
+    let statusText: String?
 
     init(
         role: Role,
@@ -74,7 +78,8 @@ struct ChatBubble: View {
         error: String? = nil,
         attachments: [LLMImageAttachment] = [],
         headerTag: String? = nil,
-        footer: AnyView? = nil
+        footer: AnyView? = nil,
+        statusText: String? = nil
     ) {
         self.role = role
         self.content = content
@@ -83,6 +88,7 @@ struct ChatBubble: View {
         self.attachments = attachments
         self.headerTag = headerTag
         self.footer = footer
+        self.statusText = statusText
     }
 
     var body: some View {
@@ -93,19 +99,17 @@ struct ChatBubble: View {
                 assistantBubble
             }
         }
-        // 新消息:从下方轻微上浮 + 渐入,跟聊天 App 习惯一致
-        // New messages: float up slightly from below + fade in, matching
-        // the convention of mainstream chat apps.
-        .transition(.asymmetric(
-            insertion: .scale(
-                scale: 0.72,
-                anchor: role.isUser ? .bottomTrailing : .bottomLeading
-            )
-            .combined(with: .opacity)
-            .combined(with: .move(edge: .bottom)),
-            removal: .opacity
-        ))
-        .animation(.spring(response: 0.38, dampingFraction: 0.58, blendDuration: 0.12), value: content)
+        // 用户消息从右下角弹入;助手回复整块淡入并轻微上浮
+        // User messages pop in from the bottom-trailing corner; replies fade in and rise slightly.
+        .transition(role.isUser
+            ? .asymmetric(
+                insertion: .scale(scale: 0.8, anchor: .bottomTrailing)
+                    .combined(with: .opacity)
+                    .combined(with: .move(edge: .bottom)),
+                removal: .opacity)
+            : .asymmetric(
+                insertion: .opacity.combined(with: .move(edge: .bottom)),
+                removal: .opacity))
     }
 
     // MARK: - User Bubble / 用户气泡
@@ -140,113 +144,59 @@ struct ChatBubble: View {
 
     // MARK: - Assistant Bubble / 助手气泡
 
+    /// 是否处于"尚未收到首字"的思考态
+    /// Whether the reply is still waiting for its first token.
+    private var isThinking: Bool { error == nil && content.isEmpty && isStreaming }
+
     private var assistantBubble: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 4) {
-                Image(systemName: "brain")
-                    .font(.caption)
-                    .foregroundColor(.teal)
-                Text("AI".localized())
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(.teal)
-                if let headerTag, !headerTag.isEmpty {
-                    Text("·  " + headerTag)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                }
-                if isStreaming {
-                    ProgressView()
-                        .scaleEffect(0.6)
-                        .padding(.leading, 4)
-                        .modifier(PulseModifier())
-                }
-                Spacer()
-            }
+        VStack(alignment: .leading, spacing: 10) {
+            AIReplyHeader(
+                tag: headerTag,
+                isWorking: isStreaming,
+                showsElapsed: isStreaming
+            )
             if let err = error {
-                Text(err)
-                    .font(.caption)
-                    .foregroundColor(.red)
-            } else if content.isEmpty && isStreaming {
-                HStack(spacing: 6) {
-                    Text("Thinking...".localized())
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                    TypingDots()
-                }
+                Label(err, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.red)
+            } else if isThinking {
+                AIThinkingBody(
+                    presentation: statusText.map { .text($0) } ?? .sheen
+                )
             } else {
                 MarkdownView(
                     text: content.normalisingSingleDollarMath(),
-                    config: .previewConfig
+                    config: .chatConfig(isStreaming: isStreaming)
                 )
                 .textSelection(.enabled)
+                // 流式输出中:正文下方跳点,表示还在继续生成
+                // While streaming: bouncing dots under the text show it is still going.
+                if isStreaming {
+                    AIThinkingBody(presentation: .dots)
+                        .transition(.opacity)
+                }
             }
             if let footer {
                 footer
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(role.isDimmed
-                      ? Color(.tertiarySystemBackground)
-                      : Color(.secondarySystemBackground))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .strokeBorder(
-                    role.isDimmed ? Color.secondary.opacity(0.25) : Color.clear,
-                    lineWidth: 1
-                )
-        )
+        // 只读上下文(dimmed)保留轻量卡片;正常回复不加外框,让内容直接铺在背景上
+        // Read-only context (dimmed) keeps a light card; normal replies sit flat on the background.
+        .padding(role.isDimmed ? 12 : 0)
+        .background {
+            if role.isDimmed {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(Color(.tertiarySystemBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .strokeBorder(Color.secondary.opacity(0.25), lineWidth: 1)
+                    )
+            }
+        }
         .opacity(role.isDimmed ? 0.85 : 1.0)
-        // 关键:iPad / 横屏下 600pt 上限,允许 AI 框随着屏幕变宽
-        // KEY: 600pt cap on iPad / landscape so the AI box can still grow
-        // with wider screens without spanning the full window.
+        // iPad / 横屏下 600pt 上限,避免内容铺满整个窗口
+        // 600pt cap on iPad / landscape so replies don't span the whole window.
         .frame(maxWidth: 600, alignment: .leading)
-    }
-}
-
-// MARK: - 思考中动画(被 ChatBubble 使用,跨文件 internal)
-// MARK: - Thinking animation (used by ChatBubble, internal across files)
-
-/// 加载指示器周围的轻微脉动修饰符(0.9 ↔ 1.0)
-/// Subtle pulse modifier (0.9 ↔ 1.0) wrapped around the loading indicator.
-struct PulseModifier: ViewModifier {
-    @State private var pulsing = false
-    func body(content: Content) -> some View {
-        content
-            .scaleEffect(pulsing ? 1.15 : 0.95)
-            .opacity(pulsing ? 0.6 : 1.0)
-            // 0.9s easeInOut,无限往返,营造"心跳"感
-            // 0.9s easeInOut, infinite reverse, gives a "heartbeat" feel.
-            .animation(
-                .easeInOut(duration: 0.9).repeatForever(autoreverses: true),
-                value: pulsing
-            )
-            .onAppear { pulsing = true }
-    }
-}
-
-/// 三个点的打字机动画(··· 依次淡入)
-/// Three-dot typing animation (each dot fades in in turn).
-struct TypingDots: View {
-    @State private var phase: Int = 0
-    var body: some View {
-        HStack(spacing: 3) {
-            ForEach(0..<3, id: \.self) { i in
-                Circle()
-                    .fill(Color.secondary)
-                    .frame(width: 4, height: 4)
-                    .opacity(phase == i ? 1.0 : 0.3)
-            }
-        }
-        .task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(350))
-                phase = (phase + 1) % 3
-            }
-        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

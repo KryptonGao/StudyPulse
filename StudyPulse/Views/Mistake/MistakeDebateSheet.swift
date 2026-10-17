@@ -12,12 +12,10 @@ struct MistakeDebateSheet: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                AIChatFlowingBackground()
-                    .ignoresSafeArea()
+            AIChatScaffold {
                 ScrollViewReader { proxy in
                     ScrollView {
-                        VStack(spacing: 12) {
+                        LazyVStack(alignment: .leading, spacing: 18) {
                             difficultyPicker
                             if viewModel.messages.isEmpty {
                                 emptyState
@@ -28,21 +26,19 @@ struct MistakeDebateSheet: View {
                                         content: message.content,
                                         isStreaming: message.isStreaming,
                                         error: message.error,
-                                        headerTag: message.role == .user ? "学生".localized() : "出题老师 · \(difficulty.title)"
+                                        headerTag: message.role == .user ? nil : "出题老师 · \(difficulty.title)"
                                     )
                                     .id(message.id)
                                 }
                             }
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.top, 8)
-                        .padding(.bottom, 96)
+                        .aiChatMessageColumn(animatedBy: viewModel.messages.count)
                     }
                     .scrollDismissesKeyboard(.interactively)
                     .onChange(of: viewModel.messages.count) { _, _ in scrollToBottom(proxy) }
                     .onChange(of: viewModel.messages.last?.content ?? "") { _, _ in scrollToBottom(proxy) }
                 }
-
+            } input: {
                 ChatInputBar(
                     text: $inputText,
                     placeholder: "为你的解法辩护…".localized(),
@@ -52,7 +48,6 @@ struct MistakeDebateSheet: View {
                     onCancel: { viewModel.cancel() }
                 )
             }
-            .containerBackground(.clear, for: .navigation)
             .llmDebugButton(caller: "MistakeDebate")
             .cloudThinkingToolbar()
             .navigationTitle("错题辩论".localized())
@@ -101,24 +96,20 @@ struct MistakeDebateSheet: View {
             .disabled(viewModel.hasStarted || viewModel.isStreaming)
         }
         .padding(12)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+        .aiGlass(RoundedRectangle(cornerRadius: 20))
     }
 
+    @ViewBuilder
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: container.envManager.llmConfig.isConfigured ? "person.2.wave.2" : "brain")
-                .font(.system(size: 44))
-                .foregroundColor(.teal)
-            Text(container.envManager.llmConfig.isConfigured
-                 ? "老师会先质疑你的第一步。请不要只报答案，要解释为什么。".localized()
-                 : "Set Base URL, API Key and Model in Settings → LLM.".localized())
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
+        if container.envManager.llmConfig.isConfigured {
+            AIChatEmptyState(kind: .welcome(
+                symbol: "person.2.wave.2",
+                title: "错题辩论".localized(),
+                message: "老师会先质疑你的第一步。请不要只报答案，要解释为什么。".localized()
+            ))
+        } else {
+            AIChatEmptyState(kind: .notConfigured())
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 40)
     }
 
     private func send() {
