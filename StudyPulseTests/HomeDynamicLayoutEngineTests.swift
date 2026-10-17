@@ -8,6 +8,7 @@
 import XCTest
 @testable import StudyPulse
 
+@MainActor
 final class HomeDynamicLayoutEngineTests: XCTestCase {
 
     func test_arrange_hidesCardsWithoutInformation() {

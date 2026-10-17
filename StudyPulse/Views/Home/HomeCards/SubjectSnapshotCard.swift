@@ -8,10 +8,10 @@
 
 import SwiftUI
 
+/// 独立卡片(带标题):用于单卡分享。主页「进展」区块直接嵌入 `SubjectSnapshotList`。
+/// Standalone card with a header, used for single-card sharing; the Progress zone embeds `SubjectSnapshotList` directly.
 struct SubjectSnapshotCard: View {
     let snapshots: [SubjectSnapshot]
-
-    @Environment(RepositoryContainer.self) private var container
 
     var body: some View {
         HomeCardContainer {
@@ -21,16 +21,28 @@ struct SubjectSnapshotCard: View {
                 subtitle: "home.subjects.subtitle".localized(),
                 tint: .indigo
             )
-            VStack(spacing: DesignToken.Spacing.small) {
-                ForEach(snapshots) { snapshot in
-                    SubjectSnapshotRow(
-                        snapshot: snapshot,
-                        displayName: container.displayName(for: snapshot.subject)
-                    )
-                }
-            }
+            SubjectSnapshotList(snapshots: snapshots)
         }
         .debugLayoutBoundsAuto()
+    }
+}
+
+/// 各科一行的列表(无外层容器)。
+/// One row per subject (no surrounding container).
+struct SubjectSnapshotList: View {
+    let snapshots: [SubjectSnapshot]
+
+    @Environment(RepositoryContainer.self) private var container
+
+    var body: some View {
+        VStack(spacing: DesignToken.Spacing.small) {
+            ForEach(snapshots) { snapshot in
+                SubjectSnapshotRow(
+                    snapshot: snapshot,
+                    displayName: container.displayName(for: snapshot.subject)
+                )
+            }
+        }
     }
 }
 

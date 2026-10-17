@@ -1,6 +1,7 @@
 import XCTest
 @testable import StudyPulse
 
+@MainActor
 final class CloudAIQuotaTests: XCTestCase {
     func testRemainingSubtractsUsedFromLimits() {
         let snapshot = CloudAIQuotaSnapshot(
