@@ -16,23 +16,7 @@ import SwiftUI
 
 // MARK: - Overview Stats Card / 概览统计卡片
 
-/// 错题主页顶部统计卡(Total + Subjects)
-/// Overview stats card on the Mistakes home page.
-struct OverviewStatsCard: View {
-    let totalCount: Int
-    let subjectCount: Int
 
-    var body: some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 24) {
-                StatItem(title: "Total".localized(), value: "\(totalCount)", icon: "doc.text.fill", color: .blue)
-                StatItem(title: "Subjects".localized(), value: "\(subjectCount)", icon: "folder.fill", color: .purple)
-            }
-        }
-        .padding(DesignToken.Spacing.cardPadding)
-        .cardSkin()
-    }
-}
 
 // MARK: - Subject Overview Card / 科目概览卡片
 
@@ -103,119 +87,11 @@ struct SubjectOverviewCard: View {
 
 // MARK: - Stat Item / 统计项组件
 
-/// Overview / 统计卡内的一个统计项(图标 + 数字 + 标题)
-/// Single stat tile used inside `OverviewStatsCard`.
-struct StatItem: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
 
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-
-            Text(value)
-                .font(.title3)
-                .fontWeight(.bold)
-
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-    }
-}
 
 // MARK: - Subject Card / 科目卡片组件
 
-/// 错题主页"学科"列表行(可点开看该学科下错题)
-/// Per-subject row on the Mistakes home page. Tapping it drills into the
-/// subject's mistakes.
-struct SubjectCardView: View {
-    let subject: String
-    let mistakes: [MistakeNote]
-    @State private var animateIn = false
 
-    /// 调色板:用 subject 的 hash 决定一个稳定颜色
-    /// Palette: pick a stable color from `subject.hash` so the same subject
-    /// always shows up the same color across sessions.
-    private static let palette: [Color] = [
-        .red, .orange, .yellow, .green, .mint, .teal,
-        .blue, .indigo, .purple, .pink, .brown, .cyan
-    ]
-
-    private var iconColor: Color {
-        let hash = abs(subject.hashValue)
-        return Self.palette[hash % Self.palette.count]
-    }
-
-    /// 一周内新增的错题数(用于"新"小角标)
-    /// Mistakes added in the last 7 days (for the "new" badge).
-    var recentCount: Int {
-        let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-        return mistakes.filter { $0.date > oneWeekAgo }.count
-    }
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [iconColor, iconColor.opacity(0.7)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 52, height: 52)
-
-                Image(systemName: "folder.fill")
-                    .font(.title2)
-                    .foregroundColor(.white)
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(subject.localized())
-                    .font(.headline)
-                    .lineLimit(1)
-
-                Text(String(format: "%d mistakes".localized(), mistakes.count))
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                if recentCount > 0 {
-                    HStack(spacing: 4) {
-                        Image(systemName: "sparkle")
-                            .font(.caption2)
-                            .foregroundColor(.yellow)
-                        Text(String(format: "%d new".localized(), recentCount))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundColor(Color(UIColor.tertiaryLabel))
-        }
-        .padding(DesignToken.Spacing.cardPadding)
-        .cardSkin()
-        .hoverHighlight()
-        .opacity(animateIn ? 1 : 0)
-        .offset(y: animateIn ? 0 : 15)
-        .onAppear {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
-                animateIn = true
-            }
-        }
-    }
-}
 
 // MARK: - Mistake Card / 错题卡片视图
 
@@ -321,32 +197,6 @@ struct MistakeCardView: View {
 }
 
 // MARK: - Previews / 独立预览入口
-
-#Preview("OverviewStatsCard") {
-    OverviewStatsCard(totalCount: 42, subjectCount: 5)
-        .padding()
-}
-
-#Preview("SubjectCardView") {
-    SubjectCardView(
-        subject: "Mathematics",
-        mistakes: (0..<12).map { idx in
-            var m = MistakeNote(
-                title: "Sample \(idx)",
-                subject: "Mathematics",
-                originalQuestion: "原题 \(idx)",
-                source: "来源",
-                date: Date(),
-                errorReason: "错因",
-                wrongSolution: "错解",
-                correctSolution: "正解"
-            )
-            m.difficulty = min(5, idx % 6)
-            return m
-        }
-    )
-    .padding()
-}
 
 #Preview("MistakeCardView") {
     let m = MistakeNote(

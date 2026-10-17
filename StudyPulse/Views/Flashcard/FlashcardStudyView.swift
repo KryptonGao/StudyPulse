@@ -71,6 +71,8 @@ enum FlashcardFilter: Equatable {
     case single(MistakeNote)
     /// 仅复习打了某 tag 的 due 错题
     case tag(String)
+    /// 仅复习某一科的 due 错题
+    case subject(String)
 
     static func == (lhs: FlashcardFilter, rhs: FlashcardFilter) -> Bool {
         switch (lhs, rhs) {
@@ -79,6 +81,8 @@ enum FlashcardFilter: Equatable {
         case (.single(let a), .single(let b)):
             return a.id == b.id
         case (.tag(let a), .tag(let b)):
+            return a == b
+        case (.subject(let a), .subject(let b)):
             return a == b
         default:
             return false
@@ -91,6 +95,7 @@ enum FlashcardFilter: Equatable {
         case .dueQueue:     return "Due".localized()
         case .single:       return "Single".localized()
         case .tag(let t):   return "#\(t)"
+        case .subject(let s): return s.localized()
         }
     }
 

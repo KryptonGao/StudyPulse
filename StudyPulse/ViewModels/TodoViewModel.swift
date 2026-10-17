@@ -22,7 +22,7 @@ final class TodoViewModel {
     // MARK: - 输入 & 界面状态 / Input & UI states
     /// 类型筛选(全部 / 考试 / 作业 / 阅读) / Type filter.
     var typeFilter: TodoTypeFilter = .all
-    /// 是否显示已完成项 / Show completed items?
+    /// 底部「已完成」折叠区是否展开 / Whether the "completed" fold is expanded.
     var showCompleted: Bool = false
     var showingNewExam: Bool = false
     var showingNewTask: TaskType? = nil
@@ -31,19 +31,27 @@ final class TodoViewModel {
     var selectedComprehensive: comprehensiveExam? = nil
     var selectedTask: TaskItem? = nil
     var selectedRoutine: Routine? = nil
+    /// 打开倒推计划的考试 / Exam whose reverse plan is open.
+    var planningExam: Exam? = nil
     var showingPastSheet: Bool = false
     /// 列表 / 日历视图模式(持久化) / List/calendar view mode (persisted).
     var viewMode: ExamViewMode = ExamViewMode.loadFromDefaults()
 
     // MARK: - 输出状态 / Output states
-    /// 全部可见的 todo / All visible todos.
+    /// 筛选后的全部条目(含已完成)/ All filtered entries, completed included.
     private(set) var allEntries: [TodoEntry] = []
-    /// 未来(≥ 今天 0 点)的 todo / Future todos (≥ today's start-of-day).
-    private(set) var upcomingEntries: [TodoEntry] = []
-    /// 已过去的 todo / Past todos.
+    /// 已过期且未完成(或在显示已完成时含已完成)/ Past entries (incomplete unless showing completed).
     private(set) var pastEntries: [TodoEntry] = []
-    /// 即将到来的 todo,按时间分桶 / Upcoming todos bucketed by time.
-    private(set) var groupedUpcoming: [(sectionTitle: String, entries: [TodoEntry])] = []
+    /// 按日分组的时间轴(只含未完成)/ Day-grouped agenda of incomplete entries.
+    private(set) var agendaDays: [AgendaDay] = []
+    /// 未来已完成条目(折叠区)/ Completed upcoming entries (fold).
+    private(set) var completedEntries: [TodoEntry] = []
+    /// 本周周条(不受类型筛选影响)/ Week strip (ignores the type filter).
+    private(set) var weekStrip: [TodoWeekDay] = []
+    /// 各类型未完成数量(不受类型筛选影响)/ Incomplete counts per type (ignores the filter).
+    private(set) var typeCounts = TodoTypeCounts()
+    /// 周条点选的日期;时间轴据此滚动 / Day picked in the week strip; the agenda scrolls to it.
+    var selectedDay: Date? = nil
 
     // MARK: - 初始化 / Initialization
     init(container: RepositoryContainer) {
@@ -56,69 +64,29 @@ final class TodoViewModel {
     }
 
     // MARK: - 操作 / Actions
-    /// 集中重算所有 todo 缓存(过滤 + 拆分过去/未来 + 分桶)
-    /// Recompute all todo caches (filter, past/upcoming split, bucketize).
+    /// 集中重算所有 todo 缓存(过滤 + 拆分过去/未来 + 按日分组)
+    /// Recompute all todo caches (filter, past/upcoming split, day grouping).
     func recompute() {
-        let all = container.todoEntries(includeCompleted: showCompleted)
+        let all = container.todoEntries(includeCompleted: true)
+        weekStrip = TodoAgendaEngine.weekStrip(entries: all)
+        typeCounts = TodoAgendaEngine.counts(entries: all)
+
         let filtered: [TodoEntry]
-        if typeFilter == .all {
-            filtered = all
-        } else {
-            filtered = all.filter { entry in
-                switch typeFilter {
-                case .all:       return true
-                // .exam 同时包含单科 + 综合考试
-                // .exam covers both single-subject and comprehensive exams.
-                case .exam:      return entry.kind == .exam || entry.kind == .comprehensiveExam
-                case .homework:  return entry.kind == .homework
-                case .reading:   return entry.kind == .reading
-                case .routine:   return entry.kind == .routine
-                }
-            }
+        switch typeFilter {
+        case .all:      filtered = all
+        // .exam 同时包含单科 + 综合考试 / .exam covers single-subject and comprehensive exams.
+        case .exam:     filtered = all.filter { $0.kind == .exam || $0.kind == .comprehensiveExam }
+        case .homework: filtered = all.filter { $0.kind == .homework }
+        case .reading:  filtered = all.filter { $0.kind == .reading }
+        case .routine:  filtered = all.filter { $0.kind == .routine }
         }
         allEntries = filtered
 
-        // 过去 / 未来分桶 / Past / upcoming split.
         let todayStart = Calendar.current.startOfDay(for: Date())
-        var upcoming: [TodoEntry] = []
-        var past: [TodoEntry] = []
-        // 预留容量减少 realloc / Reserve capacity to avoid reallocations.
-        upcoming.reserveCapacity(filtered.count)
-        for entry in filtered {
-            if entry.date >= todayStart {
-                upcoming.append(entry)
-            } else {
-                past.append(entry)
-            }
-        }
-        upcomingEntries = upcoming
-        pastEntries = past
-
-        // 按 1 周 / 1 月 / 更远 分桶 / Bucketize: week/month/later.
-        let now = Date()
-        guard let oneWeekLater = Calendar.current.date(byAdding: .day, value: 7, to: now),
-              let oneMonthLater = Calendar.current.date(byAdding: .month, value: 1, to: now) else {
-            groupedUpcoming = []
-            return
-        }
-        var weekBucket: [TodoEntry] = []
-        var monthBucket: [TodoEntry] = []
-        var laterBucket: [TodoEntry] = []
-        weekBucket.reserveCapacity(upcoming.count)
-        for entry in upcoming {
-            if entry.date <= oneWeekLater {
-                weekBucket.append(entry)
-            } else if entry.date <= oneMonthLater {
-                monthBucket.append(entry)
-            } else {
-                laterBucket.append(entry)
-            }
-        }
-        var result: [(String, [TodoEntry])] = []
-        if !weekBucket.isEmpty { result.append(("Within 1 Week".localized(), weekBucket)) }
-        if !monthBucket.isEmpty { result.append(("Within 1 Month".localized(), monthBucket)) }
-        if !laterBucket.isEmpty { result.append(("Later".localized(), laterBucket)) }
-        groupedUpcoming = result
+        pastEntries = filtered.filter { $0.date < todayStart && !$0.isCompleted }
+        let upcoming = filtered.filter { $0.date >= todayStart }
+        agendaDays = TodoAgendaEngine.agenda(entries: upcoming.filter { !$0.isCompleted })
+        completedEntries = upcoming.filter(\.isCompleted).sorted { $0.date > $1.date }
     }
 
     /// 切换 TaskItem 的完成态并重算 / Toggle a TaskItem's completion & recompute.

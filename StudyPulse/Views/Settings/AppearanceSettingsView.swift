@@ -48,20 +48,6 @@ struct AppearanceSettingsView: View {
                     Text("Choose how grades are visualized: line, bar, pie, scatter, or heatmap.".localized())
                 }
 
-                // Trends cards
-                Section {
-                    Toggle(isOn: Binding(
-                        get: { container.envManager.preferences.subjectMasteryRadarOnTrends },
-                        set: { container.envManager.preferences.subjectMasteryRadarOnTrends = $0 }
-                    )) {
-                        Label("Show Subject Mastery Radar".localized(), systemImage: "hexagon.fill")
-                    }
-                } header: {
-                    Text("Trends Cards".localized())
-                } footer: {
-                    Text("Show or hide the six-dimension subject mastery radar on the Trends page.".localized())
-                }
-
                 // Widget
                 Section {
                     trendWidgetSubjectPicker

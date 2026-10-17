@@ -41,6 +41,14 @@ final class TrendsViewModel {
     /// 需要关注的科目(平均 < 70 或近期下滑 > 15) / Subjects needing attention.
     private(set) var subjectsNeedingAttention: [String] = []
     private(set) var radarSnapshots: [SubjectRadarSnapshot] = []
+    /// 整体走势 / Overall trend for `range`.
+    private(set) var overall: OverallTrend = .empty
+    private(set) var overallRank: OverallTrend = .empty
+    private(set) var range: TrendsRange = .days30
+    /// 科目行(退步最多在前) / Subject rows, biggest decline first.
+    private(set) var subjectRows: [SubjectTrendRow] = []
+    /// 需要关注的科目及原因 / Subjects needing attention with reasons.
+    private(set) var attention: [AttentionInsight] = []
     private(set) var radarAIAnalysis: String?
     private(set) var isRadarAILoading = false
     private(set) var radarAIError: String?
@@ -100,18 +108,76 @@ final class TrendsViewModel {
         }
         subjectsNeedingAttention = needAttention
         radarSnapshots = makeRadarSnapshots(subjects: activeSubjects, grades: filteredGrades)
+
+        // 4. 页面级派生:总览走势 / 科目行 / 关注原因
+        let goals = container.phaseRepo.activePhase?.goals ?? []
+        refreshOverall()
+        let activeSet = Set(activeSubjects)
+        subjectRows = TrendsInsightsEngine.subjectRows(
+            gradesBySubject: sorted.filter { activeSet.contains($0.key) }
+        )
+        attention = makeAttention(subjects: needAttention, grades: sorted, goals: goals)
     }
 
-    func requestRadarAIAnalysis() {
+    /// 切换总览时间范围 / Change the overall-trend range.
+    func setRange(_ newRange: TrendsRange) {
+        guard newRange != range else { return }
+        range = newRange
+        refreshOverall()
+    }
+
+    private func refreshOverall() {
+        let grades = container.gradeRepo.filteredGrades
+        overall = TrendsInsightsEngine.overall(
+            grades: grades,
+            fullScores: fullScoreMap(for: container.subjectRepo.subjects),
+            range: range,
+            targets: container.phaseRepo.activePhase?.goals ?? []
+        )
+        overallRank = TrendsInsightsEngine.rank(grades: grades, range: range)
+    }
+
+    private func fullScoreMap(for subjects: [Subject]) -> [String: Double] {
+        var map: [String: Double] = [:]
+        for s in subjects { map[s.name] = s.fullScore }
+        return map
+    }
+
+    private func makeAttention(subjects: [String], grades: [String: [Grade]], goals: [PhaseGoal]) -> [AttentionInsight] {
+        let now = Date()
+        let calendar = Calendar.current
+        let mistakes = container.mistakeRepo.filteredMistakeSets
+        let exams = container.examRepo.filteredExamSets
+        return subjects.map { subject in
+            let due = SRSAlgorithm.dueMistakes(from: mistakes.filter { $0.subject == subject }, now: now).count
+            let upcoming = exams
+                .filter { $0.subject == subject && $0.examDate >= calendar.startOfDay(for: now) }
+                .map(\.examDate)
+                .min()
+            let days = upcoming.flatMap {
+                calendar.dateComponents([.day], from: calendar.startOfDay(for: now), to: calendar.startOfDay(for: $0)).day
+            }
+            let target = goals.first { $0.subject == subject && $0.targetScore > 0 }?.targetScore
+            return TrendsInsightsEngine.attention(
+                subject: subject, grades: grades[subject] ?? [], target: target,
+                dueMistakes: due, nextExamInDays: days
+            )
+        }
+    }
+
+    /// 请求 AI 解读;`subject` 非空时只解读该科 / Request an AI reading, limited to `subject` when given.
+    func requestRadarAIAnalysis(for subject: String? = nil) {
         radarAITask?.cancel()
-        guard !radarSnapshots.isEmpty else { return }
+        let snapshots = subject.map { name in radarSnapshots.filter { $0.subject == name } } ?? radarSnapshots
+        guard !snapshots.isEmpty else { return }
         isRadarAILoading = true
         radarAIError = nil
+        radarAIAnalysis = nil
         radarAITask = Task { [weak self] in
             guard let self else { return }
             do {
                 let prompt = SubjectRadarLLM.makePrompt(
-                    radarSnapshots,
+                    snapshots,
                     languageCode: container.envManager.preferences.appLanguage
                 )
                 var accumulated = ""

@@ -18,6 +18,13 @@ import SwiftStreamingMarkdown
 struct MistakeSetContentSection: View {
     let mistake: MistakeNote
 
+    /// 行背景:左侧一条语义色竖条,区分原题 / 错因 / 错解 / 正解。
+    /// Row background with a semantic leading bar to tell the four blocks apart.
+    private func bar(_ color: Color) -> some View {
+        Color(.secondarySystemGroupedBackground)
+            .overlay(alignment: .leading) { color.frame(width: 4) }
+    }
+
     var body: some View {
         // Question Section
         // 原题段:MarkdownView + 题图横滑(若存在)
@@ -38,6 +45,7 @@ struct MistakeSetContentSection: View {
                     MistakeImageStrip(images: mistake.questionImages)
                 }
             }
+            .listRowBackground(bar(.blue))
         }
 
         // Error Reason Section
@@ -55,6 +63,7 @@ struct MistakeSetContentSection: View {
                     MistakeImageStrip(images: mistake.reasonImages)
                 }
             }
+            .listRowBackground(bar(.orange))
         }
 
         // Wrong Solution Section
@@ -67,11 +76,13 @@ struct MistakeSetContentSection: View {
                     config: .previewConfig
                 )
                 .fixedSize(horizontal: false, vertical: true)
+                .listRowBackground(bar(.red))
 
                 if !mistake.wrongSolutionImages.isEmpty {
                     MistakeImageStrip(images: mistake.wrongSolutionImages)
                 }
-            } header: {
+            }
+            header: {
                 HStack(spacing: 6) {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.red)
@@ -90,6 +101,7 @@ struct MistakeSetContentSection: View {
                     config: .previewConfig
                 )
                 .fixedSize(horizontal: false, vertical: true)
+                .listRowBackground(bar(.green))
 
                 if !mistake.correctSolutionImages.isEmpty {
                     MistakeImageStrip(images: mistake.correctSolutionImages)

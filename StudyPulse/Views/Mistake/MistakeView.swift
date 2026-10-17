@@ -2,20 +2,11 @@
 //  MistakeView.swift
 //  StudyPulse
 //
-//  错题主页:Overview 统计卡 + SRS Due Banner + AI 智能自测卡 + 标签 +
-//  学科分组列表。
+//  错题主页:今日复习主卡 → 工具列 → 弱点 → 科目 → 最近新增。
+//  搜索时收起为平铺的匹配结果。
 //
-//  Mistake home screen: overview stats card + SRS due banner + AI self-test
-//  card + tags + per-subject group list.
-//
-//  Phase 3 拆分 (2026-07-14):原 930 行单文件 → orchestrator 留本文件,
-//  拆出 3 个独立子文件:
-//  - MistakeListCellViews.swift  (SubjectCardView / MistakeCardView / StatItem /
-//                                  OverviewStatsCard / SubjectOverviewCard)
-//  - DueReviewBanner.swift       (DueReviewBanner)
-//  - SubjectMistakesView.swift   (SubjectMistakesView 二级页)
-//
-//  本文件只剩:主 View 编排 + AI 智能自测卡 + sheets / fullScreenCovers 挂载。
+//  Mistake home: today's review hero → tool row → weak spots → subjects →
+//  recent additions. Searching collapses to a flat list of matches.
 //
 
 import SwiftUI
@@ -41,60 +32,6 @@ struct MistakeView: View {
         _knowledgeFaultViewModel = State(initialValue: KnowledgeFaultLineViewModel.makeDefault(container: container))
     }
 
-    // MARK: - AI Quiz Card / AI 自测卡片
-
-    @ViewBuilder
-    private var aiQuizCard: some View {
-        // 搜索态不显示 AI 自测卡(搜索意图偏向"找错题",出题反而是干扰)
-        // Hide the AI self-test card while searching (search intent is
-        // "find a mistake", generating quizzes would be noise).
-        if viewModel.searchText.isEmpty {
-            Button {
-                // 跳到 AIQuizSetupView,setup → quiz → result 三态流程
-                // Push to AIQuizSetupView; the setup → quiz → result flow
-                // is driven by the view.
-                showingAIQuizSetup = true
-            } label: {
-                HStack(spacing: 14) {
-                    // 蓝→绿渐变圆形 icon
-                    // Blue-to-green gradient circle icon.
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(
-                                colors: [.teal, .blue],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ))
-                            .frame(width: 48, height: 48)
-                        Image(systemName: "sparkles.rectangle.stack")
-                            .font(.title3)
-                            .foregroundColor(.white)
-                    }
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("AI 智能自测".localized())
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        Text("基于错题/指定章节进行 AI 智能出题，自测并自动阅卷。".localized())
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                    }
-
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                }
-                .padding(DesignToken.Spacing.cardPadding)
-                .cardSkin()
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
     // MARK: - Empty State / 空态
 
     @ViewBuilder
@@ -111,69 +48,68 @@ struct MistakeView: View {
 
     // MARK: - List Content / 列表内容
 
+    private var isSearching: Bool { !viewModel.searchText.isEmpty }
+
+    private var allTags: [String] { MistakeFilter.allTags(container.mistakeRepo.filteredMistakeSets) }
+
+    private func startReview(_ filter: FlashcardFilter) {
+        viewModel.flashcardFilter = filter
+        viewModel.showingFlashcards = true
+    }
+
     @ViewBuilder
     private var listView: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: DesignToken.Spacing.cardSpacing) {
-                if viewModel.searchText.isEmpty {
-                    OverviewStatsCard(
-                        totalCount: viewModel.groups.totalCount,
-                        subjectCount: viewModel.groups.sortedSubjects.count
+            VStack(alignment: .leading, spacing: DesignToken.Spacing.section) {
+                PhaseBar()
+                if isSearching {
+                    MistakeRecentList(
+                        title: "Search Results".localized(),
+                        trailing: String(format: "mistake.v2.search.count".localized(), viewModel.searchResults.count),
+                        mistakes: viewModel.searchResults
                     )
-
-                    if knowledgeFaultViewModel.repeatedFaultLines.isEmpty {
-                        KnowledgeFaultLineEmptyCard()
-                    } else {
-                        KnowledgeFaultLineCard(
-                            scan: knowledgeFaultViewModel.scan,
-                            container: container
-                        )
+                    if viewModel.searchResults.isEmpty {
+                        ContentUnavailableView.search(text: viewModel.searchText)
                     }
-
-                    if viewModel.patternSummaries.isEmpty {
-                        MistakePatternEmptyCard()
-                    }
+                } else {
+                    browseContent
                 }
-
-                if let topPattern = viewModel.patternSummaries.first {
-                    MistakePatternCard(
-                        summary: topPattern,
-                        summaries: viewModel.patternSummaries
-                    )
-                }
-
-                srsBanner
-
-                aiQuizCard
-
-                tagSection
-
-                subjectsList
             }
             .padding(.horizontal, DesignToken.Spacing.mainHorizontal(for: sizeClass))
             .padding(.vertical)
             .frame(maxWidth: .infinity)
+            .adaptiveMaxWidth(900)
         }
     }
 
     @ViewBuilder
-    private var srsBanner: some View {
-        // 有 due 错题且不在搜索状态下才显示 banner
-        // Only show the banner when there are due mistakes AND the
-        // user is not currently searching.
-        if viewModel.searchText.isEmpty && viewModel.srsOverview.dueCount > 0 {
-            DueReviewBanner(overview: viewModel.srsOverview) {
-                viewModel.flashcardFilter = .dueQueue
-                viewModel.showingFlashcards = true
-            }
-        }
-    }
+    private var browseContent: some View {
+        MistakeReviewHeroCard(
+            breakdown: viewModel.review,
+            dueTags: viewModel.topTagsDue(),
+            onStart: startReview
+        )
 
-    @ViewBuilder
-    private var tagSection: some View {
-        // 标签 chip + 标签图谱入口(没有标签时整段不渲染)
-        // Tag chip + tag-graph entry (rendered only when tags exist).
-        let allTags = MistakeFilter.allTags(container.mistakeRepo.filteredMistakeSets)
+        MistakeToolsRow(tools: [
+            .init(id: "quiz", title: "AI Quiz".localized(), icon: "sparkles.rectangle.stack", tint: .purple) { showingAIQuizSetup = true },
+            .init(id: "tags", title: "Tag Graph".localized(), icon: "circle.hexagongrid", tint: .teal, enabled: !allTags.isEmpty) { viewModel.showingTagGraph = true },
+            .init(id: "map", title: "Auto Mind Map".localized(), icon: "arrow.triangle.branch", tint: .green) { viewModel.showingAutoMindMap = true },
+            .init(id: "pdf", title: "Export PDF".localized(), icon: "square.and.arrow.up", tint: .indigo) { viewModel.showingPDFExportSheet = true }
+        ])
+
+        MistakeWeakSpotsRow(
+            faultLine: knowledgeFaultViewModel.repeatedFaultLines.first,
+            pattern: viewModel.patternSummaries.first,
+            patterns: viewModel.patternSummaries,
+            container: container
+        )
+
+        MistakeSubjectList(
+            summaries: viewModel.subjectSummaries,
+            mistakesBySubject: viewModel.groups.bySubject,
+            onShowTags: allTags.isEmpty ? nil : { viewModel.showingTagGraph = true }
+        )
+
         if !allTags.isEmpty {
             MistakeTagSectionView(
                 tags: allTags,
@@ -181,31 +117,12 @@ struct MistakeView: View {
                 onShowTagGraph: { viewModel.showingTagGraph = true }
             )
         }
-    }
 
-    @ViewBuilder
-    private var subjectsList: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // 搜索态:标题变成"搜索结果";非搜索态:标题为"学科"
-            // In search mode the header reads "Search Results"; otherwise "Subjects".
-            let headerText: String = viewModel.searchText.isEmpty
-                ? "Subjects".localized()
-                : "Search Results".localized()
-            Text(headerText)
-                .font(.headline)
-
-            // 每个学科一个 card,点进去展开该学科下的错题
-            // One card per subject; tap to expand the subject's mistakes.
-            LazyVStack(spacing: 12) {
-                ForEach(viewModel.groups.filteredSubjects, id: \.self) { subject in
-                    let mistakes = viewModel.viewModelSubjectMistakes(subject: subject)
-                    NavigationLink(destination: SubjectMistakesView(subject: subject, mistakes: mistakes)) {
-                        SubjectCardView(subject: subject, mistakes: mistakes)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
+        MistakeRecentList(
+            title: "mistake.v2.zone.recent".localized(),
+            trailing: String(format: "mistake.v2.recent.all".localized(), viewModel.groups.totalCount),
+            mistakes: viewModel.recentMistakes
+        )
     }
 
     // MARK: - Sheets & Covers / Sheet & Cover
@@ -314,6 +231,12 @@ struct MistakeView: View {
     // MARK: - Body / 主体
 
     var body: some View {
+        TwoPane(placeholderTitle: "mistake.v2.pane.placeholder".localized(), placeholderIcon: "exclamationmark.triangle") {
+            content
+        }
+    }
+
+    private var content: some View {
         NavigationStack {
             ZStack {
                 // 主体内容:无错题时显示空态,否则显示 listView
@@ -355,38 +278,20 @@ struct MistakeView: View {
                 knowledgeFaultViewModel.recompute()
             }
             .toolbar {
-                // 左侧:SRS 复习入口
-                // Leading: SRS review entry.
-                MistakeListToolbarLeading(
-                    totalEnrolled: viewModel.srsOverview.totalEnrolled,
-                    dueCount: viewModel.srsOverview.dueCount,
-                    dueTags: viewModel.topTagsDue(),
-                    onFilterSelect: { filter in
-                        viewModel.flashcardFilter = filter
-                        viewModel.showingFlashcards = true
+                // 导航栏只留主动作:新建错题;其余工具都在页面里可见
+                // The nav bar keeps only the primary action; every tool is visible on the page.
+                ToolbarItem(placement: .topBarTrailing) {
+                    if UIDevice.current.userInterfaceIdiom == .pad {
+                        NavigationLink {
+                            NewMistakeSetView(container: container, usesInternalNavigationStack: false)
+                                .environment(container)
+                                .adaptiveSheet()
+                        } label: { Image(systemName: "plus") }
+                        .accessibilityLabel("New Mistake".localized())
+                    } else {
+                        Button { viewModel.showingNewMistakeSet = true } label: { Image(systemName: "plus") }
+                            .accessibilityLabel("New Mistake".localized())
                     }
-                )
-            }
-            .toolbar {
-                // 右侧:AI Quiz / Auto Mind Map / Tag Graph / PDF / New
-                // Trailing: AI Quiz / Auto Mind Map / Tag Graph / PDF / New.
-                MistakeListToolbarTrailing(
-                    hasMistakes: !container.mistakeRepo.filteredMistakeSets.isEmpty,
-                    hasTags: !MistakeFilter.allTags(container.mistakeRepo.filteredMistakeSets).isEmpty,
-                    onShowTagGraph: { viewModel.showingTagGraph = true },
-                    onShowMindMap: { viewModel.showingAutoMindMap = true },
-                    onShowPDFExport: { viewModel.showingPDFExportSheet = true },
-                    onShowNewMistake: { viewModel.showingNewMistakeSet = true },
-                    onShowAIQuiz: { showingAIQuizSetup = true },
-                    container: container
-                )
-            }
-
-            .toolbar {
-                // 阶段选择器(放到 principal,跟 iPad 大标题布局更协调)
-                // Phase selector (placed at .principal for better iPad layout).
-                ToolbarItem(placement: .principal) {
-                    PhaseSelectorView()
                 }
             }
             .background(Color(.systemGroupedBackground).opacity(DesignToken.Opacity.rootBackground))

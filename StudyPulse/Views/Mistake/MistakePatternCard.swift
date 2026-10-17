@@ -1,63 +1,8 @@
 import SwiftUI
 
-struct MistakePatternCard: View {
-    let summary: MistakePatternSummary
-    let summaries: [MistakePatternSummary]
 
-    init(summary: MistakePatternSummary, summaries: [MistakePatternSummary]) {
-        self.summary = summary
-        self.summaries = summaries
-    }
 
-    private var riskColor: Color {
-        switch summary.riskScore {
-        case 0.75...: return .red
-        case 0.5...: return .orange
-        default: return .blue
-        }
-    }
 
-    var body: some View {
-        NavigationLink(destination: MistakePatternGalleryView(summaries: summaries)) {
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle().fill(riskColor.opacity(0.16)).frame(width: 48, height: 48)
-                    Image(systemName: "sparkles").foregroundStyle(riskColor)
-                }
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(String(format: "mistake.pattern.card.title".localized(), summary.pattern.displayName))
-                        .font(.headline).foregroundStyle(.primary)
-                    Text(String(format: "mistake.pattern.card.count".localized(), summary.count, summary.subjects.joined(separator: "、")))
-                        .font(.caption).foregroundStyle(.secondary)
-                    Text(String(format: "mistake.pattern.card.recent".localized(), summary.recentCount))
-                        .font(.caption).foregroundStyle(riskColor)
-                }
-                Spacer()
-                Image(systemName: "chevron.right").font(.footnote).foregroundStyle(.secondary)
-            }
-            .padding(DesignToken.Spacing.cardPadding)
-            .cardSkin()
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(String(format: "mistake.pattern.card.accessibility".localized(), summary.pattern.displayName))
-    }
-}
-
-struct MistakePatternEmptyCard: View {
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "sparkles").foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("mistake.pattern.empty.title".localized()).font(.subheadline.weight(.semibold))
-                Text("mistake.pattern.empty.message".localized())
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            Spacer()
-        }
-        .padding(DesignToken.Spacing.cardPadding)
-        .cardSkin()
-    }
-}
 
 extension MistakePattern {
     var displayName: String {
