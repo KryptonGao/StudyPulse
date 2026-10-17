@@ -57,6 +57,7 @@ struct ContentView: View {
             }
         }
         .tint(container.envManager.effectiveAccentColor)
+        .environment(\.selectAppTab) { selectedTab = $0 }
         .overlay(alignment: .top) {
             AchievementUnlockToast()
         }
@@ -177,6 +178,11 @@ struct iPadSidebarLayout: View {
             }
             .onAppear {
                 selection = selectedTab
+            }
+            // 外部(如主页「全部待办」)切换 tab 时同步侧栏高亮
+            // Keep the sidebar highlight in sync when a child switches the tab.
+            .onChange(of: selectedTab) { _, newValue in
+                if selection != newValue { selection = newValue }
             }
         } detail: {
             detailView(for: selectedTab)

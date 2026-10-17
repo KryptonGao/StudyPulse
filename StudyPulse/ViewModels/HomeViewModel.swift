@@ -59,6 +59,9 @@ final class HomeViewModel {
     private(set) var unregisteredExams: [Exam] = []
     /// 今日 Top-3 计划(2026-07-09) / Today's Top-3 plan (2026-07-09).
     private(set) var dailyPlan: [DailyPlanItem] = []
+    /// 去掉「今日无事」占位后的计划项:首项驱动「现在」主卡,其余进「今日」清单。
+    /// Plan items without the "all clear" placeholder: the first drives the "Now" hero, the rest fill the Today list.
+    var planCandidates: [DailyPlanItem] { dailyPlan.filter { $0.kind != .placeholder } }
     /// 状态不佳时的压缩计划；未触发时为空。
     private(set) var minimalPlan: MinimalPlanResult = MinimalPlanResult(isActive: false, reason: "", items: [], totalMinutes: 0)
     /// 今日记忆气候与当前阶段近 90 天历史。
@@ -82,6 +85,12 @@ final class HomeViewModel {
     private(set) var hrvSeries: [DailyValuePoint] = []
     /// 平均得分率 sparkline(最近 8 次成绩,按日期升序,%) / Average-rate sparkline (latest 8 grades, %).
     private(set) var averageRateTrend: [Double] = []
+    /// 综合恢复分(0–100,雷达六轴均值);未授权 / 无可用信号时为 nil。
+    /// Composite recovery score (0–100, mean of the six radar axes); nil without authorization or usable signals.
+    private(set) var recoveryScore: Int? = nil
+    /// 今日最佳学习窗口(历史峰值时段);会话不足 3 次时为 nil。
+    /// Today's best study window (historical peak); nil under 3 completed sessions.
+    private(set) var todayBestSlot: HabitInsight? = nil
     /// 心情 / 睡眠 / HRV 任一有 ≥ 2 个点即可绘制 / Any of mood / sleep / HRV has ≥ 2 points to chart.
     var hasBodyMindData: Bool {
         moodSeries.count >= 2 || sleepSeries.count >= 2 || hrvSeries.count >= 2
@@ -243,9 +252,38 @@ final class HomeViewModel {
             .upsert(memoryClimate)
             .filter { $0.phaseId == container.envManager.activePhaseId }
 
+        recoveryScore = computeRecoveryScore(mistakes: mistakes, diaryEntries: diaryEntries)
+        todayBestSlot = sessions.filter(\.completed).count >= 3
+            ? HabitInsightEngine.bestSlotForToday(sessions: sessions)
+            : nil
+
         // 图表选中科目可能因数据变化失效,刷新
         // Selected chart subject may be stale → refresh.
         applyChartRule(chartRule)
+    }
+
+    /// 与 `HRVStatusCard` 同口径的恢复分:授权且有可用信号才计算。
+    /// Same basis as `HRVStatusCard`: computed only when authorized and signals are usable.
+    private func computeRecoveryScore(mistakes: [MistakeNote], diaryEntries: [DiaryEntry]) -> Int? {
+        guard hrvManager.hrvEnabled, hrvManager.hrvOnboardingCompleted, hrvManager.isAuthorized else { return nil }
+        let category = hrvManager.readiness.category
+        let hrvUsable = category == .excellent || category == .normal || category == .low
+        guard hrvManager.bodyStatus.isUsable || hrvUsable else { return nil }
+        let calendar = Calendar.current
+        let weekAgo = calendar.date(byAdding: .day, value: -7, to: .now) ?? .distantPast
+        let annotations = container.studySessionRepo
+            .sessions(from: weekAgo, to: .now)
+            .flatMap { $0.difficultyAnnotations ?? [] }
+        let recentMoods = diaryEntries.filter { $0.date >= calendar.startOfDay(for: weekAgo) }
+        return BodyRadarValues.compute(
+            hrv: hrvManager.readiness,
+            body: hrvManager.bodyStatus,
+            baselines: hrvManager.personalBaselines,
+            age: container.profileRepo.profile.age,
+            mistakes: mistakes,
+            recentAnnotations: annotations,
+            recentMoodEntries: recentMoods
+        ).recoveryScore
     }
 
     /// 计算 recompute 输入的签名(用 Hasher combine 元素 id + count)。
@@ -262,7 +300,27 @@ final class HomeViewModel {
     ) -> Int {
         var hasher = Hasher()
         hasher.combine(grades.count)
-        for g in grades { hasher.combine(g.id) }
+        // 逐字段 combine(不含 image):就地改分数 / 排名 / 满分 / 日期等不改 id 的编辑
+        // 也会改变签名,避免 recompute() 因 dirty flag 早退;
+        // 图片不影响任何派生数据,刻意不哈希大块 Data。
+        // Field-wise combine (excluding `image`): in-place edits to score / ranking /
+        // fullScore / date without an id change must also alter the signature, otherwise
+        // `recompute()` early-returns on the dirty flag. Images never affect the derived
+        // data, so hashing potentially large Data is deliberately skipped.
+        for g in grades {
+            hasher.combine(g.id)
+            hasher.combine(g.subject)
+            hasher.combine(g.score)
+            hasher.combine(g.rawScore)
+            hasher.combine(g.ranking)
+            hasher.combine(g.importance)
+            hasher.combine(g.imageFileName)
+            hasher.combine(g.date)
+            hasher.combine(g.examName)
+            hasher.combine(g.examId)
+            hasher.combine(g.fullScore)
+            hasher.combine(g.phaseId)
+        }
         hasher.combine(mistakes.count)
         for m in mistakes {
             hasher.combine(m.id)

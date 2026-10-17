@@ -4,78 +4,70 @@
 //
 //  Created by Chenkai Gao on 2026/6/20.
 //
+//  主页布局设置:主页由五个固定区块组成(顺序不可调),这里按区块分组,
+//  只控制各区块内子模块的显示 / 隐藏。已收进详情页的卡片(趋势 / 脑力 / 记忆气候等)不在此列。
+//  Home layout settings: Home has five fixed zones (order is not adjustable). Modules are grouped
+//  by zone and only their visibility is toggled. Cards that moved into detail pages (trends, brain
+//  usage, memory climate…) are not listed.
+//
 
 import SwiftUI
 
 // MARK: - HomeLayoutSettingsView
 // MARK: - 主页布局设置视图
 
-/// 主页卡片布局设置：拖拽排序 + 开关控制显示/隐藏
-/// Home card layout settings: drag to reorder + toggle to show/hide.
 struct HomeLayoutSettingsView: View {
-    /// 当前编辑中的布局条目(可拖拽、可切换 enabled)。
-    /// In-progress layout items being edited (draggable, toggleable `enabled`).
+    /// 当前编辑中的布局条目(只切换 enabled,顺序保持不变)。
+    /// In-progress layout items (only `enabled` is toggled; order is untouched).
     @State private var items: [HomeCardItem] = HomeLayoutPreference.load().items
-    /// 动态排布开关:开启后锁定手动排序。
-    /// Dynamic layout switch: locks manual ordering while on.
     @State private var dynamicEnabled: Bool = HomeLayoutPreference.load().dynamicLayoutEnabled
     @Environment(\.dismiss) private var dismiss
+
+    /// 区块分组;每组列出该区块内可开关的模块。
+    /// Zone groups; each lists the toggleable modules inside that zone.
+    private struct Zone: Identifiable {
+        let id: String
+        let title: String
+        let types: [HomeCardType]
+    }
+
+    private var zones: [Zone] {
+        [
+            Zone(id: "now", title: "home.v2.layout.now".localized(),
+                 types: [.dailyPlan, .streakProgress, .quickActions, .dailyQuote]),
+            Zone(id: "today", title: "home.v2.zone.today".localized(),
+                 types: [.flashcardReview, .unregisteredExamsReminder, .upcomingExams, .examReversePlanner, .examRoleSimulator]),
+            Zone(id: "progress", title: "home.v2.zone.progress".localized(),
+                 types: [.weeklyFocus, .subjectSnapshot, .recentGrades, .studySuggestions]),
+            Zone(id: "bodyMind", title: "home.v2.zone.bodyMind".localized(),
+                 types: [.hrvStatus, .diary, .habitInsight]),
+            Zone(id: "growth", title: "home.v2.zone.growth".localized(),
+                 types: [.plant, .learningHeatmap]),
+            Zone(id: "ask", title: "home.v2.layout.ask".localized(),
+                 types: [.homeAsk]),
+        ]
+    }
 
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    Toggle(isOn: dynamicBinding) {
-                        Label("home.layout.dynamic.title".localized(), systemImage: "wand.and.sparkles")
-                    }
-                } footer: {
-                    Text("home.layout.dynamic.footer".localized())
-                }
-
-                Section {
-                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        HStack(spacing: 12) {
-                            Image(systemName: item.type == .dailyPlan ? "pin.fill" : (dynamicEnabled ? "lock.fill" : "line.3.horizontal"))
-                                .scaledFont(size: 14)
-                                .foregroundColor(.secondary)
-                                .frame(width: 24)
-
-                            Image(systemName: item.type.icon)
-                                .foregroundColor(.accentColor)
-                                .frame(width: 28)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(item.type.displayName)
-                                    .scaledFont(size: 16)
-                                // Top-3 始终置顶,在此说明避免用户困惑
-                                // Top 3 is always pinned first; explain it here to avoid confusion.
-                                if item.type == .dailyPlan {
-                                    Text("home.layout.pinned".localized())
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
+                ForEach(zones) { zone in
+                    Section {
+                        ForEach(zone.types, id: \.self) { type in
+                            Toggle(isOn: binding(for: type)) {
+                                Label(type.displayName, systemImage: type.icon)
                             }
-
-                            Spacer()
-
-                            Toggle("", isOn: binding(for: item))
-                                .labelsHidden()
                         }
-                        .padding(.vertical, 4)
-                        .moveDisabled(dynamicEnabled || item.type == .dailyPlan)
+                    } header: {
+                        Text(zone.title)
+                    } footer: {
+                        if zone.id == "now" {
+                            Text("home.v2.layout.footer".localized())
+                        }
                     }
-                    .onMove { source, destination in
-                        items.move(fromOffsets: source, toOffset: destination)
-                        save()
-                    }
-                } header: {
-                    Text("Home Cards".localized())
-                } footer: {
-                    Text((dynamicEnabled ? "home.layout.locked.footer" : "homeLayout.footer").localized())
                 }
             }
             .listStyle(.insetGrouped)
-            .environment(\.editMode, .constant(dynamicEnabled ? .inactive : .active))
             .containerBackground(.clear, for: .navigation)
             .debugModeContainer()
             .debugLayoutBoundsAuto()
@@ -96,29 +88,14 @@ struct HomeLayoutSettingsView: View {
             }
         }
     }
-    
-    /// 动态排布开关绑定,变更后立即持久化。
-    /// Binding for the dynamic layout switch; persisted immediately.
-    private var dynamicBinding: Binding<Bool> {
-        Binding(
-            get: { dynamicEnabled },
-            set: { newValue in
-                dynamicEnabled = newValue
-                save()
-            }
-        )
-    }
 
-    /// 给定一个 `HomeCardItem`,返回一个安全的 `Binding<Bool>` 用于开关控件;
-    /// 设置后立即写回 `HomeLayoutPreference`。
-    /// For a given `HomeCardItem`, returns a safe `Binding<Bool>` for the toggle control; immediately writes back to `HomeLayoutPreference` on change.
-    private func binding(for item: HomeCardItem) -> Binding<Bool> {
+    /// 给定卡片类型,返回开关绑定;设置后立即写回 `HomeLayoutPreference`。
+    /// Toggle binding for a card type; immediately written back to `HomeLayoutPreference`.
+    private func binding(for type: HomeCardType) -> Binding<Bool> {
         Binding(
-            get: {
-                items.first(where: { $0.id == item.id })?.enabled ?? true
-            },
+            get: { items.first(where: { $0.type == type })?.enabled ?? true },
             set: { newValue in
-                if let index = items.firstIndex(where: { $0.id == item.id }) {
+                if let index = items.firstIndex(where: { $0.type == type }) {
                     items[index].enabled = newValue
                     save()
                 }
@@ -126,11 +103,8 @@ struct HomeLayoutSettingsView: View {
         )
     }
 
-    /// 把当前 `items` 持久化到 `HomeLayoutPreference`(UserDefaults)。
-    /// Persist the current `items` to `HomeLayoutPreference` (UserDefaults).
     private func save() {
-        let pref = HomeLayoutPreference(items: items, dynamicLayoutEnabled: dynamicEnabled)
-        pref.save()
+        HomeLayoutPreference(items: items, dynamicLayoutEnabled: dynamicEnabled).save()
     }
 }
 

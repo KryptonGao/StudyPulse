@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>主頁重設計預覽</title>
+<style>
+:root {
+  --accent: #007AFF;
+  --page: #e9e9ee;
+  --page-ink: #1d1d1f;
+  --page-muted: #6e6e73;
+  --panel: #ffffff;
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --fill: #f2f2f7;
+  --fill2: #e5e5ea;
+  --label: #000000;
+  --label2: rgba(60,60,67,.62);
+  --label3: rgba(60,60,67,.32);
+  --sep: rgba(60,60,67,.12);
+  --red: #FF3B30; --orange: #FF9500; --green: #34C759; --yellow: #FFCC00;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 20px rgba(0,0,0,.05);
+  --bar: rgba(249,249,249,.86);
+}
+:root[data-theme="dark"] {
+  --page: #0b0b0d; --page-ink: #f5f5f7; --page-muted: #98989d; --panel: #161618;
+  --bg: #000000; --card: #1c1c1e; --fill: #2c2c2e; --fill2: #3a3a3c;
+  --label: #ffffff; --label2: rgba(235,235,245,.62); --label3: rgba(235,235,245,.3);
+  --sep: rgba(84,84,88,.55);
+  --red: #FF453A; --orange: #FF9F0A; --green: #30D158; --yellow: #FFD60A;
+  --shadow: none; --bar: rgba(22,22,24,.86);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--page); color: var(--page-ink);
+  font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "PingFang TC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+
+/* ---------- Page chrome ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between;
+  padding: 14px 24px; background: color-mix(in srgb, var(--page) 88%, transparent);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--sep);
+}
+.topbar h1 { font-size: 17px; margin: 0; font-weight: 700; }
+.topbar h1 small { display: block; font-size: 12px; font-weight: 500; color: var(--page-muted); margin-top: 2px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.seg { display: inline-flex; background: var(--fill2); border-radius: 9px; padding: 2px; }
+.seg button { border: 0; background: transparent; padding: 5px 12px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--page-muted); }
+.seg button.on { background: var(--panel); color: var(--page-ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.swatches { display: inline-flex; gap: 6px; }
+.swatches button { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+.swatches button.on { border-color: var(--page-ink); }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--page-muted); cursor: pointer; user-select: none; }
+.toggle input { accent-color: var(--accent); }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; padding: 24px; align-items: start; max-width: 1800px; margin: 0 auto; }
+@media (max-width: 1100px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .layout { padding: 16px; } .topbar { padding: 12px 16px; } }
+.stage { display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; align-items: flex-start; min-width: 0; }
+.device-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.device-caption { font-size: 12px; font-weight: 600; color: var(--page-muted); letter-spacing: .02em; }
+.scaler { transform-origin: top left; align-self: flex-start; }
+
+.notes { background: var(--panel); border-radius: 18px; padding: 20px 20px 8px; position: sticky; top: 84px; max-height: calc(100vh - 108px); overflow: auto; border: 1px solid var(--sep); }
+@media (max-width: 1100px) { .notes { position: static; max-height: none; } }
+.notes h2 { font-size: 15px; margin: 0 0 4px; }
+.notes p.lead { font-size: 13px; color: var(--page-muted); margin: 0 0 16px; line-height: 1.55; }
+.note { display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 12px 0; border-top: 1px solid var(--sep); }
+.note .n { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.note h3 { font-size: 14px; margin: 1px 0 4px; }
+.note p { font-size: 12.5px; line-height: 1.55; margin: 0; color: var(--page-muted); }
+.note code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; background: var(--fill); color: var(--page-ink); padding: 1px 5px; border-radius: 5px; }
+.mapping { margin: 6px 0 14px; border-top: 1px solid var(--sep); padding-top: 14px; }
+.mapping h2 { font-size: 15px; margin: 0 0 10px; }
+.maprow { display: grid; grid-template-columns: 76px 1fr; gap: 8px; font-size: 12.5px; padding: 6px 0; line-height: 1.5; }
+.maprow b { font-weight: 700; }
+.maprow span { color: var(--page-muted); }
+
+/* ---------- Device frames ---------- */
+.iphone {
+  width: 393px; height: 852px; border-radius: 56px; background: #0a0a0a; padding: 11px;
+  box-shadow: 0 0 0 2px #2a2a2c, 0 30px 60px rgba(0,0,0,.22);
+}
+.ipad {
+  width: 1194px; height: 834px; border-radius: 36px; background: #0a0a0a; padding: 14px;
+  box-shadow: 0 0 0 2px #2a2a2c, 0 30px 60px rgba(0,0,0,.22);
+}
+.screen {
+  position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--label);
+  border-radius: 46px;
+}
+.ipad .screen { border-radius: 24px; display: grid; grid-template-columns: 260px minmax(0, 1fr); }
+.statusbar { height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 6px 34px 0; font-size: 16px; font-weight: 600; position: absolute; top: 0; left: 0; right: 0; z-index: 6; background: linear-gradient(var(--bg) 70%, transparent); }
+.island { position: absolute; left: 50%; top: 11px; transform: translateX(-50%); width: 124px; height: 36px; background: #000; border-radius: 20px; }
+.sb-icons { display: flex; gap: 6px; align-items: center; }
+.ipad .statusbar { height: 30px; padding: 4px 22px 0; font-size: 13px; background: transparent; }
+.scroll { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; padding: 58px 16px 170px; }
+.scroll::-webkit-scrollbar { display: none; }
+.ipad .scroll { position: relative; inset: auto; height: 100%; padding: 34px 28px 120px; }
+
+/* ---------- App primitives ---------- */
+.card { background: var(--card); border-radius: 20px; padding: 16px; box-shadow: var(--shadow); position: relative; }
+.zone { margin-top: 26px; }
+.zone-h { display: flex; align-items: baseline; justify-content: space-between; margin: 0 4px 10px; }
+.zone-h h2 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+.zone-h a { font-size: 14px; color: var(--accent); text-decoration: none; font-weight: 500; }
+.stack > * + * { margin-top: 12px; }
+.muted { color: var(--label2); }
+.tiny { font-size: 12px; }
+.small { font-size: 13px; }
+.num { font-variant-numeric: tabular-nums; }
+.pill { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 13px; font-size: 12px; font-weight: 600; background: var(--fill); color: var(--label); white-space: nowrap; }
+.pill.accent { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.12em; flex: none; }
+.btn { border: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; }
+.btn-primary { background: var(--accent); color: #fff; height: 44px; border-radius: 14px; padding: 0 18px; font-size: 16px; }
+.btn-soft { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); height: 34px; border-radius: 11px; padding: 0 12px; font-size: 14px; }
+.chev { color: var(--label3); font-size: 13px; }
+
+/* annotations */
+[data-anno] { position: relative; }
+body.anno [data-anno]::after {
+  content: attr(data-anno); position: absolute; top: -8px; right: -6px; z-index: 5;
+  width: 22px; height: 22px; border-radius: 50%; background: #FF2D55; color: #fff;
+  font: 700 12px/22px -apple-system, sans-serif; text-align: center; box-shadow: 0 0 0 2px var(--bg);
+}
+body.anno [data-anno] { outline: 1.5px dashed rgba(255,45,85,.55); outline-offset: 3px; border-radius: 20px; }
+
+/* header */
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 6px 4px 0; }
+.head .date { font-size: 13px; font-weight: 600; color: var(--label2); text-transform: none; }
+.head h1 { font-size: 30px; font-weight: 800; margin: 2px 0 8px; letter-spacing: -.02em; }
+.head .row { display: flex; gap: 6px; flex-wrap: wrap; }
+.head .pill:not(.accent) { background: var(--card); box-shadow: var(--shadow); }
+.head-actions { display: flex; gap: 8px; padding-top: 4px; }
+.circle-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--card); display: grid; place-items: center; box-shadow: var(--shadow); color: var(--label); font-size: 17px; border: 0; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--accent)); color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 15px; }
+.quote { font-size: 13px; color: var(--label2); margin: 10px 4px 0; font-style: italic; }
+
+/* now hero */
+.now { padding: 18px; }
+.now::before { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%); pointer-events: none; border-radius: 20px; }
+.now-k { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .04em; display: flex; align-items: center; gap: 5px; }
+.now h3 { font-size: 21px; line-height: 1.25; margin: 6px 0 4px; font-weight: 700; letter-spacing: -.01em; }
+.now .why { font-size: 13.5px; color: var(--label2); line-height: 1.45; }
+.now .cta { display: flex; gap: 10px; align-items: center; margin-top: 14px; }
+.now .cta .btn-primary { flex: 1; }
+.now .alt { width: 44px; height: 44px; border-radius: 14px; background: var(--fill); border: 0; display: grid; place-items: center; font-size: 18px; color: var(--label2); }
+.rings-row { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--sep); }
+.rings-legend { flex: 1; display: grid; gap: 5px; }
+.rl { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.rl i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.rl b { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
+.streak { text-align: center; min-width: 58px; }
+.streak .f { font-size: 22px; line-height: 1; color: var(--orange); }
+.streak .v { font-size: 22px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.streak .l { font-size: 11px; color: var(--label2); }
+
+/* dock */
+.dock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.dock button { border: 0; background: var(--card); border-radius: 16px; padding: 12px 4px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; box-shadow: var(--shadow); cursor: pointer; }
+.dock .di { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-size: 18px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+
+/* today list */
+.list { padding: 4px 16px; }
+.li { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+.li + .li { border-top: 1px solid var(--sep); }
+.check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--label3); flex: none; display: grid; place-items: center; cursor: pointer; }
+.check.done { background: var(--green); border-color: var(--green); color: #fff; font-size: 13px; }
+.li .t { flex: 1; min-width: 0; }
+.li .t b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.li .t span { font-size: 12.5px; color: var(--label2); }
+.li.done b { color: var(--label3); text-decoration: line-through; font-weight: 500; }
+.tag { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+.banner { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 14px; background: color-mix(in srgb, var(--orange) 14%, transparent); color: var(--label); font-size: 13.5px; }
+.banner .bi { color: var(--orange); font-size: 17px; }
+.banner b { color: var(--orange); }
+.banner .go { margin-left: auto; color: var(--orange); font-weight: 600; font-size: 13px; white-space: nowrap; }
+
+/* exams carousel */
+.hscroll { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 4px; scroll-snap-type: x mandatory; }
+.hscroll::-webkit-scrollbar { display: none; }
+.exam { flex: 0 0 210px; scroll-snap-align: start; padding: 14px; }
+.exam .d { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+.exam .d small { font-size: 13px; font-weight: 700; margin-left: 2px; }
+.exam .n { font-size: 15px; font-weight: 600; margin-top: 8px; }
+.exam .m { font-size: 12px; color: var(--label2); margin-top: 2px; }
+.bar { height: 6px; border-radius: 3px; background: var(--fill); overflow: hidden; margin-top: 10px; }
+.bar > i { display: block; height: 100%; border-radius: 3px; }
+.exam .tools { display: flex; gap: 6px; margin-top: 12px; }
+.exam .tools .pill { height: 24px; font-size: 11.5px; }
+
+/* progress */
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.kpi .v { font-size: 22px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 4px; }
+.kpi .v small { font-size: 12px; font-weight: 600; color: var(--label2); }
+.kpi .l { font-size: 12px; color: var(--label2); margin-top: 1px; }
+.delta { font-size: 11px; font-weight: 700; }
+.up { color: var(--green); } .down { color: var(--red); }
+.segctl { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--fill); border-radius: 9px; padding: 2px; margin: 14px 0 12px; }
+.segctl button { border: 0; background: transparent; border-radius: 7px; height: 28px; font-size: 13px; font-weight: 600; color: var(--label2); cursor: pointer; }
+.segctl button.on { background: var(--card); color: var(--label); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+:root[data-theme="dark"] .segctl button.on { background: var(--fill2); }
+.bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 120px; }
+.bars .b { display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.bars .b i { width: 100%; max-width: 26px; border-radius: 6px 6px 3px 3px; background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.bars .b.today i { background: var(--accent); }
+.bars .b span { font-size: 11px; color: var(--label2); }
+.bars .b.today span { color: var(--accent); font-weight: 700; }
+.subj { display: grid; grid-template-columns: 10px 1fr 86px 52px; gap: 10px; align-items: center; padding: 9px 0; }
+.subj + .subj { border-top: 1px solid var(--sep); }
+.subj i { width: 10px; height: 10px; border-radius: 3px; }
+.subj b { font-size: 15px; font-weight: 600; }
+.subj .r { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 15px; }
+.subj .r small { display: block; font-size: 11px; font-weight: 700; }
+.insight { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; padding: 12px; border-radius: 14px; background: linear-gradient(135deg, color-mix(in srgb, #AF52DE 12%, transparent), color-mix(in srgb, var(--accent) 12%, transparent)); font-size: 13.5px; line-height: 1.45; }
+.insight .ai { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 6px; color: #fff; background: linear-gradient(135deg, #AF52DE, var(--accent)); white-space: nowrap; margin-top: 1px; }
+
+/* body & mind */
+.bm-top { display: flex; gap: 14px; align-items: center; }
+.bm-top .st { flex: 1; }
+.bm-top .st b { font-size: 17px; }
+.bm-top .st p { margin: 3px 0 0; font-size: 13px; color: var(--label2); line-height: 1.4; }
+.vitals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.vital { background: var(--fill); border-radius: 12px; padding: 9px 10px; }
+.vital .v { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.vital .v small { font-size: 11px; color: var(--label2); font-weight: 600; margin-left: 2px; }
+.vital .l { font-size: 11px; color: var(--label2); }
+.moods { display: flex; justify-content: space-between; margin-top: 12px; }
+.moods button { border: 0; background: var(--fill); width: 48px; height: 48px; border-radius: 14px; font-size: 24px; cursor: pointer; transition: transform .15s; }
+.moods button.on { background: color-mix(in srgb, var(--accent) 20%, transparent); box-shadow: inset 0 0 0 2px var(--accent); transform: scale(1.05); }
+.habit { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 13.5px; padding: 11px 12px; border-radius: 14px; background: var(--fill); }
+
+/* growth */
+.growth { display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; }
+.plant-box { height: 112px; border-radius: 16px; background: linear-gradient(180deg, color-mix(in srgb, var(--green) 10%, transparent), color-mix(in srgb, var(--green) 22%, transparent)); display: grid; place-items: end center; overflow: hidden; }
+.heat { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 3px; }
+.heat i { aspect-ratio: 1; border-radius: 3px; background: var(--fill); }
+
+/* AI bar + tab bar */
+.askbar {
+  position: absolute; left: 14px; right: 14px; bottom: 96px; z-index: 7; height: 50px; border-radius: 25px;
+  display: flex; align-items: center; gap: 10px; padding: 0 6px 0 16px; font-size: 15px; color: var(--label2);
+  background: var(--bar); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: 0 0 0 .5px var(--sep), 0 8px 24px rgba(0,0,0,.10);
+}
+.askbar .spark { font-size: 18px; background: linear-gradient(135deg, #AF52DE, var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.askbar .send { margin-left: auto; width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 16px; }
+.tabbar {
+  position: absolute; left: 14px; right: 14px; bottom: 26px; height: 62px; z-index: 7; border-radius: 31px;
+  display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
+  background: var(--bar); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: 0 0 0 .5px var(--sep), 0 8px 24px rgba(0,0,0,.10);
+}
+.tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--label2); }
+.tab .ico { font-size: 22px; }
+.tab.on { color: var(--accent); }
+.homeind { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: var(--label); opacity: .85; z-index: 8; }
+
+/* iPad */
+.sidebar { background: color-mix(in srgb, var(--card) 70%, var(--bg)); border-right: 1px solid var(--sep); padding: 46px 12px 12px; display: flex; flex-direction: column; gap: 2px; }
+.sidebar h2 { font-size: 26px; font-weight: 800; margin: 0 10px 14px; }
+.side-i { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 11px; font-size: 16px; font-weight: 500; }
+.side-i .ico { font-size: 19px; color: var(--accent); }
+.side-i.on { background: var(--accent); color: #fff; }
+.side-i.on .ico { color: #fff; }
+.detail { position: relative; overflow: hidden; }
+.ipad-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 20px; align-items: start; margin-top: 18px; }
+.ipad-grid .zone:first-child { margin-top: 0; }
+.ipad .askbar { left: 50%; right: auto; width: 560px; transform: translateX(-50%); bottom: 22px; }
+.ipad .head h1 { font-size: 34px; }
+.ipad .full { grid-column: 1 / -1; }
+.ipad .growth { grid-template-columns: 120px 1fr; }
+.ipad .plant-box { height: 128px; }
+</style>
+</head>
+<body class="anno">
+
+<header class="topbar">
+  <h1>StudyPulse 主頁重設計 · 預覽<small>現在 → 今日 → 進展 → 身心 → 成長，五個固定區塊取代 26 張平鋪卡片</small></h1>
+  <div class="controls">
+    <div class="seg" id="deviceSeg">
+      <button data-v="both" class="on">兩者</button>
+      <button data-v="iphone">iPhone</button>
+      <button data-v="ipad">iPad</button>
+    </div>
+    <div class="seg" id="themeSeg">
+      <button data-v="light" class="on">淺色</button>
+      <button data-v="dark">深色</button>
+    </div>
+    <div class="swatches" id="swatches"></div>
+    <label class="toggle"><input type="checkbox" id="annoToggle" checked> 標註</label>
+  </div>
+</header>
+
+<div class="layout">
+  <main class="stage" id="stage"></main>
+
+  <aside class="notes">
+    <h2>設計說明</h2>
+    <p class="lead">現在的主頁把 26 種卡片平鋪成一條長列，首屏被歡迎語、Top-3 和 KPI 佔滿，真正「現在該做什麼」要往下找。新版改成五個固定區塊，區塊內仍可在主頁佈局設定中開關；動態排佈只在區塊內按緊迫度重排，不再跨區亂跳。</p>
+    <div id="noteList"></div>
+    <div class="mapping">
+      <h2>現有卡片去向</h2>
+      <div id="mapList"></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ---------- Icons (simple strokes, SF Symbols stand-ins) ---------- */
+const P = {
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  share: '<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
+  home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  chart: '<path d="M3 20h18"/><path d="M5 16l4-5 4 3 6-8"/>',
+  book: '<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20"/>',
+  checklist: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/>',
+  play: '<path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/>',
+  shuffle: '<path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/>',
+  pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  warn: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.5"/>',
+  heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+  moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  wave: '<path d="M2 12h4l2-6 4 12 3-9 2 3h5"/>',
+  arrowUp: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+  stack: '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M7 5h10M9 2h6"/>',
+  person: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  sparkles: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z" fill="currentColor" stroke="none"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" fill="currentColor" stroke="none"/>',
+  flame: '<path d="M12 22c4 0 7-2.7 7-6.8 0-3.4-2.2-5.8-4-7.7-.4 2-1.4 3.2-2.7 3.7.3-3.3-1.2-6.5-4.3-8.2.4 3.4-1.4 5.4-2.8 7.2C4 11.7 5 13.5 5 15.2 5 19.3 8 22 12 22z" fill="currentColor" stroke="none"/>',
+};
+const I = (n, extra = '') => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${P[n]}</svg>`;
+
+/* ---------- Mock data ---------- */
+const D = {
+  weekday: '10 月 16 日 星期五', name: '凱', phase: '高二上 · 期中衝刺',
+  quote: '「把今天過好，就是對考試最好的準備。」',
+  now: { kicker: '現在最該做', title: '物理 · 電磁感應錯題複習', why: '距離物理期中還有 3 天，6 道錯題今天到期。身體狀態良好，適合深度專注。', cta: '開始 45 分鐘深度專注' },
+  rings: [
+    { label: '專注', v: 45, t: 90, unit: 'min', color: 'var(--accent)' },
+    { label: '錯題複習', v: 8, t: 20, unit: '', color: 'var(--orange)' },
+    { label: '成績記錄', v: 1, t: 1, unit: '', color: 'var(--green)' },
+  ],
+  streak: 23,
+  plan: [
+    { title: '物理錯題複習 · 電磁感應', meta: '19:00 · 6 道到期', tag: '錯題', tc: 'var(--orange)', done: false },
+    { title: '英語閱讀 Unit 5', meta: '作業 · 明天 08:00 截止', tag: '作業', tc: 'var(--accent)', done: false },
+    { title: '數學閃卡 · 三角函數', meta: '例程 · 20:30 · 18 張', tag: '例程', tc: '#AF52DE', done: true },
+  ],
+  exams: [
+    { d: 3, name: '物理期中考', meta: '10/19 · 08:30 · 三樓 302', mastery: 62, tools: true },
+    { d: 9, name: '英語聽力測驗', meta: '10/25 · 13:10', mastery: 78 },
+    { d: 16, name: '數學月考', meta: '11/1 · 全天', mastery: 84 },
+  ],
+  focusWeek: [60, 95, 40, 120, 80, 30, 45],
+  subjects: [
+    { name: '數學', c: '#007AFF', avg: 88, d: +2.4, s: [80, 83, 82, 86, 85, 88] },
+    { name: '物理', c: '#FF9500', avg: 71, d: -8.0, s: [82, 80, 79, 76, 74, 71] },
+    { name: '英語', c: '#34C759', avg: 85, d: +1.0, s: [83, 82, 85, 84, 84, 85] },
+    { name: '化學', c: '#AF52DE', avg: 79, d: +0.6, s: [76, 78, 77, 79, 78, 79] },
+  ],
+};
+
+/* ---------- Small renderers ---------- */
+function rings(size = 74) {
+  const sw = 8, gap = 2.5;
+  let out = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex:none;transform:rotate(-90deg)">`;
+  D.rings.forEach((r, i) => {
+    const rad = size / 2 - sw / 2 - i * (sw + gap);
+    const c = 2 * Math.PI * rad, p = Math.min(r.v / r.t, 1);
+    out += `<circle cx="${size/2}" cy="${size/2}" r="${rad}" fill="none" stroke="${r.color}" stroke-opacity=".18" stroke-width="${sw}"/>`;
+    out += `<circle cx="${size/2}" cy="${size/2}" r="${rad}" fill="none" stroke="${r.color}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${c*p} ${c}"/>`;
+  });
+  return out + '</svg>';
+}
+function spark(vals, color, w = 86, h = 28) {
+  const lo = Math.min(...vals) - 2, hi = Math.max(...vals) + 2;
+  const pts = vals.map((v, i) => [i / (vals.length - 1) * w, h - (v - lo) / (hi - lo) * h]);
+  const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${line} L${w} ${h} L0 ${h}Z" fill="${color}" opacity=".12"/><path d="${line}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function gauge(score, size = 64) {
+  const r = size / 2 - 5, c = 2 * Math.PI * r;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex:none">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--green)" stroke-opacity=".18" stroke-width="7"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--green)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c*score/100} ${c}" transform="rotate(-90 ${size/2} ${size/2})"/>
+    <text x="50%" y="53%" text-anchor="middle" dominant-baseline="middle" font-size="18" font-weight="800" fill="var(--label)">${score}</text></svg>`;
+}
+function plantSVG() {
+  return `<svg width="80" height="104" viewBox="0 0 80 104">
+    <path d="M40 104 C40 80 38 64 40 40" stroke="#2f9e44" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M40 76 C28 70 20 60 22 52 C32 54 39 64 40 76Z" fill="#40c057"/>
+    <path d="M40 64 C52 58 60 48 58 40 C48 42 41 52 40 64Z" fill="#51cf66"/>
+    <g transform="translate(40 32)">${[0,72,144,216,288].map(a => `<ellipse rx="7" ry="12" cy="-10" fill="#ff8fab" transform="rotate(${a})"/>`).join('')}<circle r="6" fill="#ffd43b"/></g>
+    <circle cx="16" cy="24" r="1.8" fill="#ffd43b" opacity=".8"/><circle cx="66" cy="18" r="1.4" fill="#ffd43b" opacity=".7"/></svg>`;
+}
+function heatmap(weeks) {
+  let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  let cells = '';
+  for (let i = 0; i < weeks * 7; i++) {
+    const last = i >= weeks * 7 - 2;
+    const v = last ? 0 : rnd();
+    const lvl = i === weeks * 7 - 2 ? 3 : v < .18 ? 0 : v < .42 ? 1 : v < .7 ? 2 : v < .9 ? 3 : 4;
+    const alpha = [0, .25, .45, .7, 1][lvl];
+    cells += `<i style="${lvl ? `background:color-mix(in srgb, var(--accent) ${alpha*100}%, transparent)` : ''}"></i>`;
+  }
+  return `<div class="heat" style="grid-template-columns:repeat(${weeks},1fr)">${cells}</div>`;
+}
+
+/* ---------- Blocks ---------- */
+const header = (ipad) => `
+  <div class="head" data-anno="1">
+    <div>
+      <div class="date">${D.weekday}</div>
+      <h1>晚安，${D.name}</h1>
+      <div class="row">
+        <span class="pill accent">${I('cal')} ${D.phase}</span>
+        <span class="pill">${I('heart', 'style="color:var(--green)"')} 準備度 良好</span>
+      </div>
+    </div>
+    <div class="head-actions">
+      ${ipad ? `<button class="circle-btn">${I('share')}</button>` : `<button class="circle-btn">${I('gear')}</button>`}
+      <div class="avatar">凱</div>
+    </div>
+  </div>
+  <div class="quote">${D.quote}</div>`;
+
+const nowCard = () => `
+  <div class="card now" data-anno="2">
+    <div class="now-k">${I('sparkles')} ${D.now.kicker}</div>
+    <h3>${D.now.title}</h3>
+    <div class="why">${D.now.why}</div>
+    <div class="cta">
+      <button class="btn btn-primary">${I('play')} ${D.now.cta}</button>
+      <button class="alt" title="換一個">${I('shuffle')}</button>
+    </div>
+    <div class="rings-row">
+      ${rings()}
+      <div class="rings-legend">
+        ${D.rings.map(r => `<div class="rl"><i style="background:${r.color}"></i>${r.label}<b>${r.v} / ${r.t}${r.unit ? ' ' + r.unit : ''}</b></div>`).join('')}
+      </div>
+      <div class="streak"><div class="f">${I('flame')}</div><div class="v">${D.streak}</div><div class="l">連續天數</div></div>
+    </div>
+  </div>`;
+
+const dock = () => `
+  <div class="dock" data-anno="3">
+    <button><span class="di">${I('pencil')}</span>記成績</button>
+    <button><span class="di">${I('book')}</span>記錯題</button>
+    <button><span class="di">${I('cal')}</span>新考試</button>
+    <button><span class="di">${I('timer')}</span>計時</button>
+  </div>`;
+
+const today = () => `
+  <section class="zone">
+    <div class="zone-h"><h2>今日</h2><a href="#">全部待辦</a></div>
+    <div class="stack">
+      <div class="card list" data-anno="4">
+        ${D.plan.map(p => `
+          <div class="li ${p.done ? 'done' : ''}">
+            <span class="check ${p.done ? 'done' : ''}">${p.done ? '✓' : ''}</span>
+            <div class="t"><b>${p.title}</b><span>${p.meta}</span></div>
+            <span class="tag" style="color:${p.tc};background:color-mix(in srgb, ${p.tc} 14%, transparent)">${p.tag}</span>
+          </div>`).join('')}
+        <div class="li">
+          <span class="check" style="border-color:transparent;color:var(--accent)">${I('stack')}</span>
+          <div class="t"><b>閃卡複習</b><span>32 張到期 · 約 12 分鐘</span></div>
+          <span class="chev">›</span>
+        </div>
+      </div>
+      <div class="banner">${I('warn', 'class="ico bi"')}<span><b>2 場考試</b>還沒登記成績</span><span class="go">登記 ›</span></div>
+      <div class="hscroll" data-anno="5">
+        ${D.exams.map(e => {
+          const c = e.d <= 3 ? 'var(--red)' : e.d <= 10 ? 'var(--orange)' : 'var(--label)';
+          const mc = e.mastery < 70 ? 'var(--orange)' : 'var(--green)';
+          return `<div class="card exam">
+            <div class="d" style="color:${c}">${e.d}<small>天</small></div>
+            <div class="n">${e.name}</div>
+            <div class="m">${e.meta}</div>
+            <div class="bar"><i style="width:${e.mastery}%;background:${mc}"></i></div>
+            <div class="m" style="margin-top:5px">掌握度 ${e.mastery}%</div>
+            ${e.tools ? `<div class="tools"><span class="pill accent">${I('person')} 考場模擬</span><span class="pill accent">${I('clock')} 倒推計畫</span></div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </section>`;
+
+const progress = () => {
+  const max = Math.max(...D.focusWeek);
+  const days = ['一','二','三','四','五','六','日'];
+  const total = D.focusWeek.reduce((a, b) => a + b, 0);
+  return `
+  <section class="zone">
+    <div class="zone-h"><h2>進展</h2><a href="#">趨勢</a></div>
+    <div class="card" data-anno="6">
+      <div class="kpis">
+        <div class="kpi"><div class="v num">82<small>%</small></div><div class="l">平均得分率 <span class="delta up">▲2.1</span></div></div>
+        <div class="kpi"><div class="v num">${Math.floor(total/60)}<small>h</small>${total%60}<small>m</small></div><div class="l">本週專注 <span class="delta up">▲12%</span></div></div>
+        <div class="kpi"><div class="v num">14</div><div class="l">錯題待複習</div></div>
+      </div>
+      <div class="segctl" data-seg>
+        <button class="on" data-pane="week">本週</button><button data-pane="subj">科目</button><button data-pane="grades">近期成績</button>
+      </div>
+      <div data-pane-body="week">
+        <div class="bars">${D.focusWeek.map((v, i) => `<div class="b ${i === 4 ? 'today' : ''}"><i style="height:${v / max * 92}%"></i><span>${days[i]}</span></div>`).join('')}</div>
+      </div>
+      <div data-pane-body="subj" hidden>
+        ${D.subjects.map(s => `<div class="subj"><i style="background:${s.c}"></i><b>${s.name}</b>${spark(s.s, s.c)}<div class="r">${s.avg}%<small class="${s.d >= 0 ? 'up' : 'down'}">${s.d >= 0 ? '▲' : '▼'}${Math.abs(s.d).toFixed(1)}</small></div></div>`).join('')}
+      </div>
+      <div data-pane-body="grades" hidden>
+        ${[['數學 · 第三次小考','10/14','92 / 100'],['物理 · 單元測驗','10/11','68 / 100'],['英語 · 閱讀測驗','10/09','43 / 50']].map(g => `<div class="subj" style="grid-template-columns:1fr auto"><div><b>${g[0]}</b><div class="tiny muted">${g[1]}</div></div><div class="r">${g[2]}</div></div>`).join('')}
+      </div>
+      <div class="insight"><span class="ai">✨ AI</span><span>物理最近 3 次下滑 8%，主要錯在電磁感應的方向判斷。建議今晚第一段專注先處理這裡。</span></div>
+    </div>
+  </section>`;
+};
+
+const bodyMind = () => `
+  <section class="zone">
+    <div class="zone-h"><h2>身心</h2><a href="#">日記</a></div>
+    <div class="card" data-anno="7">
+      <div class="bm-top">
+        ${gauge(78)}
+        <div class="st"><b>狀態良好</b><p>HRV 高於你的 14 天基線 0.6σ，睡眠充足。今天適合攻難題。</p></div>
+      </div>
+      <div class="vitals">
+        <div class="vital"><div class="v">58<small>ms</small></div><div class="l">HRV</div></div>
+        <div class="vital"><div class="v">7.2<small>h</small></div><div class="l">睡眠 · 深睡+REM 2.9h</div></div>
+        <div class="vital"><div class="v">56<small>bpm</small></div><div class="l">靜息心率</div></div>
+      </div>
+      <div class="tiny muted" style="margin-top:14px">今天心情如何？</div>
+      <div class="moods" data-moods>${['😣','😕','😐','🙂','😄'].map((m, i) => `<button class="${i === 3 ? 'on' : ''}">${m}</button>`).join('')}</div>
+      <div class="habit">${I('wave', 'style="color:var(--accent);font-size:18px"')}<span>你週五 19–21 點效率最高，現在正是時候。</span></div>
+    </div>
+  </section>`;
+
+const growth = (weeks) => `
+  <section class="zone">
+    <div class="zone-h"><h2>成長</h2><a href="#">成就</a></div>
+    <div class="card" data-anno="8">
+      <div class="growth">
+        <div class="plant-box">${plantSVG()}</div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+            <b style="font-size:15px">開花期</b><span class="tiny muted">再 7 天進入繁茂</span>
+          </div>
+          ${heatmap(weeks)}
+          <div class="tiny muted" style="margin-top:6px">近 ${weeks} 週 · 活躍 ${weeks * 5 + 3} 天</div>
+        </div>
+      </div>
+    </div>
+  </section>`;
+
+const askbar = () => `<div class="askbar" data-anno="9"><span class="spark">${I('sparkles')}</span>問 AI：這週物理怎麼了？<span class="send">${I('arrowUp')}</span></div>`;
+
+/* ---------- Devices ---------- */
+function iphone() {
+  return `<div class="device-wrap"><div class="scaler" data-w="393" data-h="852"><div class="iphone"><div class="screen">
+    <div class="statusbar"><span>21:41</span><div class="island"></div><span class="sb-icons">●●● ▮</span></div>
+    <div class="scroll">
+      ${header(false)}
+      <div style="margin-top:16px">${nowCard()}</div>
+      ${dock()}
+      ${today()}
+      ${progress()}
+      ${bodyMind()}
+      ${growth(16)}
+    </div>
+    ${askbar()}
+    <nav class="tabbar">
+      <div class="tab on">${I('home')}主頁</div><div class="tab">${I('chart')}趨勢</div><div class="tab">${I('book')}錯題</div><div class="tab">${I('checklist')}待辦</div><div class="tab">${I('gear')}設定</div>
+    </nav>
+    <div class="homeind"></div>
+  </div></div></div><div class="device-caption">iPhone · 393 × 852</div></div>`;
+}
+function ipad() {
+  return `<div class="device-wrap"><div class="scaler" data-w="1194" data-h="834"><div class="ipad"><div class="screen">
+    <aside class="sidebar">
+      <h2>StudyPulse</h2>
+      <div class="side-i on">${I('home')}主頁</div><div class="side-i">${I('chart')}趨勢</div><div class="side-i">${I('book')}錯題</div><div class="side-i">${I('checklist')}待辦</div><div class="side-i">${I('gear')}設定</div>
+    </aside>
+    <div class="detail">
+      <div class="statusbar"><span>21:41  10月16日 週五</span><span class="sb-icons">●●● ▮</span></div>
+      <div class="scroll">
+        ${header(true)}
+        <div class="ipad-grid">
+          <div>
+            <div class="zone-h" style="margin-top:0"><h2>現在</h2></div>
+            ${nowCard()}
+            ${dock()}
+            ${today()}
+          </div>
+          <div>
+            ${progress().replace('class="zone"', 'class="zone" style="margin-top:0"')}
+            ${bodyMind()}
+          </div>
+          <div class="full">${growth(40)}</div>
+        </div>
+      </div>
+      ${askbar()}
+    </div>
+  </div></div></div><div class="device-caption">iPad · 1194 × 834 · NavigationSplitView</div></div>`;
+}
+
+/* ---------- Notes ---------- */
+const NOTES = [
+  ['頂部問候', '合併 <code>WelcomeHeaderCard</code>、目前 phase 與 HRV 一句話狀態。<code>dailyQuote</code> 降為一行副標（可在設定關閉）。設定按鈕移到右上，與頭像並列。'],
+  ['「現在」主卡', '首屏只回答一件事：現在該做什麼。取 <code>DailyPlanEngine</code> 的第一條，結合 <code>StudyReadinessAlgorithm</code> 建議強度，一鍵開始計時；右側小鈕換下一條。底部三環 = 每日目標（專注 / 複習 / 記錄），加上連續天數，取代 <code>studyTimer</code>、<code>streakProgress</code> 與 KPI 的「今日專注」磚。'],
+  ['快捷動作 dock', '<code>quickActions</code> 縮成 4 個固定按鈕，永遠在首屏內。'],
+  ['今日清單', 'Top-3 其餘項目 + 閃卡到期一行（取代 <code>flashcardReview</code> 卡）。可直接打勾完成。<code>unregisteredExamsReminder</code> 改為清單下方的 inline 橫幅，沒有待登記時整條消失。'],
+  ['考試倒數', '<code>upcomingExams</code> + <code>examDayReadiness</code> 合成橫向卷軸，天數按緊迫度上色（≤3 紅、≤10 橙），附掌握度條。D-7 內的考試才出現「考場模擬 / 倒推計畫」，取代兩張全寬入口卡。'],
+  ['進展', '一張卡收進 <code>weeklyFocus</code> / <code>subjectSnapshot</code> / <code>recentGrades</code>，以分段控制切換。頂部 3 個 KPI 取代 <code>OverviewHeroCard</code>。<code>studySuggestions</code> 精簡為卡底一行 AI 洞察，點擊展開完整建議。'],
+  ['身心', '<code>hrvStatus</code> 摘要 + 3 項身體指標 + 一鍵記錄心情（<code>diary</code>）+ <code>habitInsight</code> 最佳時段。未授權 HealthKit 時只顯示心情與習慣兩行。'],
+  ['成長', '<code>plant</code> 與 <code>learningHeatmap</code> 合併。iPhone 顯示 16 週，iPad 全寬顯示 40 週。'],
+  ['浮動 AI 提問列', '<code>homeAsk</code> 從卡片變成 tab bar 上方的常駐輸入列，捲到哪裡都能問；點擊打開 <code>HomeAskSheet</code>。'],
+];
+const MAP = [
+  ['保留並合併', '<b>dailyPlan</b>、<b>upcomingExams</b>、<b>weeklyFocus</b>、<b>subjectSnapshot</b>、<b>hrvStatus</b>、<b>diary</b>、<b>plant</b>、<b>learningHeatmap</b>、<b>habitInsight</b>'],
+  ['降為一行', '<b>dailyQuote</b>、<b>flashcardReview</b>、<b>unregisteredExamsReminder</b>、<b>studySuggestions</b>'],
+  ['變成入口', '<b>studyTimer</b> → 主卡按鈕；<b>homeAsk</b> → 浮動列；<b>examRoleSimulator</b> / <b>examReversePlanner</b> → 考試卡內按鈕'],
+  ['移出主頁', '<b>trendChart</b> → 趨勢頁；<b>bodyMindTrend</b>、<b>brainUsage</b>、<b>memoryClimate</b> → 身心卡的「詳情」頁；<b>minimalPlan</b> → 主卡在疲勞狀態下的替代內容'],
+];
+document.getElementById('noteList').innerHTML = NOTES.map((n, i) => `<div class="note"><span class="n">${i + 1}</span><div><h3>${n[0]}</h3><p>${n[1]}</p></div></div>`).join('');
+document.getElementById('mapList').innerHTML = MAP.map(m => `<div class="maprow"><b>${m[0]}</b><span>${m[1]}</span></div>`).join('');
+
+/* ---------- Controls ---------- */
+const ACCENTS = ['#007AFF', '#32ADE6', '#30B0C7', '#34C759', '#00C7BE', '#FF9500', '#FF2D55', '#AF52DE', '#5856D6'];
+const state = { device: 'both', theme: 'light', accent: ACCENTS[0] };
+try { Object.assign(state, JSON.parse(localStorage.getItem('sp-home-preview') || '{}')); } catch (e) {}
+const q = new URLSearchParams(location.search);
+['device', 'theme', 'accent'].forEach(k => { if (q.get(k)) state[k] = q.get(k); });
+const save = () => { try { localStorage.setItem('sp-home-preview', JSON.stringify(state)); } catch (e) {} };
+
+const sw = document.getElementById('swatches');
+sw.innerHTML = ACCENTS.map(c => `<button style="background:${c}" data-c="${c}" aria-label="主色 ${c}"></button>`).join('');
+
+function render() {
+  document.documentElement.dataset.theme = state.theme;
+  document.documentElement.style.setProperty('--accent', state.accent);
+  [...document.querySelectorAll('#deviceSeg button')].forEach(b => b.classList.toggle('on', b.dataset.v === state.device));
+  [...document.querySelectorAll('#themeSeg button')].forEach(b => b.classList.toggle('on', b.dataset.v === state.theme));
+  [...sw.children].forEach(b => b.classList.toggle('on', b.dataset.c === state.accent));
+  const stage = document.getElementById('stage');
+  stage.innerHTML = (state.device !== 'ipad' ? iphone() : '') + (state.device !== 'iphone' ? ipad() : '');
+  wire(stage);
+  fit();
+}
+function fit() {
+  const stage = document.getElementById('stage');
+  const avail = stage.clientWidth;
+  stage.querySelectorAll('.scaler').forEach(s => {
+    const w = +s.dataset.w + 4, h = +s.dataset.h + 4;
+    const scale = Math.min(1, avail / w);
+    s.style.transform = `scale(${scale})`;
+    s.style.width = w + 'px'; s.style.height = h + 'px';
+    s.parentElement.style.width = w * scale + 'px';
+    s.style.marginBottom = (h * scale - h) + 'px';
+  });
+}
+function wire(root) {
+  root.querySelectorAll('[data-seg]').forEach(seg => {
+    seg.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+      const card = seg.parentElement;
+      card.querySelectorAll('[data-pane-body]').forEach(p => p.hidden = p.dataset.paneBody !== b.dataset.pane);
+    });
+  });
+  root.querySelectorAll('[data-moods]').forEach(m => m.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    m.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  }));
+  root.querySelectorAll('.check').forEach(c => c.addEventListener('click', () => {
+    if (c.style.borderColor === 'transparent') return;
+    const li = c.closest('.li'); const done = !li.classList.contains('done');
+    li.classList.toggle('done', done); c.classList.toggle('done', done); c.textContent = done ? '✓' : '';
+  }));
+}
+document.getElementById('deviceSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { state.device = b.dataset.v; save(); render(); } });
+document.getElementById('themeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { state.theme = b.dataset.v; save(); render(); } });
+sw.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { state.accent = b.dataset.c; save(); render(); } });
+document.getElementById('annoToggle').addEventListener('change', e => document.body.classList.toggle('anno', e.target.checked));
+window.addEventListener('resize', fit);
+render();
+</script>
+</body>
+</html>

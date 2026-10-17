@@ -98,6 +98,25 @@ nonisolated struct WeekdaySlotCell: Identifiable, Equatable, Sendable {
 
 nonisolated enum HomeInsightsEngine {
 
+    /// 后半段均值 − 前半段均值(至少 4 个点);用于 KPI 涨跌徽章。
+    /// Mean of the second half minus the first half (needs ≥ 4 points); drives KPI delta badges.
+    static func trendDelta(_ values: [Double]) -> Double? {
+        guard values.count >= 4 else { return nil }
+        let mid = values.count / 2
+        let first = values[..<mid]
+        let second = values[mid...]
+        return second.reduce(0, +) / Double(second.count) - first.reduce(0, +) / Double(first.count)
+    }
+
+    /// 距某日期的整天数(按自然日,过去日期返回 0)。
+    /// Whole calendar days until a date (past dates clamp to 0).
+    static func daysUntil(_ date: Date, now: Date = Date(), calendar: Calendar = .current) -> Int {
+        let from = calendar.startOfDay(for: now)
+        let to = calendar.startOfDay(for: date)
+        return max(0, calendar.dateComponents([.day], from: from, to: to).day ?? 0)
+    }
+
+
     // MARK: Weekly focus
 
     /// 最近 `days` 天(含今天)的专注分钟,按强度堆叠,并与前一个同长度周期比较。

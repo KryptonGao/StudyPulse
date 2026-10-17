@@ -9,12 +9,10 @@
 import SwiftUI
 import Charts
 
+/// 独立卡片(带标题):用于单卡分享。主页「进展」区块直接嵌入 `WeeklyFocusContent`。
+/// Standalone card with a header, used for single-card sharing; the Progress zone embeds `WeeklyFocusContent` directly.
 struct WeeklyFocusCard: View {
     let summary: WeeklyFocusSummary
-
-    @Environment(AchievementManager.self) private var achievementManager
-
-    private var dailyTarget: Int { achievementManager.snapshot.config.focusMinutesTarget }
 
     var body: some View {
         HomeCardContainer {
@@ -24,11 +22,30 @@ struct WeeklyFocusCard: View {
                 subtitle: "home.weeklyFocus.subtitle".localized(),
                 tint: .blue
             )
-            summaryRow
+            WeeklyFocusContent(summary: summary)
+        }
+        .debugLayoutBoundsAuto()
+    }
+}
+
+/// 本周专注内容(汇总行 + 柱状图 + 图例),无外层容器。
+/// Weekly focus content (summary row + chart + legend) without a surrounding container.
+struct WeeklyFocusContent: View {
+    let summary: WeeklyFocusSummary
+    /// 为 false 时省略汇总行(主页「进展」卡顶部已有同口径 KPI)。
+    /// When false the summary row is omitted (the Progress card already shows the same KPI above).
+    var showsSummary: Bool = true
+
+    @Environment(AchievementManager.self) private var achievementManager
+
+    private var dailyTarget: Int { achievementManager.snapshot.config.focusMinutesTarget }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignToken.Spacing.medium) {
+            if showsSummary { summaryRow }
             chart
             legend
         }
-        .debugLayoutBoundsAuto()
     }
 
     // MARK: - Summary
