@@ -5,69 +5,7 @@
 
 import SwiftUI
 
-struct KnowledgeFaultLineCard: View {
-    let scan: KnowledgeFaultScan
-    let container: RepositoryContainer
-
-    private var topLine: KnowledgeFaultLine? { scan.repeatedFaultLines.first }
-
-    var body: some View {
-        NavigationLink {
-            KnowledgeFaultLineView(container: container)
-                .environment(container)
-        } label: {
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .fill(LinearGradient(colors: [.indigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 48, height: 48)
-                    Image(systemName: "point.3.connected.trianglepath.dotted")
-                        .foregroundStyle(.white)
-                        .font(.title3)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("knowledge.fault.home.title".localized())
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    if let topLine {
-                        Text(String(format: "knowledge.fault.home.summary".localized(), topLine.foundationConcept, topLine.impactMistakeCount))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                        Text(String(format: "knowledge.fault.home.risk".localized(), Int(topLine.riskScore * 100)))
-                            .font(.caption)
-                            .foregroundStyle(riskColor(topLine.riskScore))
-                    } else {
-                        Text("knowledge.fault.home.empty".localized())
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                    }
-                }
-
-                Spacer()
-                if scan.usedFallback {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Image(systemName: "chevron.right")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(DesignToken.Spacing.cardPadding)
-            .cardSkin()
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("knowledge.fault.home.title".localized())
-    }
-
-    private func riskColor(_ score: Double) -> Color {
-        score >= 0.75 ? .red : (score >= 0.5 ? .orange : .indigo)
-    }
-}
-
+/// 暂无重复断层时的空态卡 / Empty card shown when no repeated fault line exists.
 struct KnowledgeFaultLineEmptyCard: View {
     var body: some View {
         HStack(spacing: 12) {

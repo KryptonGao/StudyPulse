@@ -54,6 +54,7 @@ enum TodoTypeFilter: Hashable, CaseIterable {
 struct TodoView: View {
     @Environment(RepositoryContainer.self) private var container
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(\.detailPane) private var pane
     @State private var viewModel: TodoViewModel
 
     init(container: RepositoryContainer) {
@@ -63,6 +64,12 @@ struct TodoView: View {
     // MARK: - Body
 
     var body: some View {
+        TwoPane(masterWidth: 430, placeholderTitle: "todo.v2.pane.placeholder".localized(), placeholderIcon: "checklist") {
+            content
+        }
+    }
+
+    private var content: some View {
         NavigationStack {
             mainContent
                 .navigationTitle("Todo".localized())
@@ -75,7 +82,6 @@ struct TodoView: View {
                 .toolbar { toolbarContent }
                 .onAppear { viewModel.recompute() }
                 .onChange(of: viewModel.typeFilter) { _, _ in viewModel.recompute() }
-                .onChange(of: viewModel.showCompleted) { _, _ in viewModel.recompute() }
                 .onChange(of: container.examRepo.filteredExamSets) { _, _ in viewModel.recompute() }
                 .onChange(of: container.examRepo.comprehensiveExamSets) { _, _ in viewModel.recompute() }
                 .onChange(of: container.taskRepo.taskItems) { _, _ in viewModel.recompute() }
@@ -89,31 +95,29 @@ struct TodoView: View {
         }
     }
 
-    /// 三段式主内容:空 / 日历 / 列表。拆为独立 View 避免 ViewBuilder 推导超时。
-    /// Three-way main content: empty / calendar / list. Split out to avoid SwiftUI type-check timeout.
+    private var isTotallyEmpty: Bool {
+        viewModel.allEntries.isEmpty && viewModel.pastEntries.isEmpty && viewModel.typeFilter == .all
+    }
+
+    /// 主内容:空 / 日历 / 时间轴。拆开避免 ViewBuilder 推导超时。
+    /// Main content: empty / calendar / agenda. Split to avoid type-check timeouts.
     @ViewBuilder
     private var mainContent: some View {
-        if viewModel.allEntries.isEmpty && viewModel.pastEntries.isEmpty {
-            VStack(spacing: 0) {
-                // 完全没有数据时筛选 chip 没有意义,隐藏;
-                // 但已选了某个筛选导致无结果时必须保留,否则用户无法切回「全部」。
-                // With no data at all the chips are noise, so hide them; keep them when a
-                // non-"All" filter produced the empty result, otherwise the user can't switch back.
-                if viewModel.typeFilter != .all {
-                    filterChips
-                }
-                emptyState
-            }
+        if isTotallyEmpty {
+            emptyState
         } else if viewModel.viewMode == .calendar {
-            VStack(spacing: 0) {
-                filterChips
-                ScrollView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DesignToken.Spacing.section) {
+                    PhaseBar()
+                    typeChips
                     calendarContent
-                        .frame(maxWidth: .infinity)
                 }
+                .padding(.horizontal, DesignToken.Spacing.mainHorizontal(for: sizeClass))
+                .padding(.vertical)
+                .adaptiveMaxWidth(900)
             }
         } else {
-            listContent
+            agendaContent
         }
     }
 
@@ -124,205 +128,154 @@ struct TodoView: View {
         } description: {
             Text("Tap '+' to add a homework, reading material, or exam.".localized())
         } actions: {
-            Menu {
-                Button {
-                    viewModel.showingNewExam = true
-                } label: {
-                    Label("New Exam".localized(), systemImage: "calendar.badge.plus")
-                }
-                Button {
-                    viewModel.showingNewTask = .homework
-                } label: {
-                    Label("New Homework".localized(), systemImage: "pencil.and.list.clipboard")
-                }
-                Button {
-                    viewModel.showingNewTask = .reading
-                } label: {
-                    Label("New Reading".localized(), systemImage: "book.fill")
-                }
-                Button {
-                    viewModel.showingNewRoutine = true
-                } label: {
-                    Label("New Routine".localized(), systemImage: "repeat")
-                }
-            } label: {
-                Label("Add First Item".localized(), systemImage: "plus.circle.fill")
-            }
-            .buttonStyle(.borderedProminent)
+            addMenu
+                .menuStyle(.button)
+                .buttonStyle(.borderedProminent)
         }
     }
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .navigationBarLeading) {
-            if !viewModel.pastEntries.isEmpty {
-                Button {
-                    viewModel.showingPastSheet = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "clock.arrow.circlepath")
-                        Text("\(viewModel.pastEntries.count)")
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                    }
-                }
-            }
-        }
-        ToolbarItem(placement: .navigationBarTrailing) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    viewModel.showCompleted.toggle()
-                }
-            } label: {
-                Image(systemName: viewModel.showCompleted ? "checkmark.circle.fill" : "checkmark.circle")
-                    .foregroundColor(viewModel.showCompleted ? Color(.systemGreen) : .accentColor)
-            }
-            .accessibilityLabel("Show Completed".localized())
-        }
-        ToolbarItem(placement: .navigationBarTrailing) {
-            viewModeMenu
-        }
-        ToolbarItem(placement: .navigationBarTrailing) {
-            addMenu
-        }
-        ToolbarItem(placement: .principal) {
-            PhaseSelectorView()
-        }
+        ToolbarItem(placement: .navigationBarTrailing) { viewModeButton }
+        ToolbarItem(placement: .navigationBarTrailing) { addMenu }
     }
 
-    /// 渲染在「待办」标题正下方的水平滚动筛选 chip 行
-    @ViewBuilder
-    private var filterChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
-                ForEach(TodoTypeFilter.allCases, id: \.self) { filter in
-                    chip(for: filter)
-                }
-            }
-            .padding(.horizontal, DesignToken.Spacing.mainHorizontal(for: sizeClass))
-            .padding(.vertical, 10)
-        }
-        .background(Color(.systemGroupedBackground))
+    private var typeChips: some View {
+        ChipBar(items: TodoTypeFilter.allCases.map { filter in
+            ChipItem(id: filter, title: filter.label, systemImage: filter == .all ? nil : filter.systemImage,
+                     count: count(for: filter))
+        }, selection: $viewModel.typeFilter)
     }
 
-    @ViewBuilder
-    private func chip(for filter: TodoTypeFilter) -> some View {
-        let selected = viewModel.typeFilter == filter
-        let accent = chipAccent(for: filter)
-        Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                viewModel.typeFilter = filter
-            }
-        } label: {
-            HStack(spacing: 5) {
-                Image(systemName: filter.systemImage)
-                    .font(.footnote)
-                Text(filter.label)
-                    .font(.footnote)
-                    .fontWeight(.semibold)
-            }
-            .padding(.horizontal, 13)
-            .padding(.vertical, 8)
-            .background {
-                if #available(iOS 26, *) {
-                    Color.clear.glassEffect(.regular, in: Capsule())
-                } else {
-                    Capsule().fill(.regularMaterial)
-                }
-            }
-            .overlay(
-                Capsule()
-                    .fill(selected ? accent.opacity(0.18) : Color.clear)
-            )
-            .overlay(
-                Capsule()
-                    .stroke(selected ? accent : Color.clear, lineWidth: selected ? 1.5 : 0)
-            )
-            .foregroundColor(Color.primary)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func chipAccent(for filter: TodoTypeFilter) -> Color {
+    private func count(for filter: TodoTypeFilter) -> Int {
+        let c = viewModel.typeCounts
         switch filter {
-        case .all:       return Color(red: 0.00, green: 0.42, blue: 1.00)
-        case .exam:      return Color(red: 0.58, green: 0.18, blue: 1.00)
-        case .homework:  return Color(red: 0.05, green: 0.72, blue: 0.28)
-        case .reading:   return Color(red: 0.00, green: 0.62, blue: 0.92)
-        case .routine:   return Color(red: 0.35, green: 0.34, blue: 0.84)
+        case .all: return c.all
+        case .exam: return c.exam
+        case .homework: return c.homework
+        case .reading: return c.reading
+        case .routine: return c.routine
         }
     }
 
-    // MARK: - 列表内容
+    // MARK: - 时间轴
 
     @ViewBuilder
-    private var listContent: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                filterChips
-                    .padding(.bottom, 16)
+    private var agendaContent: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: DesignToken.Spacing.section) {
+                    PhaseBar()
 
-                if viewModel.upcomingEntries.isEmpty {
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 6) {
-                            Image(systemName: "checklist")
-                                .font(.title2)
-                                .foregroundColor(Color(.secondaryLabel))
-                            Text("No upcoming items".localized())
-                                .font(.subheadline)
-                                .foregroundColor(Color(.secondaryLabel))
+                    TodoWeekStrip(days: viewModel.weekStrip, selected: viewModel.selectedDay) { day in
+                        viewModel.selectedDay = day
+                        if let target = viewModel.agendaDays.first(where: { Calendar.current.isDate($0.date, inSameDayAs: day) && $0.kind != .later }) {
+                            withAnimation(.snappy) { proxy.scrollTo(target.id, anchor: .top) }
                         }
-                        .padding(.vertical, 40)
-                        Spacer()
                     }
-                } else {
-                    LazyVStack(alignment: .leading, spacing: 20) {
-                        ForEach(viewModel.groupedUpcoming, id: \.0) { sectionTitle, entries in
-                            sectionHeader(sectionTitle)
-                            LazyVStack(spacing: 12) {
-                                ForEach(entries) { entry in
-                                    TodoRowView(
-                                        entry: entry,
-                                        onTap: { tapped(entry) },
-                                        onToggleCompletion: { toggleCompletion(of: entry) }
-                                    )
-                                    .contextMenu {
-                                        if entry.kind == .homework || entry.kind == .reading || entry.kind == .routine {
-                                            Button {
-                                                toggleCompletion(of: entry)
-                                            } label: {
-                                                if entry.isCompleted {
-                                                    Label("Pending".localized(), systemImage: "circle")
-                                                } else {
-                                                    Label("Done".localized(), systemImage: "checkmark")
-                                                }
-                                            }
-                                        }
-                                        Button(role: .destructive) {
-                                            viewModel.deleteTodoEntry(entry)
-                                        } label: {
-                                            Label("Delete".localized(), systemImage: "trash")
-                                        }
-                                    }
-                                }
+
+                    if !viewModel.pastEntries.isEmpty {
+                        InlineBanner(
+                            systemImage: "exclamationmark.triangle.fill",
+                            message: Text(String(format: "todo.v2.overdue".localized(), viewModel.pastEntries.count)),
+                            actionTitle: "todo.v2.overdue.action".localized(),
+                            tint: .orange
+                        ) { viewModel.showingPastSheet = true }
+                    }
+
+                    typeChips
+
+                    if viewModel.agendaDays.isEmpty {
+                        ContentUnavailableView(
+                            "No upcoming items".localized(),
+                            systemImage: "checklist"
+                        )
+                        .padding(.vertical, 24)
+                    } else {
+                        VStack(alignment: .leading, spacing: 10) {
+                            ForEach(viewModel.agendaDays) { day in
+                                dayBlock(day).id(day.id)
                             }
-                            .padding(.horizontal, DesignToken.Spacing.mainHorizontal(for: sizeClass))
                         }
                     }
-                    .padding(.bottom, 24)
+
+                    completedFold
                 }
+                .padding(.horizontal, DesignToken.Spacing.mainHorizontal(for: sizeClass))
+                .padding(.vertical)
+                .adaptiveMaxWidth(900)
             }
         }
     }
 
     @ViewBuilder
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .font(.subheadline)
-            .foregroundColor(Color(.secondaryLabel))
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, DesignToken.Spacing.mainHorizontal(for: sizeClass))
+    private func dayBlock(_ day: AgendaDay) -> some View {
+        TodoDayHeader(day: day)
+        ForEach(day.entries) { entry in
+            agendaItem(entry, showDate: day.kind == .later)
+        }
+    }
+
+    @ViewBuilder
+    private func agendaItem(_ entry: TodoEntry, showDate: Bool) -> some View {
+        Group {
+            if entry.isExamLike {
+                HStack(alignment: .top, spacing: 10) {
+                    Color.clear.frame(width: 54, height: 1)
+                    TodoExamCard(
+                        entry: entry,
+                        onTap: { tapped(entry) },
+                        onPlan: entry.exam.map { exam in { viewModel.planningExam = exam } }
+                    )
+                }
+            } else {
+                TodoAgendaRow(entry: entry, onTap: { tapped(entry) }, onToggle: { toggleCompletion(of: entry) })
+            }
+        }
+        .contextMenu {
+            if entry.kind == .homework || entry.kind == .reading || entry.kind == .routine {
+                Button { toggleCompletion(of: entry) } label: {
+                    if entry.isCompleted {
+                        Label("Pending".localized(), systemImage: "circle")
+                    } else {
+                        Label("Done".localized(), systemImage: "checkmark")
+                    }
+                }
+            }
+            Button(role: .destructive) { viewModel.deleteTodoEntry(entry) } label: {
+                Label("Delete".localized(), systemImage: "trash")
+            }
+        }
+    }
+
+    /// 底部「已完成 N 项」折叠区 / Bottom "N completed" fold.
+    @ViewBuilder
+    private var completedFold: some View {
+        if !viewModel.completedEntries.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Button {
+                    withAnimation(.snappy) { viewModel.showCompleted.toggle() }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle")
+                        Text(String(format: "todo.v2.completed".localized(), viewModel.completedEntries.count))
+                        Spacer()
+                        Image(systemName: "chevron.down")
+                            .rotationEffect(.degrees(viewModel.showCompleted ? 180 : 0))
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 6)
+                }
+                .buttonStyle(.plain)
+
+                if viewModel.showCompleted {
+                    ForEach(viewModel.completedEntries) { entry in
+                        agendaItem(entry, showDate: true)
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - 日历内容
@@ -330,9 +283,9 @@ struct TodoView: View {
     @ViewBuilder
     private var calendarContent: some View {
         ExamCalendarView(
-            onSelectExam: { exam in viewModel.selectedExam = exam },
-            onSelectComprehensive: { exam in viewModel.selectedComprehensive = exam },
-            onSelectTask: { task in viewModel.selectedTask = task },
+            onSelectExam: { exam in openExam(exam) },
+            onSelectComprehensive: { exam in openComprehensive(exam) },
+            onSelectTask: { task in openTask(task) },
             typeFilter: calendarFilter
         )
     }
@@ -348,23 +301,19 @@ struct TodoView: View {
         }
     }
 
-    // MARK: - 视图模式菜单
+    // MARK: - 视图模式 / View mode
 
-    private var viewModeMenu: some View {
-        Menu {
-            Picker("View Mode".localized(), selection: $viewModel.viewMode) {
-                ForEach(ExamViewMode.allCases) { mode in
-                    Label(mode.displayName, systemImage: mode.icon)
-                        .tag(mode)
-                }
+    /// 时间轴 ⇄ 月历 / Agenda ⇄ month calendar.
+    private var viewModeButton: some View {
+        Button {
+            withAnimation(.snappy) {
+                viewModel.viewMode = viewModel.viewMode == .calendar ? .list : .calendar
             }
-            .pickerStyle(.inline)
+            viewModel.viewMode.saveToDefaults()
         } label: {
-            Image(systemName: viewModel.viewMode == .calendar ? "calendar" : "list.bullet")
+            Image(systemName: viewModel.viewMode == .calendar ? "list.bullet" : "calendar")
         }
-        .onChange(of: viewModel.viewMode) { _, newValue in
-            newValue.saveToDefaults()
-        }
+        .accessibilityLabel("View Mode".localized())
     }
 
     // MARK: - 新增菜单
@@ -398,14 +347,40 @@ struct TodoView: View {
 
     // MARK: - 行为
 
+    /// 双栏时把详情放到右栏,否则走 NavigationStack push。
+    /// In a two-pane the detail goes to the right pane; otherwise it is pushed.
+    private func openExam(_ exam: Exam) {
+        if let pane {
+            pane.show(id: exam.id, content: AnyView(ExamDetailView(examId: exam.id)))
+        } else {
+            viewModel.selectedExam = exam
+        }
+    }
+
+    private func openComprehensive(_ exam: comprehensiveExam) {
+        if let pane {
+            pane.show(id: exam.id, content: AnyView(ComprehensiveExamDetailView(exam: exam)))
+        } else {
+            viewModel.selectedComprehensive = exam
+        }
+    }
+
+    private func openTask(_ task: TaskItem) {
+        if let pane {
+            pane.show(id: task.id, content: AnyView(TaskDetailView(task: task)))
+        } else {
+            viewModel.selectedTask = task
+        }
+    }
+
     private func tapped(_ entry: TodoEntry) {
         switch entry.kind {
         case .exam:
-            if let exam = entry.exam { viewModel.selectedExam = exam }
+            if let exam = entry.exam { openExam(exam) }
         case .comprehensiveExam:
-            if let comp = entry.comprehensiveExam { viewModel.selectedComprehensive = comp }
+            if let comp = entry.comprehensiveExam { openComprehensive(comp) }
         case .homework, .reading:
-            if let task = entry.taskItem { viewModel.selectedTask = task }
+            if let task = entry.taskItem { openTask(task) }
         case .routine:
             if let r = entry.routine { viewModel.selectedRoutine = r }
         }
@@ -585,6 +560,9 @@ private struct TodoViewSheetsAndDestinations: ViewModifier {
             }
             .sheet(isPresented: $viewModel.showingPastSheet) {
                 pastItemsSheet
+            }
+            .fullScreenCover(item: $viewModel.planningExam) { exam in
+                ExamReversePlannerView(container: container, examId: exam.id)
             }
             .navigationDestination(item: $viewModel.selectedExam) { exam in
                 ExamDetailView(examId: exam.id)

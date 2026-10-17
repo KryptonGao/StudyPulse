@@ -213,3 +213,35 @@ final class TimeInvestmentRepositoryTests: XCTestCase {
         XCTAssertNotNil(repository.rewards.first?.unlockedAt)
     }
 }
+
+// MARK: - Weekly summary
+
+extension TimeInvestmentEngineTests {
+    func testWeeklyInvestmentSplitsThisWeekAndPreviousWeek() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "UTC"))
+        calendar.firstWeekday = 2   // the engine uses Monday-based weeks
+        // Wednesday 2027-01-20 12:00 UTC
+        let now = Date(timeIntervalSince1970: 1_800_532_800)
+        let weekStart = try XCTUnwrap(calendar.dateInterval(of: .weekOfYear, for: now)).start
+        let thisWeek = weekStart.addingTimeInterval(3_600)
+        let lastWeek = weekStart.addingTimeInterval(-86_400)
+
+        let a = TimeInvestmentSubject(id: UUID(), name: "A")
+        let b = TimeInvestmentSubject(id: UUID(), name: "B")
+        let aggregator = TimeInvestmentAggregator(
+            subjects: [a, b], subTasks: [],
+            sessions: [
+                session(target: .subject(a.id), start: thisWeek, seconds: 600),
+                session(target: .subject(b.id), start: thisWeek, seconds: 1_200),
+                session(target: .subject(a.id), start: lastWeek, seconds: 300),
+                session(target: nil, start: thisWeek, seconds: 100)
+            ]
+        )
+        let weekly = aggregator.weekly(now: now, calendar: calendar)
+        XCTAssertEqual(weekly.totalSeconds, 1_800)
+        XCTAssertEqual(weekly.previousTotalSeconds, 300)
+        XCTAssertEqual(weekly.rows.map(\.subject.name), ["B", "A"])
+        XCTAssertEqual(weekly.unassignedCount, 1)
+    }
+}

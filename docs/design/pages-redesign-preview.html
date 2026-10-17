@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分頁重設計預覽</title>
+<style>
+:root {
+  --accent: #007AFF;
+  --page: #e9e9ee; --page-ink: #1d1d1f; --page-muted: #6e6e73; --panel: #ffffff;
+  --bg: #f2f2f7; --card: #ffffff; --fill: #f2f2f7; --fill2: #e5e5ea;
+  --label: #000000; --label2: rgba(60,60,67,.62); --label3: rgba(60,60,67,.32);
+  --sep: rgba(60,60,67,.12);
+  --red: #FF3B30; --orange: #FF9500; --green: #34C759; --yellow: #FFCC00; --purple: #AF52DE; --pink: #FF2D55; --teal: #30B0C7; --indigo: #5856D6;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 20px rgba(0,0,0,.05);
+  --bar: rgba(249,249,249,.86);
+}
+:root[data-theme="dark"] {
+  --page: #0b0b0d; --page-ink: #f5f5f7; --page-muted: #98989d; --panel: #161618;
+  --bg: #000000; --card: #1c1c1e; --fill: #2c2c2e; --fill2: #3a3a3c;
+  --label: #ffffff; --label2: rgba(235,235,245,.62); --label3: rgba(235,235,245,.3);
+  --sep: rgba(84,84,88,.55);
+  --red: #FF453A; --orange: #FF9F0A; --green: #30D158; --yellow: #FFD60A; --purple: #BF5AF2; --pink: #FF375F; --teal: #40C8E0; --indigo: #5E5CE6;
+  --shadow: none; --bar: rgba(30,30,32,.86);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--page); color: var(--page-ink);
+  font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "PingFang TC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+
+/* ---------- Page chrome ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between;
+  padding: 14px 24px; background: color-mix(in srgb, var(--page) 88%, transparent);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--sep);
+}
+.topbar h1 { font-size: 17px; margin: 0; font-weight: 700; }
+.topbar h1 small { display: block; font-size: 12px; font-weight: 500; color: var(--page-muted); margin-top: 2px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.seg { display: inline-flex; background: var(--fill2); border-radius: 9px; padding: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; padding: 5px 12px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--page-muted); }
+.seg button.on { background: var(--panel); color: var(--page-ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.swatches { display: inline-flex; gap: 6px; }
+.swatches button { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+.swatches button.on { border-color: var(--page-ink); }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--page-muted); cursor: pointer; user-select: none; }
+.toggle input { accent-color: var(--accent); }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; padding: 24px; align-items: start; max-width: 1800px; margin: 0 auto; }
+@media (max-width: 1100px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .layout { padding: 16px; } .topbar { padding: 12px 16px; } }
+.stage { display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; align-items: flex-start; min-width: 0; }
+.device-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.device-caption { font-size: 12px; font-weight: 600; color: var(--page-muted); letter-spacing: .02em; }
+.scaler { transform-origin: top left; align-self: flex-start; }
+
+.notes { background: var(--panel); border-radius: 18px; padding: 20px 20px 8px; position: sticky; top: 84px; max-height: calc(100vh - 108px); overflow: auto; border: 1px solid var(--sep); }
+@media (max-width: 1100px) { .notes { position: static; max-height: none; } }
+.notes h2 { font-size: 15px; margin: 0 0 4px; }
+.notes p.lead { font-size: 13px; color: var(--page-muted); margin: 0 0 16px; line-height: 1.55; }
+.note { display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 12px 0; border-top: 1px solid var(--sep); }
+.note .n { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.note h3 { font-size: 14px; margin: 1px 0 4px; }
+.note p { font-size: 12.5px; line-height: 1.55; margin: 0; color: var(--page-muted); }
+.note code, .maprow code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; background: var(--fill); color: var(--page-ink); padding: 1px 5px; border-radius: 5px; }
+.mapping { margin: 6px 0 14px; border-top: 1px solid var(--sep); padding-top: 14px; }
+.mapping h2 { font-size: 15px; margin: 0 0 10px; }
+.maprow { display: grid; grid-template-columns: 76px 1fr; gap: 8px; font-size: 12.5px; padding: 6px 0; line-height: 1.5; }
+.maprow b { font-weight: 700; }
+.maprow span { color: var(--page-muted); }
+.shared { margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; background: var(--fill); font-size: 12.5px; line-height: 1.55; color: var(--page-muted); }
+.shared b { color: var(--page-ink); }
+
+/* ---------- Device frames ---------- */
+.iphone { width: 393px; height: 852px; border-radius: 56px; background: #0a0a0a; padding: 11px; box-shadow: 0 0 0 2px #2a2a2c, 0 30px 60px rgba(0,0,0,.22); }
+.ipad { width: 1194px; height: 834px; border-radius: 36px; background: #0a0a0a; padding: 14px; box-shadow: 0 0 0 2px #2a2a2c, 0 30px 60px rgba(0,0,0,.22); }
+.screen { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--label); border-radius: 46px; }
+.ipad .screen { border-radius: 24px; display: grid; grid-template-columns: 240px minmax(0, 1fr); }
+.statusbar { height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 6px 34px 0; font-size: 16px; font-weight: 600; position: absolute; top: 0; left: 0; right: 0; z-index: 6; background: linear-gradient(var(--bg) 70%, transparent); }
+.island { position: absolute; left: 50%; top: 11px; transform: translateX(-50%); width: 124px; height: 36px; background: #000; border-radius: 20px; }
+.sb-icons { display: flex; gap: 6px; align-items: center; letter-spacing: -1px; }
+.scroll { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; padding: 58px 16px 120px; }
+.scroll::-webkit-scrollbar, .col::-webkit-scrollbar { display: none; }
+.tabbar {
+  position: absolute; left: 14px; right: 14px; bottom: 26px; height: 62px; z-index: 7; border-radius: 31px;
+  display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
+  background: var(--bar); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: 0 0 0 .5px var(--sep), 0 8px 24px rgba(0,0,0,.10);
+}
+.tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--label2); }
+.tab .ico { font-size: 22px; }
+.tab.on { color: var(--accent); }
+.homeind { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: var(--label); opacity: .85; z-index: 8; }
+
+/* iPad split */
+.ipad .statusbar { height: 30px; padding: 4px 22px 0; font-size: 13px; background: transparent; }
+.detail { position: relative; overflow: hidden; display: grid; grid-template-columns: var(--cols, 400px minmax(0,1fr)); }
+.col { position: relative; overflow-y: auto; scrollbar-width: none; padding: 34px 22px 110px; min-width: 0; }
+.col + .col { border-left: 1px solid var(--sep); }
+.col.tint { background: color-mix(in srgb, var(--card) 45%, var(--bg)); }
+.sidebar { background: color-mix(in srgb, var(--card) 70%, var(--bg)); border-right: 1px solid var(--sep); padding: 46px 12px 16px; display: flex; flex-direction: column; gap: 2px; }
+.sidebar h2 { font-size: 26px; font-weight: 800; margin: 0 10px 14px; }
+.side-i { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 11px; font-size: 16px; font-weight: 500; }
+.side-i .ico { font-size: 19px; color: var(--accent); }
+.side-i.on { background: var(--accent); color: #fff; }
+.side-i.on .ico { color: #fff; }
+.side-i .badge { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--label2); }
+.side-i.on .badge { color: rgba(255,255,255,.85); }
+.side-sp { flex: 1; }
+
+/* ---------- App primitives ---------- */
+.card { background: var(--card); border-radius: 20px; padding: 16px; box-shadow: var(--shadow); position: relative; }
+.zone { margin-top: 24px; }
+.zone-h { display: flex; align-items: baseline; justify-content: space-between; margin: 0 4px 10px; }
+.zone-h h2 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+.zone-h a { font-size: 14px; color: var(--accent); text-decoration: none; font-weight: 500; }
+.stack > * + * { margin-top: 12px; }
+.muted { color: var(--label2); }
+.tiny { font-size: 12px; } .small { font-size: 13px; }
+.num { font-variant-numeric: tabular-nums; }
+.pill { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 13px; font-size: 12px; font-weight: 600; background: var(--fill); color: var(--label); white-space: nowrap; border: 0; }
+.pill.accent { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.12em; flex: none; }
+.btn { border: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; }
+.btn-primary { background: var(--accent); color: #fff; height: 44px; border-radius: 14px; padding: 0 18px; font-size: 16px; }
+.btn-soft { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); height: 34px; border-radius: 11px; padding: 0 12px; font-size: 14px; }
+.btn-gray { background: var(--fill); color: var(--label); height: 34px; border-radius: 11px; padding: 0 12px; font-size: 14px; }
+.chev { color: var(--label3); font-size: 13px; flex: none; }
+.up { color: var(--green); } .down { color: var(--red); }
+.bar { height: 6px; border-radius: 3px; background: var(--fill); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 3px; }
+.tag { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; white-space: nowrap; display: inline-block; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+
+/* annotations */
+[data-anno] { position: relative; }
+body.anno [data-anno]::after {
+  content: attr(data-anno); position: absolute; top: -8px; right: -6px; z-index: 5;
+  width: 22px; height: 22px; border-radius: 50%; background: #FF2D55; color: #fff;
+  font: 700 12px/22px -apple-system, sans-serif; text-align: center; box-shadow: 0 0 0 2px var(--bg);
+}
+body.anno [data-anno] { outline: 1.5px dashed rgba(255,45,85,.55); outline-offset: 3px; border-radius: 20px; }
+
+/* nav bar (large title) */
+.navtop { display: flex; align-items: center; gap: 8px; height: 40px; }
+.navtop .back { display: flex; align-items: center; gap: 2px; color: var(--accent); font-size: 17px; }
+.navtop .sp { flex: 1; }
+.gbtn { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 17px; color: var(--label); border: 0; background: var(--bar); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 0 0 .5px var(--sep), 0 2px 8px rgba(0,0,0,.06); }
+.gbtn.pri { background: var(--accent); color: #fff; box-shadow: none; }
+.ltitle { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin: 2px 4px 12px; }
+.ltitle h1 { font-size: 34px; font-weight: 800; margin: 0; letter-spacing: -.02em; line-height: 1.1; }
+.phase { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 11px; border-radius: 14px; font-size: 12.5px; font-weight: 600; background: var(--card); box-shadow: var(--shadow); white-space: nowrap; margin-bottom: 3px; }
+.phase .dot { background: var(--accent); width: 7px; height: 7px; }
+:root[data-theme="dark"] .phase { background: var(--fill); }
+
+.search { display: flex; align-items: center; gap: 8px; height: 38px; border-radius: 12px; background: var(--fill2); padding: 0 12px; color: var(--label2); font-size: 16px; }
+:root[data-theme="dark"] .search { background: var(--fill); }
+.chips { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px; border-radius: 16px; font-size: 13.5px; font-weight: 600; background: var(--card); color: var(--label); border: 0; cursor: pointer; box-shadow: var(--shadow); }
+.chip small { font-size: 12px; color: var(--label2); font-weight: 600; }
+.chip.on { background: var(--accent); color: #fff; }
+.chip.on small { color: rgba(255,255,255,.8); }
+:root[data-theme="dark"] .chip:not(.on) { background: var(--fill); }
+.segctl { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--fill2); border-radius: 9px; padding: 2px; }
+:root[data-theme="dark"] .segctl { background: var(--fill); }
+.segctl button { border: 0; background: transparent; border-radius: 7px; height: 28px; font-size: 13px; font-weight: 600; color: var(--label2); cursor: pointer; white-space: nowrap; padding: 0 8px; }
+.segctl button.on { background: var(--card); color: var(--label); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+:root[data-theme="dark"] .segctl button.on { background: var(--fill2); }
+
+/* generic list rows */
+.list { padding: 2px 16px; }
+.rw { display: flex; align-items: center; gap: 12px; padding: 12px 0; min-width: 0; }
+.rw + .rw { border-top: 1px solid var(--sep); }
+.rw .t { flex: 1; min-width: 0; }
+.rw .t b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rw .t span { display: block; font-size: 12.5px; color: var(--label2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.rw.sel { background: color-mix(in srgb, var(--accent) 10%, transparent); margin: 0 -10px; padding: 12px 10px; border-radius: 12px; border-top-color: transparent; }
+.rw.sel + .rw { border-top-color: transparent; }
+.score { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 17px; min-width: 46px; }
+.score small { display: block; font-size: 11px; font-weight: 700; }
+.sq { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 17px; flex: none; }
+.check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--label3); flex: none; display: grid; place-items: center; cursor: pointer; color: #fff; font-size: 13px; }
+.check.done { background: var(--green); border-color: var(--green); }
+.rw.done .t b { color: var(--label3); text-decoration: line-through; font-weight: 500; }
+
+.banner { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 14px; background: color-mix(in srgb, var(--orange) 14%, transparent); font-size: 13.5px; }
+.banner .bi { color: var(--orange); font-size: 17px; }
+.banner b { color: var(--orange); }
+.banner .go { margin-left: auto; color: var(--orange); font-weight: 600; font-size: 13px; white-space: nowrap; }
+.insight { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 14px; background: linear-gradient(135deg, color-mix(in srgb, var(--purple) 12%, transparent), color-mix(in srgb, var(--accent) 12%, transparent)); font-size: 13.5px; line-height: 1.45; }
+.ai { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 6px; color: #fff; background: linear-gradient(135deg, var(--purple), var(--accent)); white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
+
+/* ---------- Trends ---------- */
+.hero-k { font-size: 12px; font-weight: 700; color: var(--label2); letter-spacing: .02em; }
+.bignum { font-size: 40px; font-weight: 800; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.delta { font-size: 13px; font-weight: 700; }
+.legend { display: flex; gap: 12px; font-size: 11.5px; color: var(--label2); margin-top: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.watch { background: color-mix(in srgb, var(--orange) 9%, var(--card)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--orange) 30%, transparent), var(--shadow); }
+.watch-h { display: flex; align-items: center; gap: 10px; }
+.watch-h .sq { background: color-mix(in srgb, var(--orange) 18%, transparent); color: var(--orange); }
+.watch .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+.fact { background: var(--card); border-radius: 12px; padding: 8px 10px; }
+:root[data-theme="dark"] .fact { background: var(--fill); }
+.fact .v { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fact .l { font-size: 11px; color: var(--label2); }
+.inv-row { display: grid; grid-template-columns: 78px 1fr 58px; gap: 10px; align-items: center; font-size: 13.5px; padding: 6px 0; }
+.inv-row .bar { height: 8px; border-radius: 4px; }
+.inv-row b { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; font-size: 13px; }
+.stat3 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.stat3 .fact { background: var(--fill); }
+
+/* ---------- Mistakes ---------- */
+.review::before { content: ""; position: absolute; inset: 0; border-radius: 20px; background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%); pointer-events: none; }
+.stackbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; gap: 2px; margin: 12px 0 8px; }
+.stackbar i { display: block; height: 100%; }
+.weak2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.weak2 .card { padding: 14px; }
+.weak2 .k { font-size: 11.5px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+.weak2 h4 { font-size: 15px; margin: 8px 0 4px; line-height: 1.3; }
+.tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tools button { border: 0; background: var(--card); border-radius: 16px; padding: 12px 4px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; box-shadow: var(--shadow); cursor: pointer; }
+.tools .di { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-size: 18px; }
+.thumb { width: 44px; height: 44px; border-radius: 10px; flex: none; background: repeating-linear-gradient(0deg, var(--fill) 0 5px, var(--fill2) 5px 6px); display: grid; place-items: center; font-size: 11px; color: var(--label2); font-weight: 700; }
+.mastery { width: 34px; height: 34px; flex: none; }
+.mcard h5 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--label2); display: flex; align-items: center; gap: 6px; }
+.mcard p { margin: 0; font-size: 15px; line-height: 1.6; }
+.mcard .math { font-family: "Times New Roman", serif; font-style: italic; font-size: 16px; }
+.mcard.reason { box-shadow: inset 3px 0 0 var(--orange), var(--shadow); }
+.mcard.right { box-shadow: inset 3px 0 0 var(--green), var(--shadow); }
+.mcard.wrong { box-shadow: inset 3px 0 0 var(--red), var(--shadow); }
+.actionbar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 22px; z-index: 7; display: flex; gap: 4px; padding: 5px; border-radius: 26px; background: var(--bar); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6); box-shadow: 0 0 0 .5px var(--sep), 0 8px 24px rgba(0,0,0,.10); white-space: nowrap; }
+.actionbar button { border: 0; background: transparent; height: 40px; padding: 0 14px; border-radius: 20px; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.actionbar button.pri { background: linear-gradient(135deg, var(--purple), var(--accent)); color: #fff; }
+
+/* ---------- Todo ---------- */
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px 8px; }
+.wd { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0 7px; border-radius: 14px; cursor: pointer; }
+.wd span { font-size: 11px; color: var(--label2); font-weight: 600; }
+.wd b { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.wd .dots { display: flex; gap: 3px; height: 5px; }
+.wd .dots i { width: 5px; height: 5px; border-radius: 50%; }
+.wd.on { background: var(--accent); color: #fff; }
+.wd.on span { color: rgba(255,255,255,.8); }
+.wd.on .dots i { background: #fff !important; }
+.wd.today:not(.on) b { color: var(--accent); }
+.dayh { display: flex; align-items: baseline; gap: 8px; margin: 22px 4px 8px; }
+.dayh h3 { font-size: 17px; font-weight: 700; margin: 0; }
+.dayh span { font-size: 13px; color: var(--label2); }
+.dayh em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--label2); font-weight: 600; }
+.ag { display: grid; grid-template-columns: 48px 1fr; gap: 10px; align-items: stretch; }
+.ag + .ag { margin-top: 8px; }
+.ag .tm { text-align: right; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; padding-top: 14px; color: var(--label); }
+.ag .tm small { display: block; font-weight: 500; color: var(--label2); font-size: 11px; }
+.agc { background: var(--card); border-radius: 16px; padding: 12px 14px; box-shadow: var(--shadow); display: flex; gap: 12px; align-items: center; position: relative; }
+.agc::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 0 3px 3px 0; background: var(--c, var(--accent)); }
+.agc .t { flex: 1; min-width: 0; }
+.agc .t b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.agc .t span { display: block; font-size: 12.5px; color: var(--label2); margin-top: 2px; }
+.agc.done .t b { color: var(--label3); text-decoration: line-through; font-weight: 500; }
+.examc { display: block; padding: 14px 14px 14px 16px; background: color-mix(in srgb, var(--red) 7%, var(--card)); }
+.examc .top { display: flex; align-items: flex-start; gap: 12px; }
+.dbadge { flex: none; width: 52px; height: 52px; border-radius: 14px; background: var(--red); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+.dbadge b { font-size: 21px; font-weight: 800; }
+.dbadge span { font-size: 10px; font-weight: 700; opacity: .85; margin-top: 2px; }
+.examc .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.examc .meta div { font-size: 12px; color: var(--label2); }
+.examc .meta b { display: block; font-size: 13.5px; color: var(--label); margin-bottom: 4px; font-weight: 600; }
+.donefold { margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--label2); padding: 12px; border-radius: 14px; background: var(--fill); }
+.month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.month .h { font-size: 11px; color: var(--label2); font-weight: 600; padding-bottom: 4px; }
+.month .c { height: 52px; border-radius: 12px; padding-top: 6px; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.month .c.o { color: var(--label3); }
+.month .c.today { color: var(--accent); }
+.month .c.on { background: var(--accent); color: #fff; }
+.month .c .dots { display: flex; gap: 3px; }
+.month .c .dots i { width: 5px; height: 5px; border-radius: 50%; }
+.month .c.on .dots i { background: #fff !important; }
+.cl { display: flex; align-items: center; gap: 10px; padding: 9px 0; font-size: 14.5px; }
+.cl + .cl { border-top: 1px solid var(--sep); }
+.cl .check { width: 20px; height: 20px; font-size: 11px; }
+.cl.done span { color: var(--label3); text-decoration: line-through; }
+
+/* ---------- Coach ---------- */
+.goal::before { content: ""; position: absolute; inset: 0; border-radius: 20px; background: radial-gradient(110% 80% at 0% 0%, color-mix(in srgb, var(--purple) 14%, transparent), transparent 60%), radial-gradient(110% 80% at 100% 100%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%); pointer-events: none; }
+.goal-top { display: flex; gap: 14px; align-items: center; position: relative; }
+.goal-top .t { flex: 1; min-width: 0; }
+.goal-top h3 { font-size: 20px; margin: 4px 0 2px; font-weight: 700; letter-spacing: -.01em; }
+.proposal { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 11px 12px; border-radius: 14px; background: var(--card); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--purple) 35%, transparent); font-size: 13.5px; position: relative; }
+:root[data-theme="dark"] .proposal { background: var(--fill); }
+.proposal .go { margin-left: auto; color: var(--purple); font-weight: 700; font-size: 13px; white-space: nowrap; }
+.prompts { display: flex; flex-wrap: wrap; gap: 7px; }
+.prompts span { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 16px; font-size: 13px; font-weight: 500; background: var(--card); box-shadow: inset 0 0 0 1px var(--sep); }
+:root[data-theme="dark"] .prompts span { background: var(--fill); }
+.composer { display: flex; align-items: center; gap: 10px; height: 50px; border-radius: 25px; padding: 0 6px 0 16px; background: var(--bar); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6); box-shadow: 0 0 0 .5px var(--sep), 0 8px 24px rgba(0,0,0,.10); color: var(--label2); font-size: 15px; }
+.composer .spark { font-size: 18px; color: var(--purple); }
+.composer .send { margin-left: auto; width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 16px; }
+.convo-av { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 17px; flex: none; color: #fff; background: linear-gradient(135deg, var(--purple), var(--accent)); }
+.quota { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--label2); margin: 20px 4px 0; }
+.quota .bar { flex: 1; height: 5px; }
+.msg-u { margin-left: auto; max-width: 78%; background: color-mix(in srgb, var(--accent) 16%, var(--card)); padding: 10px 14px; border-radius: 18px 18px 6px 18px; font-size: 15px; line-height: 1.45; }
+.reply-h { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border-radius: 14px; font-size: 12.5px; font-weight: 600; background: var(--bar); box-shadow: 0 0 0 .5px var(--sep); color: var(--label2); }
+.reply-h .ico { color: var(--purple); }
+.reply { font-size: 15px; line-height: 1.6; margin-top: 10px; }
+.reply h4 { font-size: 15px; margin: 14px 0 4px; }
+.reply ol, .reply ul { margin: 4px 0; padding-left: 20px; }
+.reply li { margin: 3px 0; }
+.planbox { margin-top: 12px; border-radius: 14px; background: var(--card); box-shadow: var(--shadow); padding: 4px 14px; }
+:root[data-theme="dark"] .planbox { background: var(--fill); }
+
+/* ---------- Settings ---------- */
+.profile { display: flex; align-items: center; gap: 14px; }
+.avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 70%, #fff), var(--accent)); color: #fff; font-weight: 800; display: grid; place-items: center; font-size: 24px; flex: none; }
+.status3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.st { background: var(--card); border-radius: 16px; padding: 12px; box-shadow: var(--shadow); }
+.st .k { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--label2); }
+.st .v { font-size: 14px; font-weight: 700; margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+.st .s { font-size: 11.5px; color: var(--label2); margin-top: 1px; }
+.grp-h { font-size: 13px; font-weight: 600; color: var(--label2); margin: 22px 16px 7px; text-transform: uppercase; letter-spacing: .02em; }
+.slist { background: var(--card); border-radius: 16px; padding: 0 0 0 14px; box-shadow: var(--shadow); }
+.si { display: flex; align-items: center; gap: 12px; height: 50px; padding-right: 14px; }
+.si + .si { box-shadow: inset 0 1px 0 var(--sep); margin-left: 41px; padding-left: 0; }
+.si + .si .ic { margin-left: -41px; }
+.si .ic { width: 29px; height: 29px; border-radius: 8px; display: grid; place-items: center; color: #fff; font-size: 16px; flex: none; }
+.si .tx { flex: 1; font-size: 16px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.si .val { font-size: 14.5px; color: var(--label2); white-space: nowrap; }
+.si .nb { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--red); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.si.sel { background: var(--accent); color: #fff; margin-left: -14px; padding-left: 14px; border-radius: 12px; box-shadow: none; }
+.si.sel + .si { box-shadow: none; }
+.si.sel .val, .si.sel .chev { color: rgba(255,255,255,.8); }
+.sw { width: 51px; height: 31px; border-radius: 16px; background: var(--green); position: relative; flex: none; }
+.sw::after { content: ""; position: absolute; right: 2px; top: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.2); }
+.sw.off { background: var(--fill2); }
+.sw.off::after { right: auto; left: 2px; }
+.themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 14px 0; }
+.th { text-align: center; font-size: 13px; font-weight: 600; }
+.th .pv { height: 104px; border-radius: 14px; margin-bottom: 8px; padding: 10px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset 0 0 0 1px var(--sep); }
+.th .pv i { display: block; height: 14px; border-radius: 5px; }
+.th.on .pv { box-shadow: 0 0 0 2.5px var(--accent); }
+.th.on { color: var(--accent); }
+.acc { display: flex; gap: 12px; padding: 14px 14px 14px 0; flex-wrap: wrap; }
+.acc i { width: 30px; height: 30px; border-radius: 50%; display: block; }
+.acc i.on { box-shadow: 0 0 0 2.5px var(--card), 0 0 0 4.5px var(--label); }
+</style>
+</head>
+<body class="anno">
+
+<header class="topbar">
+  <h1>StudyPulse 分頁重設計 · 預覽<small id="subtitle"></small></h1>
+  <div class="controls">
+    <div class="seg" id="pageSeg">
+      <button data-v="trends" class="on">趨勢</button>
+      <button data-v="mistakes">錯題</button>
+      <button data-v="todo">待辦</button>
+      <button data-v="coach">教練</button>
+      <button data-v="settings">設定</button>
+    </div>
+    <div class="seg" id="deviceSeg">
+      <button data-v="both" class="on">兩者</button>
+      <button data-v="iphone">iPhone</button>
+      <button data-v="ipad">iPad</button>
+    </div>
+    <div class="seg" id="themeSeg">
+      <button data-v="light" class="on">淺色</button>
+      <button data-v="dark">深色</button>
+    </div>
+    <div class="swatches" id="swatches"></div>
+    <label class="toggle"><input type="checkbox" id="annoToggle" checked> 標註</label>
+  </div>
+</header>
+
+<div class="layout">
+  <main class="stage" id="stage"></main>
+  <aside class="notes">
+    <div class="shared"><b>全頁共通規則：</b>每個分頁開頭先回答一個問題（大標題下第一張卡），其餘內容按「行動 → 診斷 → 瀏覽」排序。導航列只留 ≤2 個按鈕（主要動作 + 選項），篩選從隱藏 Menu 搬到可見的 chip / 分段控制。iPad 一律改成「列表 | 詳情」雙欄，不再把 iPhone 版面拉寬。視覺沿用主頁預覽的 token：20pt 圓角卡、<code>zone-h</code> 區塊標題、主色只用於可點擊與「現在」。</div>
+    <h2 id="noteTitle">設計說明</h2>
+    <p class="lead" id="noteLead"></p>
+    <div id="noteList"></div>
+    <div class="mapping">
+      <h2>現有元素去向</h2>
+      <div id="mapList"></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ---------- Icons (SF Symbols stand-ins) ---------- */
+const P = {
+  home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  chart: '<path d="M3 20h18"/><path d="M5 16l4-5 4 3 6-8"/>',
+  book: '<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20"/>',
+  checklist: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/>',
+  brain: '<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V5a2 2 0 0 0-3-1z"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  slider: '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  chevR: '<path d="M9 5l7 7-7 7"/>',
+  chevL: '<path d="M15 5l-7 7 7 7"/>',
+  chevD: '<path d="M5 9l7 7 7-7"/>',
+  warn: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.5"/>',
+  sparkles: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z" fill="currentColor" stroke="none"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" fill="currentColor" stroke="none"/>',
+  play: '<path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
+  bubble: '<path d="M4 5h16v11H9l-5 4z"/>',
+  history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+  graph: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="9" cy="18" r="2.5"/><path d="M8.3 7l7.4.6M7 8.3l1.4 7.3M16.4 10l-5.6 6.2"/>',
+  doc: '<path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+  quiz: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17v.5"/>',
+  leaf: '<path d="M5 19c0-8 6-14 15-14 0 9-6 15-14 15"/><path d="M5 19l8-8"/>',
+  bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="currentColor" stroke="none"/>',
+  repeat: '<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>',
+  pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="currentColor" stroke="none"/>',
+  palette: '<path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5S14 15 15 15h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="7" r="1.2" fill="currentColor"/><circle cx="16" cy="8" r="1.2" fill="currentColor"/>',
+  grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/>',
+  bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+  archive: '<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v11h14V9M10 13h4"/>',
+  tray: '<path d="M4 14v6h16v-6M12 3v11M8 10l4 4 4-4"/>',
+  disk: '<rect x="3" y="7" width="18" height="10" rx="2"/><circle cx="17" cy="12" r="1" fill="currentColor"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+  hand: '<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11M11 10V4.5a1.5 1.5 0 0 1 3 0V11M14 10.5V6a1.5 1.5 0 0 1 3 0v8a7 7 0 0 1-7 7c-3 0-4.5-1.7-6-4l-1.6-2.8a1.4 1.4 0 0 1 2.4-1.5L8 15"/>',
+  flag: '<path d="M5 21V4h11l-2 4 2 4H5"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+  arrowUp: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  person: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  ellipsis: '<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>',
+  photo: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/>',
+  moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  flame: '<path d="M12 22c4 0 7-2.7 7-6.8 0-3.4-2.2-5.8-4-7.7-.4 2-1.4 3.2-2.7 3.7.3-3.3-1.2-6.5-4.3-8.2.4 3.4-1.4 5.4-2.8 7.2C4 11.7 5 13.5 5 15.2 5 19.3 8 22 12 22z" fill="currentColor" stroke="none"/>',
+};
+const I = (n, extra = '') => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${P[n]}</svg>`;
+const tint = (c, p = 16) => `color-mix(in srgb, ${c} ${p}%, transparent)`;
+
+/* ---------- Mock data (aligned with the home preview) ---------- */
+const SUBJ = [
+  { name: '數學', c: '#007AFF', avg: 88, d: +2.4, last: 90, lastName: '10/12 段考', s: [80, 83, 82, 86, 85, 88], mist: 38, due: 7, m: 72 },
+  { name: '物理', c: '#FF9500', avg: 71, d: -8.0, last: 68, lastName: '10/14 小考', s: [82, 80, 79, 76, 74, 71], mist: 42, due: 6, m: 41 },
+  { name: '英語', c: '#34C759', avg: 85, d: +1.0, last: 86, lastName: '10/09 段考', s: [83, 82, 85, 84, 84, 85], mist: 17, due: 0, m: 80 },
+  { name: '語文', c: '#FF2D55', avg: 82, d: +0.8, last: 83, lastName: '10/09 段考', s: [80, 81, 79, 82, 81, 82], mist: 9, due: 0, m: 76 },
+  { name: '化學', c: '#AF52DE', avg: 79, d: +0.6, last: 80, lastName: '10/11 小考', s: [76, 78, 77, 79, 78, 79], mist: 23, due: 5, m: 63 },
+  { name: '生物', c: '#30B0C7', avg: 76, d: -1.5, last: 75, lastName: '10/08 小考', s: [79, 78, 78, 77, 77, 76], mist: 11, due: 0, m: 66 },
+];
+const sc = n => SUBJ.find(s => s.name === n).c;
+
+/* ---------- Small renderers ---------- */
+function spark(vals, color, w = 70, h = 26) {
+  const lo = Math.min(...vals) - 2, hi = Math.max(...vals) + 2;
+  const pts = vals.map((v, i) => [i / (vals.length - 1) * w, h - (v - lo) / (hi - lo) * h]);
+  const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="flex:none"><path d="${line} L${w} ${h} L0 ${h}Z" fill="${color}" opacity=".12"/><path d="${line}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function areaChart(vals, { w = 330, h = 120, color = 'var(--accent)', target = null, labels = [], lo = 60, hi = 95, dots = true } = {}) {
+  const padL = 26, padB = labels.length ? 18 : 4, cw = w - padL, ch = h - padB;
+  const y = v => ch - (v - lo) / (hi - lo) * ch;
+  const pts = vals.map((v, i) => [padL + i / (vals.length - 1) * cw, y(v)]);
+  const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  let g = '';
+  [lo + (hi - lo) * .25, lo + (hi - lo) * .5, lo + (hi - lo) * .75].forEach(v => {
+    g += `<line x1="${padL}" x2="${w}" y1="${y(v)}" y2="${y(v)}" stroke="var(--sep)"/><text x="0" y="${y(v) + 4}" font-size="10" fill="var(--label2)">${Math.round(v)}</text>`;
+  });
+  if (target != null) g += `<line x1="${padL}" x2="${w}" y1="${y(target)}" y2="${y(target)}" stroke="var(--green)" stroke-dasharray="4 4" stroke-width="1.5"/><text x="${w}" y="${y(target) - 5}" text-anchor="end" font-size="10" font-weight="700" fill="var(--green)">目標 ${target}</text>`;
+  const lab = labels.map((l, i) => `<text x="${padL + i / (labels.length - 1) * cw}" y="${h - 3}" text-anchor="${i === 0 ? 'start' : i === labels.length - 1 ? 'end' : 'middle'}" font-size="10" fill="var(--label2)">${l}</text>`).join('');
+  const last = pts[pts.length - 1];
+  return `<svg width="100%" viewBox="0 0 ${w} ${h}" style="display:block;overflow:visible">${g}
+    <path d="${line} L${last[0]} ${ch} L${padL} ${ch}Z" fill="${color}" opacity=".12"/>
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dots ? pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="2.6" fill="var(--card)" stroke="${color}" stroke-width="1.8"/>`).join('') : ''}
+    <circle cx="${last[0]}" cy="${last[1]}" r="5" fill="${color}" stroke="var(--card)" stroke-width="2"/>${lab}</svg>`;
+}
+function radar(vals, axes, size = 200, color = 'var(--orange)') {
+  const cx = size / 2, cy = size / 2, R = size / 2 - 34, n = axes.length;
+  const pt = (i, r) => [cx + r * Math.sin(2 * Math.PI * i / n), cy - r * Math.cos(2 * Math.PI * i / n)];
+  let g = '';
+  [.33, .66, 1].forEach(k => { g += `<polygon points="${axes.map((_, i) => pt(i, R * k).join(',')).join(' ')}" fill="none" stroke="var(--sep)"/>`; });
+  axes.forEach((a, i) => {
+    const [x, y] = pt(i, R); g += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--sep)"/>`;
+    const [lx, ly] = pt(i, R + 18); g += `<text x="${lx}" y="${ly + 4}" text-anchor="middle" font-size="10.5" fill="var(--label2)">${a}</text>`;
+  });
+  const poly = vals.map((v, i) => pt(i, R * v).join(',')).join(' ');
+  return `<svg width="100%" viewBox="0 0 ${size} ${size}" style="display:block;max-width:${size}px;margin:0 auto">${g}<polygon points="${poly}" fill="${color}" fill-opacity=".2" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>${vals.map((v, i) => { const [x, y] = pt(i, R * v); return `<circle cx="${x}" cy="${y}" r="3" fill="${color}"/>`; }).join('')}</svg>`;
+}
+function ring(p, color, size = 34, sw = 4, label = '') {
+  const r = size / 2 - sw / 2, c = 2 * Math.PI * r;
+  return `<svg class="mastery" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="width:${size}px;height:${size}px;flex:none">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-opacity=".18" stroke-width="${sw}"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${c*p} ${c}" transform="rotate(-90 ${size/2} ${size/2})"/>
+    ${label ? `<text x="50%" y="53%" text-anchor="middle" dominant-baseline="middle" font-size="${size * .26}" font-weight="800" fill="var(--label)">${label}</text>` : ''}</svg>`;
+}
+const zoneH = (t, a = '') => `<div class="zone-h"><h2>${t}</h2>${a ? `<a>${a}</a>` : ''}</div>`;
+const navTop = (btns, back = '') => `<div class="navtop">${back ? `<span class="back">${I('chevL')}${back}</span>` : ''}<span class="sp"></span>${btns.map(b => `<button class="gbtn ${b[1] || ''}" aria-label="${b[2] || ''}">${I(b[0])}</button>`).join('')}</div>`;
+const lTitle = (t, phase = true) => `<div class="ltitle"><h1>${t}</h1>${phase ? `<span class="phase"><i class="dot"></i>高二上 · 期中衝刺 ${I('chevD', 'style="font-size:10px;opacity:.5"')}</span>` : ''}</div>`;
+
+/* =====================================================================
+   TRENDS
+   ===================================================================== */
+const trends = {
+  title: '趨勢', tab: 1,
+  sub: '先看「整體在往哪走」，再看「哪一科要管」，最後才是逐科瀏覽',
+  overview(ipad = false) {
+    return `
+    <div class="card" data-anno="1">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div>
+          <div class="hero-k">總平均 · 近 30 天</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px"><span class="bignum">81.2</span><span class="delta up">▲ 1.3</span></div>
+          <div class="tiny muted" style="margin-top:4px">6 科 · 24 次成績 · 年排 38→31</div>
+        </div>
+        <div class="segctl" style="width:126px" data-seg><button class="on">分數</button><button>排名</button></div>
+      </div>
+      <div style="margin-top:14px">${areaChart([78.4, 79.1, 80.6, 79.9, 80.2, 81.0, 80.4, 81.2], { target: 85, labels: ['9/1', '9/15', '10/1', '10/14'], w: ipad ? 340 : 330 })}</div>
+      <div class="chips" style="margin:12px -16px 0" data-chips>
+        <button class="chip on">近 30 天</button><button class="chip">本學期</button><button class="chip">本學年</button><button class="chip">全部</button>
+      </div>
+    </div>`;
+  },
+  watch() {
+    return `
+    <div class="zone">${zoneH('需要關注')}
+      <div class="card watch" data-anno="2">
+        <div class="watch-h"><span class="sq">${I('warn')}</span><div style="flex:1"><b style="font-size:17px">物理</b><div class="tiny muted">連續 3 次下滑 · 低於目標 14 分</div></div><div class="score down">71<small>▼ 8.0</small></div></div>
+        <div class="facts">
+          <div class="fact"><div class="v">6</div><div class="l">到期錯題</div></div>
+          <div class="fact"><div class="v">電磁</div><div class="l">斷層章節</div></div>
+          <div class="fact"><div class="v num">D-3</div><div class="l">物理期中</div></div>
+        </div>
+        <div style="display:flex;gap:8px"><button class="btn btn-soft" style="flex:1;background:${tint('var(--orange)', 18)};color:var(--orange)">${I('book')}複習 6 道錯題</button><button class="btn btn-gray">${I('sparkles')}AI 診斷</button></div>
+      </div>
+    </div>`;
+  },
+  subjects(sel = '') {
+    return `
+    <div class="zone">${zoneH('科目', '排序：變化')}
+      <div class="card list" data-anno="3">
+        ${[...SUBJ].sort((a, b) => a.d - b.d).map(s => `
+          <div class="rw ${s.name === sel ? 'sel' : ''}">
+            <i class="dot" style="background:${s.c};width:10px;height:10px;border-radius:3px"></i>
+            <div class="t"><b>${s.name}</b><span>最近 ${s.last} · ${s.lastName}</span></div>
+            ${spark(s.s, s.c)}
+            <div class="score">${s.avg}<small class="${s.d < 0 ? 'down' : 'up'}">${s.d < 0 ? '▼' : '▲'} ${Math.abs(s.d).toFixed(1)}</small></div>
+            <span class="chev">${I('chevR')}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  },
+  invest() {
+    const rows = [['數學競賽', 160, '#007AFF'], ['英語閱讀', 110, '#34C759'], ['物理', 100, '#FF9500'], ['化學實驗', 0, '#AF52DE']].filter(r => r[1]);
+    return `
+    <div class="zone">${zoneH('時間投入', '管理項目')}
+      <div class="card" data-anno="4">
+        <div style="display:flex;align-items:baseline;gap:8px"><b style="font-size:24px;font-weight:800" class="num">6 h 10 m</b><span class="tiny muted">本週 · 比上週 +45 m</span></div>
+        <div style="margin-top:10px">${rows.map(r => `<div class="inv-row"><span>${r[0]}</span><div class="bar"><i style="width:${r[1] / 1.7}%;background:${r[2]}"></i></div><b>${Math.floor(r[1] / 60)}h ${r[1] % 60}m</b></div>`).join('')}</div>
+        <div class="tiny muted" style="margin-top:6px">${I('clock')} 3 段計時未歸屬項目 · <span style="color:var(--accent);font-weight:600">指派</span></div>
+      </div>
+    </div>`;
+  },
+  detail() {
+    const s = SUBJ[1];
+    return `
+      ${navTop([['plus', '', '新增成績'], ['ellipsis']])}
+      <div class="ltitle" style="margin-bottom:4px"><h1 style="display:flex;align-items:center;gap:10px"><i class="dot" style="background:${s.c};width:14px;height:14px;border-radius:4px"></i>物理</h1></div>
+      <div class="tiny muted" style="margin:0 4px 14px">7 次成績 · 滿分 100 · 目標 85（期中衝刺）</div>
+      <div class="stat3" data-anno="5">
+        <div class="fact"><div class="v">71</div><div class="l">平均</div></div>
+        <div class="fact"><div class="v">88</div><div class="l">最高</div></div>
+        <div class="fact"><div class="v down">68</div><div class="l">最近</div></div>
+        <div class="fact"><div class="v">12<small class="muted" style="font-size:11px">/45</small></div><div class="l">班排</div></div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b>分數走勢</b><div class="segctl" style="width:170px" data-seg><button>1 月</button><button class="on">3 月</button><button>全部</button></div></div>
+        ${areaChart([88, 82, 80, 79, 76, 74, 68], { color: s.c, target: 85, labels: ['8/20', '9/10', '9/30', '10/14'], lo: 60, hi: 95, w: 480, h: 150 })}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div class="card" data-anno="6">
+          <b>掌握度雷達</b><div class="tiny muted" style="margin-top:2px">近 30 天 · 7 次成績 · 42 道錯題 · 310 分鐘</div>
+          ${radar([.52, .38, .3, .62, .55, .7], ['知識覆蓋', '複習頻率', '錯題率', '平均分', '學習時長', 'HRV'], 220)}
+        </div>
+        <div class="card">
+          <b>成績記錄</b>
+          <div class="list" style="padding:0;margin-top:4px">
+            ${[['10/14 小考', '電磁感應', 68], ['10/05 段考', '力學綜合', 74], ['9/26 小考', '動量', 76], ['9/18 小考', '圓周運動', 79], ['9/05 段考', '牛頓定律', 80]].map(g => `<div class="rw" style="padding:9px 0"><div class="t"><b style="font-size:14px">${g[0]}</b><span>${g[1]}</span></div><div class="score" style="font-size:15px">${g[2]}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="insight" style="margin-top:12px"><span class="ai">${I('sparkles')}AI</span><span>失分集中在「感應電流方向」與「楞次定律」。這兩個知識點的錯題有 4 道已過期未複習，先清掉它們再做一套電磁感應小測。</span></div>`;
+  },
+  iphone() {
+    return `${navTop([['slider', '', '檢視選項'], ['plus', 'pri', '新增成績']])}${lTitle('趨勢')}
+      ${this.overview()}${this.watch()}${this.subjects()}${this.invest()}`;
+  },
+  ipad() {
+    return { cols: '420px minmax(0,1fr)', a: `${navTop([['slider'], ['plus', 'pri']])}${lTitle('趨勢')}${this.overview(true)}${this.watch()}${this.subjects('物理')}${this.invest()}`, b: this.detail(), bTint: true };
+  },
+  notes: [
+    ['整體走勢卡', '新增「總平均 + 目標線」大圖，回答「整體在進步嗎」。分數 / 排名改為卡內分段控制，時間範圍改為 chip — 原本藏在 toolbar <code>viewOptionsMenu</code> 的切換全部可見。圖表類型（6 種）留在設定，這裡只用折線。'],
+    ['需要關注', '<code>subjectsNeedingAttention</code> 從橫向小卡卷軸改為單張「行動卡」：給出原因（連續下滑 / 距目標）、三個事實（到期錯題、斷層章節、最近考試）與兩個按鈕，直接跳到錯題複習或 AI 診斷。多科時第二科起收合成一行。'],
+    ['科目列表', '2 欄大卡 <code>SubjectScoreCard</code> 改為緊湊列表：迷你走勢 + 平均 + 變化，預設按「變化」排序，退步的排最前。iPhone 一屏能看完 6 科。'],
+    ['時間投入', '<code>TimeInvestmentSummaryCard</code> 從頁首移到最後，改為本週橫條圖；未歸屬計時以一行提示並可直接指派。'],
+    ['科目詳情', '<code>SubjectDetailView</code> 頂部 4 個數字 + 帶目標線的走勢，下方雷達與成績記錄並排（iPad）/ 上下排（iPhone），末尾一行 AI 解讀。iPad 為列表 | 詳情雙欄，選中科目在左欄高亮。'],
+    ['掌握度雷達', '從趨勢首頁（全科共用一張、靠 Picker 切換）移入每科詳情頁，避免首頁出現 Picker + 雷達 + AI 三層嵌套。'],
+  ],
+  map: [
+    ['移走', '<b>LearningHeatmapView</b> → 主頁「成長」區已有熱力圖，趨勢頁不再重複（<code>learningHeatmapOnTrends</code> 可移除）'],
+    ['合併', '<b>subjectMasteryRadar</b> → 科目詳情；<b>AttentionSubjectCard</b> → 需要關注行動卡'],
+    ['改為可見', '<b>trendsShowingMode</b>、時間範圍 → 卡內分段 / chip；<b>chartType</b> → 留在設定'],
+    ['保留', '<b>PhaseSelectorView</b> 從 <code>.principal</code> 移到大標題右側，與標題同一行，不再擠在導航列中央'],
+  ],
+};
+
+/* =====================================================================
+   MISTAKES
+   ===================================================================== */
+const mistakes = {
+  title: '錯題', tab: 2,
+  sub: '首屏只做兩件事：今天要複習的、和最弱的地方；瀏覽放在下面',
+  review() {
+    const parts = [['數學', 7], ['物理', 6], ['化學', 5]];
+    return `
+    <div class="card review" data-anno="1">
+      <div style="position:relative">
+        <div class="hero-k" style="color:var(--accent)">${I('repeat')} 今日複習</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px"><span class="bignum">18</span><span style="font-size:15px;font-weight:600">道到期</span><span class="tiny muted" style="margin-left:auto">約 25 分鐘</span></div>
+        <div class="stackbar">${parts.map(p => `<i style="flex:${p[1]};background:${sc(p[0])}"></i>`).join('')}</div>
+        <div class="legend">${parts.map(p => `<span><i class="dot" style="background:${sc(p[0])}"></i>${p[0]} ${p[1]}</span>`).join('')}<span style="margin-left:auto">已過期 4</span></div>
+        <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary" style="flex:1">${I('play')}開始閃卡複習</button><button class="btn btn-gray" style="height:44px;border-radius:14px">只複習物理</button></div>
+      </div>
+    </div>`;
+  },
+  weak() {
+    return `
+    <div class="zone">${zoneH('弱點', '全部')}
+      <div class="weak2" data-anno="2">
+        <div class="card"><div class="k" style="color:var(--red)">${I('bolt')}知識斷層</div><h4>電磁感應 → 楞次定律</h4><div class="tiny muted">風險 78% · 4 道錯題串起</div><div class="bar" style="margin-top:10px"><i style="width:78%;background:var(--red)"></i></div></div>
+        <div class="card"><div class="k" style="color:var(--purple)">${I('repeat')}錯誤模式</div><h4>審題漏條件</h4><div class="tiny muted">近 30 天出現 9 次 · 跨 3 科</div><div class="bar" style="margin-top:10px"><i style="width:60%;background:var(--purple)"></i></div></div>
+      </div>
+    </div>`;
+  },
+  tools() {
+    const t = [['quiz', 'AI 自測', 'var(--purple)'], ['graph', '標籤圖譜', 'var(--teal)'], ['leaf', '保鮮期', 'var(--green)'], ['doc', '匯出 PDF', 'var(--indigo)']];
+    return `<div class="tools" style="margin-top:12px" data-anno="3">${t.map(x => `<button><span class="di" style="background:${tint(x[2], 15)};color:${x[2]}">${I(x[0])}</span>${x[1]}</button>`).join('')}</div>`;
+  },
+  subjects() {
+    return `
+    <div class="zone">${zoneH('科目', '標籤')}
+      <div class="card list" data-anno="4">
+        ${SUBJ.filter(s => s.mist).sort((a, b) => b.due - a.due || b.mist - a.mist).map(s => `
+          <div class="rw">
+            ${ring(s.m / 100, s.c, 34, 4, s.m)}
+            <div class="t"><b>${s.name}</b><span>${s.mist} 道${s.due ? ` · <span style="color:var(--orange);font-weight:600">${s.due} 到期</span>` : ' · 無到期'}</span></div>
+            <span class="chev">${I('chevR')}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  },
+  recent(sel = false) {
+    const items = [
+      ['物理', '楞次定律判斷感應電流方向', ['電磁感應', '審題'], .4, '今天到期'],
+      ['數學', '三角函數最值 · 換元後範圍', ['三角函數'], .55, '明天'],
+      ['化學', '電解池兩極產物判斷', ['電化學', '概念'], .3, '今天到期'],
+      ['英語', '虛擬語氣 · mixed conditional', ['語法'], .8, '5 天後'],
+    ];
+    return `
+    <div class="zone">${zoneH('最近新增', '全部 140')}
+      <div class="card list" data-anno="5">
+        ${items.map((m, i) => `
+          <div class="rw ${sel && i === 0 ? 'sel' : ''}">
+            <div class="thumb" style="color:${sc(m[0])}">${m[0]}</div>
+            <div class="t"><b>${m[1]}</b><span>${m[2].map(t => `#${t}`).join(' ')} · ${m[4]}</span></div>
+            ${ring(m[3], m[3] < .5 ? 'var(--red)' : m[3] < .7 ? 'var(--orange)' : 'var(--green)', 22, 3.5)}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  },
+  detail() {
+    return `
+      ${navTop([['pencil', '', '編輯'], ['ellipsis']])}
+      <div style="display:flex;gap:6px;margin:4px 4px 8px"><span class="tag" style="background:${tint('#FF9500', 16)};color:#FF9500">物理</span><span class="tag" style="background:var(--fill);color:var(--label2)">#電磁感應</span><span class="tag" style="background:var(--fill);color:var(--label2)">#審題</span></div>
+      <h1 style="font-size:28px;font-weight:800;margin:0 4px 6px;letter-spacing:-.02em">楞次定律判斷感應電流方向</h1>
+      <div class="tiny muted" style="margin:0 4px">10/14 物理小考 · 第 7 題 · 收錄 2 天</div>
+      <div class="card" style="margin-top:14px;display:flex;align-items:center;gap:14px" data-anno="6">
+        ${ring(.4, 'var(--red)', 52, 6, '40')}
+        <div style="flex:1"><b>掌握度 40%</b><div class="tiny muted" style="margin-top:2px">複習 2 次 · 遺忘 1 次 · 今天到期</div></div>
+        <button class="btn btn-soft">${I('play')}現在複習</button>
+      </div>
+      <div class="stack" style="margin-top:12px">
+        <div class="card mcard"><h5>${I('photo')}題目</h5><p>如圖，條形磁鐵 N 極向下插入閉合線圈，從上往下看，線圈中感應電流的方向為？</p></div>
+        <div class="card mcard reason"><h5 style="color:var(--orange)">${I('warn')}錯因</h5><p>只看了磁鐵運動方向，沒有先判斷「原磁通量的變化」。把「阻礙變化」理解成「阻礙磁鐵」。</p></div>
+        <div class="card mcard wrong"><h5 style="color:var(--red)">${I('pencil')}我的解答</h5><p>順時針（錯）</p></div>
+        <div class="card mcard right"><h5 style="color:var(--green)">${I('check')}正確思路</h5><p>原磁場向下且增強 → 感應磁場向上 → 右手螺旋定則得 <span class="math">逆時針</span>。口訣：增反減同。</p></div>
+        <div class="card" style="display:flex;align-items:center;gap:10px"><span class="sq" style="background:${tint('var(--accent)', 14)};color:var(--accent)">${I('mic')}</span><div style="flex:1"><b style="font-size:14px">語音備忘</b><div class="tiny muted">0:42</div></div><div class="bar" style="flex:1.4"><i style="width:30%;background:var(--accent)"></i></div></div>
+      </div>
+      <div style="height:20px"></div>`;
+  },
+  iphone() {
+    return `${navTop([['ellipsis', '', '更多'], ['plus', 'pri', '新增錯題']])}${lTitle('錯題')}
+      <div class="search">${I('search')}搜尋錯題、標籤或科目</div>
+      <div style="margin-top:14px">${this.review()}</div>${this.tools()}${this.weak()}${this.subjects()}${this.recent()}`;
+  },
+  ipad() {
+    return {
+      cols: '400px minmax(0,1fr)',
+      a: `${navTop([['ellipsis'], ['plus', 'pri']])}${lTitle('錯題')}<div class="search">${I('search')}搜尋錯題、標籤或科目</div><div style="margin-top:14px">${this.review()}</div>${this.tools()}${this.weak()}${this.recent(true)}${this.subjects()}`,
+      b: this.detail(), bTint: true,
+      overlay: `<div class="actionbar" style="left:calc(240px + 400px + (100% - 640px) / 2)" data-anno="7"><button class="pri">${I('sparkles')}AI 解析</button><button>${I('quiz')}相似題</button><button>${I('graph')}思維導圖</button><button>${I('bubble')}辯論</button></div>`,
+    };
+  },
+  notes: [
+    ['今日複習主卡', '合併 <code>DueReviewBanner</code> 與閃卡入口：到期數 + 預估時間 + 按科目分段條，一鍵開始 <code>FlashcardStudyView</code>，副按鈕只複習最急的科目。0 道到期時收成一行「今天已清空」。'],
+    ['弱點並排', '<code>KnowledgeFaultLineCard</code> 與 <code>MistakePatternCard</code> 各取第一條，縮成 2 欄小卡；空狀態卡（<code>*EmptyCard</code>）不再出現，資料不足時整區隱藏。'],
+    ['工具列', '原本佔一整張卡的「AI 智能自測」與 toolbar 裡的標籤圖譜 / PDF 匯出、加入 SRS，統一成 4 格工具列（與主頁 dock 同樣式）。'],
+    ['科目', '<code>SubjectOverviewCard</code> 改列表：掌握度環 + 總數 + 到期數，按到期排序。'],
+    ['最近新增', '首頁直接露出最近 4 道錯題（縮圖 + 標籤 + 掌握度環），不用先點進科目。'],
+    ['錯題詳情', '<code>MistakeSetDetailView</code> 的頂部先放掌握度與「現在複習」，四塊內容用左側色條區分（錯因橙 / 錯解紅 / 正解綠），只渲染 Markdown 輸出。'],
+    ['AI 動作列', 'toolbar 裡的 ✨ 選單（解析 / 相似題 / 思維導圖 / 辯論）改為底部浮動玻璃膠囊，詳情頁捲到哪都能用，符合「AI 按鈕放在最直接看到的頁面」規範。'],
+  ],
+  map: [
+    ['合併', '<b>DueReviewBanner</b> + 閃卡入口 → 今日複習；<b>aiQuizCard</b>、<b>MistakeToolbar</b> 部分按鈕 → 工具列'],
+    ['精簡', '<b>KnowledgeFaultLine*</b> / <b>MistakePattern*</b> → 各一張小卡；<b>MistakeTagSectionView</b> → 科目區右上「標籤」入口'],
+    ['新增', '最近新增列表；詳情頁底部 AI 動作列'],
+    ['保留', '<b>.searchable</b> 改為常駐搜尋框；<b>OverviewStatsCard</b> 的總數移到「最近新增」標題右側'],
+  ],
+};
+
+/* =====================================================================
+   TODO
+   ===================================================================== */
+const todo = {
+  title: '待辦', tab: 3,
+  sub: '以「日」為單位看時間：週條選日、時間軸列事，考試是最醒目的那一張',
+  week(selIdx = 4) {
+    const d = [['一', 12, ['#AF52DE']], ['二', 13, ['#007AFF', '#AF52DE']], ['三', 14, ['#AF52DE']], ['四', 15, []], ['五', 16, ['#AF52DE', '#007AFF', '#AF52DE']], ['六', 17, ['#007AFF']], ['日', 18, []]];
+    return `<div class="card week" data-anno="1">${d.map((x, i) => `<div class="wd ${i === selIdx ? 'on' : ''} ${i === 4 ? 'today' : ''}"><span>${x[0]}</span><b>${x[1]}</b><div class="dots">${x[2].slice(0, 3).map(c => `<i style="background:${c}"></i>`).join('')}</div></div>`).join('')}</div>`;
+  },
+  filters() {
+    return `<div data-anno="3" style="margin-top:12px;border-radius:16px"><div class="chips" data-chips>
+      <button class="chip on">全部 <small>11</small></button><button class="chip">${I('cal')}考試 <small>3</small></button><button class="chip">${I('pencil')}作業 <small>3</small></button><button class="chip">${I('book')}閱讀 <small>2</small></button><button class="chip">${I('repeat')}例程 <small>3</small></button></div></div>`;
+  },
+  item(time, sub, title, meta, c, done = false, check = true) {
+    return `<div class="ag"><div class="tm">${time}<small>${sub}</small></div><div class="agc ${done ? 'done' : ''}" style="--c:${c}">${check ? `<span class="check ${done ? 'done' : ''}">${done ? '✓' : ''}</span>` : ''}<div class="t"><b>${title}</b><span>${meta}</span></div></div></div>`;
+  },
+  exam(anno = true) {
+    return `<div class="ag"><div class="tm">08:30<small>週一</small></div>
+      <div class="agc examc" style="--c:var(--red)" ${anno ? 'data-anno="5"' : ''}>
+        <div class="top"><div class="dbadge"><b>3</b><span>天後</span></div><div class="t"><b style="font-size:16px">物理期中考</b><span>08:30–10:00 · 三樓 302 · 座位 17</span></div></div>
+        <div class="meta"><div><b>考前清單 4/7</b><div class="bar"><i style="width:57%;background:var(--accent)"></i></div></div><div><b>掌握度 62%</b><div class="bar"><i style="width:62%;background:var(--orange)"></i></div></div></div>
+        <div style="display:flex;gap:6px;margin-top:12px"><span class="pill">${I('flag')}考場模擬</span><span class="pill">${I('target')}倒推計畫</span><span class="pill">${I('book')}6 道錯題</span></div>
+      </div></div>`;
+  },
+  agenda() {
+    return `
+      <div data-anno="4">
+      <div class="dayh"><h3>今天</h3><span>10/16 週五</span><em>3 項 · 已完成 1</em></div>
+      ${this.item('19:00', '45 分', '物理錯題複習 · 電磁感應', '例程 · 6 道到期', '#AF52DE')}
+      ${this.item('20:30', '20 分', '數學閃卡 · 三角函數', '例程 · 18 張', '#AF52DE', true)}
+      ${this.item('明早', '08:00', '英語閱讀 Unit 5', '作業 · 截止前 1 次提醒', '#007AFF')}
+      <div class="dayh"><h3>明天</h3><span>10/17 週六</span></div>
+      ${this.item('23:59', '截止', '化學實驗報告', '作業 · 已同步提醒事項', '#007AFF')}
+      <div class="dayh"><h3>週一</h3><span>10/19</span></div>
+      ${this.exam()}
+      <div class="dayh"><h3>之後</h3><span>10/20 以後</span></div>
+      ${this.item('10/25', '週日', '英語聽力測驗', '考試 · 13:10 · 9 天後', 'var(--orange)', false, false)}
+      ${this.item('10/28', '週三', '《紅樓夢》第 6–10 回', '閱讀 · 40 頁', '#34C759')}
+      ${this.item('11/1', '週六', '數學月考', '考試 · 全天 · 16 天後', 'var(--accent)', false, false)}
+      </div>
+      <div class="donefold">${I('check')} 已完成 4 項 ${I('chevD')}</div>`;
+  },
+  calendar() {
+    const marks = { 2: ['#007AFF'], 9: ['#34C759'], 13: ['#007AFF', '#AF52DE'], 16: ['#AF52DE', '#007AFF'], 17: ['#007AFF'], 19: ['#FF3B30'], 25: ['#FF9500'], 28: ['#34C759'] };
+    let cells = ['一', '二', '三', '四', '五', '六', '日'].map(h => `<div class="h">${h}</div>`).join('');
+    const pre = [28, 29, 30];
+    pre.forEach(n => cells += `<div class="c o">${n}</div>`);
+    for (let n = 1; n <= 31; n++) cells += `<div class="c ${n === 16 ? 'today' : ''} ${n === 19 ? 'on' : ''}">${n}<div class="dots">${(marks[n] || []).map(c => `<i style="background:${c}"></i>`).join('')}</div></div>`;
+    cells += `<div class="c o">1</div>`;
+    return `
+      ${navTop([['plus', 'pri']])}
+      <div class="ltitle"><h1 style="font-size:28px">2026 年 10 月</h1><div class="segctl" style="width:150px;margin-bottom:4px" data-seg><button class="on">月</button><button>週</button></div></div>
+      <div class="card"><div class="month">${cells}</div></div>
+      <div class="dayh" style="margin-top:20px"><h3>10/19 週一</h3><span>選中日期</span></div>
+      <div class="card" data-anno="6">
+        <div style="display:flex;gap:12px;align-items:center"><div class="dbadge"><b>3</b><span>天後</span></div><div style="flex:1"><b style="font-size:18px">物理期中考</b><div class="tiny muted" style="margin-top:2px">08:30–10:00 · 三樓 302 · 座位 17 · 已加入行事曆</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px">
+          <div><b class="small">考前清單</b>
+            ${[['准考證、2B 鉛筆、計算機', 1], ['電磁感應公式表', 1], ['複習 6 道到期錯題', 0], ['做一套 2025 期中卷', 1], ['前一晚 23:00 前睡', 0], ['確認考場與座位', 1], ['考前 10 分鐘看錯因', 0]].map(c => `<div class="cl ${c[1] ? 'done' : ''}"><span class="check ${c[1] ? 'done' : ''}">${c[1] ? '✓' : ''}</span><span>${c[0]}</span></div>`).join('')}
+          </div>
+          <div><b class="small">準備度</b>
+            <div style="display:flex;gap:12px;align-items:center;margin:10px 0">${ring(.62, 'var(--orange)', 60, 7, '62')}<div class="tiny muted" style="flex:1">掌握度偏低，主要缺口在電磁感應（斷層風險 78%）。</div></div>
+            <div style="display:grid;gap:8px"><button class="btn btn-soft" style="justify-content:flex-start">${I('flag')}考場角色模擬</button><button class="btn btn-soft" style="justify-content:flex-start">${I('target')}倒推複習計畫</button><button class="btn btn-gray" style="justify-content:flex-start">${I('bell')}倒數提醒：1 / 3 / 5 天前</button></div>
+          </div>
+        </div>
+      </div>`;
+  },
+  iphone() {
+    return `${navTop([['cal', '', '月曆'], ['plus', 'pri', '新增']])}${lTitle('待辦')}
+      ${this.week()}
+      <div class="banner" style="margin-top:12px" data-anno="2"><span class="bi">${I('warn')}</span><span><b>3 項</b>已過期未完成</span><span class="go">處理 ›</span></div>
+      ${this.filters()}${this.agenda()}`;
+  },
+  ipad() {
+    return {
+      cols: '430px minmax(0,1fr)',
+      a: `${navTop([['ellipsis']])}${lTitle('待辦')}${this.week()}<div class="banner" style="margin-top:12px" data-anno="2"><span class="bi">${I('warn')}</span><span><b>3 項</b>已過期未完成</span><span class="go">處理 ›</span></div>${this.filters()}${this.agenda()}`,
+      b: this.calendar(), bTint: true,
+    };
+  },
+  notes: [
+    ['週條', '取代「列表 / 日曆」二選一的 <code>viewModeMenu</code>：頂部一週 7 天，點選日期捲到該日，彩點顯示當日類型。iPhone 點右上月曆按鈕展開整月（沿用 <code>ExamCalendarView</code>），且不再只限考試。'],
+    ['過期橫幅', 'toolbar 左上的「Past Items」計數按鈕改成列表上方的 inline 橫幅，0 項時不出現。'],
+    ['類型 chip 帶數量', '<code>filterChips</code> 保留，加上每類計數；新增「例程」類，與 <code>TodoTypeFilter.routine</code> 對齊。'],
+    ['時間軸', '<code>groupedUpcoming</code> 由「1 週內 / 1 月內 / 之後」改為「今天 / 明天 / 具體日期 / 之後」，左側時間欄，右側卡片色條代表類型（例程紫 / 作業藍 / 閱讀綠 / 考試按緊迫度）。可直接打勾。'],
+    ['考試卡', '考試在時間軸中放大：D-n 徽章 + 考場座位 + 清單進度 + 掌握度，D-7 內帶「考場模擬 / 倒推計畫 / 相關錯題」入口。'],
+    ['iPad 右欄', '月曆 + 選中日的詳情（考試時就是精簡版 <code>ExamDetailView</code>：清單可直接勾、準備度環、模擬與提醒設定）。左欄時間軸、右欄日期，兩者聯動。'],
+  ],
+  map: [
+    ['取代', '<b>viewModeMenu</b>（列表 / 日曆）→ 週條 + 月曆按鈕；<b>Past Items</b> toolbar 按鈕 → 過期橫幅'],
+    ['改寫', '<b>groupedUpcoming</b> 分組規則改為按日；<b>Show Completed</b> 開關 → 底部「已完成 N 項」可展開'],
+    ['保留', '<b>addMenu</b>（考試 / 作業 / 閱讀 / 例程）仍在 + 按鈕；長按卡片的完成 / 刪除選單'],
+    ['新增', 'iPad 右欄月曆 + 日詳情；考試卡內的 D-7 工具入口'],
+  ],
+};
+
+/* =====================================================================
+   COACH
+   ===================================================================== */
+const coach = {
+  title: '教練', tab: 4,
+  sub: '從「目標列表」變成「教練室」：目前目標、今天的計畫、隨時開口問',
+  goal() {
+    return `
+    <div class="card goal" data-anno="1">
+      <div class="goal-top">
+        ${ring(.71, 'var(--purple)', 64, 7, '71%')}
+        <div class="t"><div class="hero-k" style="color:var(--purple)">${I('target')} 進行中的目標</div><h3>物理期中 85 分</h3><div class="tiny muted">10/19 · 還有 3 天 · 每天 60 分鐘 · 本週完成 5/7 次</div></div>
+      </div>
+      <div class="proposal" data-anno="2"><span style="color:var(--purple);font-size:17px">${I('sparkles')}</span><span><b>教練調整了計畫</b><br><span class="tiny muted">3 項變更：週末加一套電磁卷，減少化學閃卡</span></span><span class="go">審閱 ›</span></div>
+      <div style="display:flex;gap:8px;margin-top:12px;position:relative"><button class="btn btn-primary" style="flex:1">${I('bubble')}繼續對話</button><button class="btn btn-gray" style="height:44px;border-radius:14px">調整目標</button></div>
+    </div>`;
+  },
+  today() {
+    return `
+    <div class="zone">${zoneH('今天的計畫', '整週')}
+      <div class="card list" data-anno="3">
+        <div class="rw"><span class="check"></span><div class="t"><b>電磁感應錯題 6 道</b><span>25 分鐘 · 教練安排 · 19:00</span></div><span class="tag" style="background:${tint('var(--orange)', 16)};color:var(--orange)">重點</span></div>
+        <div class="rw"><span class="check"></span><div class="t"><b>楞次定律小測（AI 出題 8 題）</b><span>20 分鐘</span></div></div>
+        <div class="rw done"><span class="check done">✓</span><div class="t"><b>回顧 10/14 小考錯因</b><span>15 分鐘 · 已完成</span></div></div>
+      </div>
+    </div>`;
+  },
+  ask() {
+    return `
+    <div class="zone">${zoneH('問教練')}
+      <div data-anno="4">
+        <div class="prompts"><span>我物理為什麼一直退步？</span><span>幫我排這個週末</span><span>考前一晚該做什麼？</span></div>
+        <div class="composer" style="margin-top:10px"><span class="spark">${I('sparkles')}</span>開一段新對話…<span class="send">${I('arrowUp')}</span></div>
+      </div>
+    </div>`;
+  },
+  convos(sel = false) {
+    const c = [['物理期中 85 分', '教練：先把 6 道到期錯題清掉，再做一套…', '21:12'], ['週末時間怎麼排', '你：週六下午有社團，能不能…', '昨天'], ['化學月考複盤', '教練：電解池的錯誤集中在…', '10/11']];
+    return `
+    <div class="zone">${zoneH('對話', '封存 4')}
+      <div class="card list" data-anno="5">
+        ${c.map((x, i) => `<div class="rw ${sel && i === 0 ? 'sel' : ''}"><span class="convo-av">${I(i === 1 ? 'bubble' : 'brain')}</span><div class="t"><b>${x[0]}</b><span>${x[1]}</span></div><span class="tiny muted">${x[2]}</span></div>`).join('')}
+      </div>
+    </div>`;
+  },
+  others() {
+    return `
+    <div class="zone">${zoneH('其他目標')}
+      <div class="segctl" data-seg><button class="on">暫停 1</button><button>已達成 3</button><button>已放棄 1</button></div>
+      <div class="card list" style="margin-top:10px"><div class="rw"><span class="sq" style="background:var(--fill);color:var(--label2)">${I('target')}</span><div class="t"><b>英語單字 3000</b><span>暫停中 · 進度 46%</span></div><span class="chev">${I('chevR')}</span></div></div>
+    </div>
+    <div class="quota" data-anno="6">${I('sparkles')}<span>雲端 AI 本月額度</span><div class="bar"><i style="width:62%;background:var(--purple)"></i></div><span class="num">62%</span></div>`;
+  },
+  chat() {
+    return `
+      <div class="navtop"><span class="sp"></span><button class="gbtn">${I('history')}</button><button class="gbtn">${I('ellipsis')}</button></div>
+      <div style="text-align:center;margin:-34px 0 18px"><b>物理期中 85 分</b><div class="tiny muted">對話 · 綁定目標</div></div>
+      <div class="msg-u">我電磁感應的題目老是判斷錯方向，考前三天還來得及嗎？</div>
+      <div style="margin-top:18px">
+        <span class="reply-h">${I('sparkles')}已思考 4 秒</span>
+        <div class="reply">
+          來得及。你 10/14 小考的 4 道錯題都卡在<b>同一步</b>：沒先判斷原磁通量是增加還是減少。這是一個步驟問題，不是整章沒學會。
+          <h4>接下來三天</h4>
+          <ol><li><b>今晚</b>：清掉 6 道到期錯題，每題只寫「Φ 怎麼變 → 感應磁場方向」兩行。</li><li><b>週六</b>：AI 出 8 題楞次定律小測，錯 2 題以內就停。</li><li><b>週日</b>：做 2025 期中卷，限時 90 分鐘。</li></ol>
+          這樣調整後每天約 55 分鐘，在你設定的 60 分鐘內。要我把它寫進計畫嗎？
+        </div>
+        <div class="planbox" data-anno="7">
+          <div class="rw" style="padding:10px 0"><span class="sq" style="background:${tint('var(--purple)', 14)};color:var(--purple)">${I('checklist')}</span><div class="t"><b style="font-size:14px">計畫變更提案 · 3 項</b><span>週六 +小測 · 週日 +期中卷 · 化學閃卡 −10 分</span></div><button class="btn btn-soft" style="background:${tint('var(--purple)', 14)};color:var(--purple)">審閱</button></div>
+        </div>
+      </div>
+      <div style="height:30px"></div>`;
+  },
+  iphone() {
+    return `${navTop([['history', '', '歷史'], ['plus', 'pri', '新目標']])}${lTitle('教練', false)}
+      ${this.goal()}${this.today()}${this.ask()}${this.convos()}${this.others()}`;
+  },
+  ipad() {
+    return {
+      cols: '400px minmax(0,1fr)',
+      a: `${navTop([['history'], ['plus', 'pri']])}${lTitle('教練', false)}${this.goal()}${this.today()}${this.convos(true)}${this.others()}`,
+      b: this.chat(), bTint: true,
+      overlay: `<div style="position:absolute;bottom:22px;left:calc(240px + 400px + 28px);right:28px;z-index:7"><div class="prompts" style="margin-bottom:8px"><span>好，寫進計畫</span><span>週六只有 40 分鐘</span></div><div class="composer"><span class="spark">${I('sparkles')}</span>回覆教練…<span class="send">${I('arrowUp')}</span></div></div>`,
+    };
+  },
+  notes: [
+    ['目標主卡', '原本 <code>goalSection(.active)</code> 是一行 List cell。改成主卡：完成率環 + 倒數 + 每日分鐘數 + 本週執行次數，主要按鈕直接進入該目標的對話。多個進行中目標時橫向翻頁。'],
+    ['計畫提案', '<code>CoachProposalReviewView</code> 從 toolbar「+」選單深處搬到主卡內，有提案時才出現，紫色描邊表示待處理。'],
+    ['今天的計畫', '教練安排的當日項目直接可勾，和待辦頁的例程同步，不必進對話才看得到。'],
+    ['問教練', '沿用 <code>AIChatStyle</code> 的 <code>AIPromptChips</code> + 輸入列，點了直接建立獨立對話（取代「+ → New Conversation」）。'],
+    ['對話列表', '<code>standaloneSection</code> 與各目標的 <code>CoachChatListView</code> 合併成一個按時間排序的列表，顯示最後一句話；封存的收在右上。'],
+    ['其他目標 + 額度', '暫停 / 達成 / 放棄用分段控制收成一區。<code>CloudAIQuotaListSection</code> 從 List 頂部降為底部一行進度條。'],
+    ['對話頁（iPad 右欄）', '套用 <code>AIReplyHeader</code> 玻璃膠囊 + 平鋪 Markdown；教練輸出的計畫變更在回覆下方以卡片呈現，可直接審閱。'],
+  ],
+  map: [
+    ['升級', '<b>goalSection(.active)</b> → 目標主卡；<b>coachSummarySection</b> → 主卡副文'],
+    ['合併', '<b>standaloneSection</b> + <b>CoachChatListView</b> → 對話列表；<b>paused / achieved / abandoned</b> → 分段控制'],
+    ['外移', '<b>Review current proposal</b>（+ 選單）→ 主卡提案列；<b>CloudAIQuotaListSection</b> → 底部額度條'],
+    ['未開啟時', '<b>ContentUnavailableView</b> 保留，但加上「前往 LLM 設定」按鈕（沿用 <code>AIChatEmptyState</code>）'],
+  ],
+};
+
+/* =====================================================================
+   SETTINGS
+   ===================================================================== */
+const SGROUPS = [
+  ['個人化', [['palette', '外觀與語言', '#007AFF', '繁中 · 自動'], ['sparkles', '主題商店', '#AF52DE', '', 2], ['home', '主頁佈局', '#34C759', ''], ['grid', '小組件', '#30B0C7', '']]],
+  ['學習', [['trophy', '每日目標與成就', '#FF9500', '連續 23 天'], ['flag', '學習階段', '#5856D6', '期中衝刺'], ['heart', '健康與準備度', '#FF2D55', ''], ['chart', '學習報告', '#5856D6', '每週日'], ['moon', '日記提醒', '#FF9500', '21:30']]],
+  ['AI', [['brain', '大模型（BYOK）', '#30B0C7', 'DeepSeek'], ['target', 'AI 教練', '#AF52DE', '開啟']]],
+  ['資料', [['archive', '備份與恢復', '#34C759', '3 天前'], ['tray', '匯入 / 匯出', '#007AFF', ''], ['disk', '快取', '#8E8E93', '212 MB']]],
+  ['支援', [['quiz', '常見問題', '#007AFF', ''], ['hand', '參與貢獻', '#AF52DE', ''], ['info', '關於 StudyPulse', '#8E8E93', 'v2.4']]],
+];
+const settings = {
+  title: '設定', tab: 0,
+  sub: '9 個平鋪類別 → 5 組；頂部先看狀態，再找設定',
+  head() {
+    return `
+      <div class="search">${I('search')}搜尋設定</div>
+      <div class="card profile" style="margin-top:14px" data-anno="1"><span class="avatar">凱</span><div style="flex:1;min-width:0"><b style="font-size:18px">凱</b><div class="tiny muted" style="margin-top:2px">高二 · 建國中學 · 學號 1120348</div><div class="tiny" style="color:var(--accent);margin-top:4px;font-weight:600">個人資料、科目與目標學校</div></div><span class="chev">${I('chevR')}</span></div>
+      <div class="status3" style="margin-top:12px" data-anno="2">
+        <div class="st"><div class="k" style="color:var(--pink)">${I('heart')}健康</div><div class="v"><span class="up">${I('check')}</span>已連接</div><div class="s">HRV · 睡眠 · 心率</div></div>
+        <div class="st"><div class="k" style="color:var(--teal)">${I('brain')}AI</div><div class="v"><span class="up">${I('check')}</span>已設定</div><div class="s">deepseek-chat</div></div>
+        <div class="st"><div class="k" style="color:var(--orange)">${I('archive')}備份</div><div class="v" style="color:var(--orange)">${I('warn')}3 天前</div><div class="s">建議每週一次</div></div>
+      </div>`;
+  },
+  groups(sel = '') {
+    return SGROUPS.map((g, gi) => `<div class="grp-h">${g[0]}</div><div class="slist" ${gi === 0 ? 'data-anno="3"' : ''}>${g[1].map(r => `<div class="si ${r[1] === sel ? 'sel' : ''}"><span class="ic" style="background:${r[2]}">${I(r[0])}</span><span class="tx">${r[1]}</span>${r[4] ? `<span class="nb">${r[4]}</span>` : ''}<span class="val">${r[3]}</span><span class="chev">${I('chevR')}</span></div>`).join('')}</div>`).join('')
+      + `<div class="tiny muted" style="text-align:center;margin-top:22px">StudyPulse 2.4 (318) · 開源於 GitHub</div>`;
+  },
+  appearance() {
+    return `
+      <div class="navtop"><span class="sp"></span></div>
+      <div class="ltitle"><h1 style="font-size:30px">外觀與語言</h1></div>
+      <div class="grp-h" style="margin-top:6px">主題</div>
+      <div class="slist" style="padding:0 14px" data-anno="4">
+        <div class="themes">
+          <div class="th"><div class="pv" style="background:#f2f2f7"><i style="background:#fff;height:22px"></i><i style="background:#fff"></i><i style="background:#fff;width:70%"></i></div>淺色</div>
+          <div class="th"><div class="pv" style="background:#000"><i style="background:#1c1c1e;height:22px"></i><i style="background:#1c1c1e"></i><i style="background:#1c1c1e;width:70%"></i></div>深色</div>
+          <div class="th on"><div class="pv" style="background:linear-gradient(135deg,#f2f2f7 50%,#000 50%)"><i style="background:linear-gradient(90deg,#fff 50%,#1c1c1e 50%);height:22px"></i><i style="background:linear-gradient(90deg,#fff 50%,#1c1c1e 50%)"></i></div>跟隨系統</div>
+        </div>
+      </div>
+      <div class="grp-h">主色</div>
+      <div class="slist"><div class="acc">${['#007AFF', '#32ADE6', '#30B0C7', '#34C759', '#00C7BE', '#FF9500', '#FF3B30', '#FF2D55', '#AF52DE', '#5856D6'].map((c, i) => `<i style="background:${c}" class="${i === 0 ? 'on' : ''}"></i>`).join('')}</div></div>
+      <div class="tiny muted" style="margin:7px 16px 0">更多配色在主題商店解鎖。</div>
+      <div class="grp-h">效果</div>
+      <div class="slist">
+        <div class="si"><span class="ic" style="background:#30B0C7">${I('sparkles')}</span><span class="tx">Liquid Glass 卡片</span><span class="sw"></span></div>
+        <div class="si"><span class="ic" style="background:#8E8E93">${I('photo')}</span><span class="tx">自訂背景圖</span><span class="val">未設定</span><span class="chev">${I('chevR')}</span></div>
+        <div class="si"><span class="ic" style="background:#5856D6">${I('chart')}</span><span class="tx">圖表樣式</span><span class="val">折線</span><span class="chev">${I('chevR')}</span></div>
+      </div>
+      <div class="grp-h">語言</div>
+      <div class="slist">
+        <div class="si"><span class="ic" style="background:#007AFF">${I('bubble')}</span><span class="tx">App 語言</span><span class="val">繁體中文</span><span class="chev">${I('chevR')}</span></div>
+      </div>`;
+  },
+  iphone() {
+    return `${navTop([], '主頁')}${lTitle('設定', false)}${this.head()}${this.groups()}`;
+  },
+  ipad() {
+    return { cols: '400px minmax(0,1fr)', sidebar: 'settings', a: `<div class="navtop"></div>${lTitle('設定', false)}${this.head()}${this.groups('外觀與語言')}`, b: this.appearance(), bTint: true };
+  },
+  notes: [
+    ['個人資料卡', '保留 pinned 個人列，但副標顯示年級 / 學校 / 學號，並明示點進去能改科目與目標學校（原本藏在 <code>ProfileSettingsView</code>）。'],
+    ['狀態一覽', '新增 3 格狀態：HealthKit 是否授權、LLM 是否 <code>isConfigured</code>、上次完整備份距今。異常（如備份 &gt; 7 天）顯示橙色，點擊直達對應頁。'],
+    ['五組分類', '原 <code>SettingsCategory</code> 9 項平鋪、每項兩行說明。改成「個人化 / 學習 / AI / 資料 / 支援」五組單行列，右側顯示目前值（語言、階段、模型、快取大小），一眼知道狀態。原本藏在子頁的「每日目標」「學習階段」「主頁佈局」「AI 教練」升到第一層。'],
+    ['iPad 雙欄', '設定在 iPad 改為列表 | 詳情，右側示範重排後的「外觀與語言」：主題用預覽圖選、主色直接點色票、效果開關集中。建議在 iPad 側欄底部加一個「設定」入口（iPhone 仍從主頁右上齒輪進入）。'],
+  ],
+  map: [
+    ['拆分', '<b>appearance</b> → 外觀與語言 + 主頁佈局 + 小組件；<b>data</b> → 備份 / 匯入匯出 / 快取 / 學習階段'],
+    ['升級', '<b>DailyGoalsConfigView</b>、<b>AchievementsView</b>、<b>PhaseManagementView</b>、<b>DiarySettingsView</b> → 第一層「學習」組'],
+    ['新增', '頂部搜尋、狀態一覽、每列的目前值'],
+    ['保留', '<b>themeShop</b>（加新解鎖紅點）、<b>about</b> / <b>faq</b> / <b>contribution</b> → 「支援」組'],
+  ],
+};
+
+const PAGES = { trends, mistakes, todo, coach, settings };
+const TABS = [['home', '主頁'], ['chart', '趨勢'], ['book', '錯題'], ['checklist', '待辦'], ['brain', '教練']];
+
+/* ---------- Devices ---------- */
+function iphone(page) {
+  const tabbar = page === settings ? '' : `<nav class="tabbar">${TABS.map((t, i) => `<div class="tab ${i === page.tab ? 'on' : ''}">${I(t[0])}${t[1]}</div>`).join('')}</nav>`;
+  return `<div class="device-wrap"><div class="scaler" data-w="393" data-h="852"><div class="iphone"><div class="screen">
+    <div class="statusbar"><span>21:41</span><div class="island"></div><span class="sb-icons">●●● ▮</span></div>
+    <div class="scroll" style="${page === settings ? 'padding-bottom:40px' : ''}">${page.iphone()}</div>
+    ${tabbar}
+    <div class="homeind"></div>
+  </div></div></div><div class="device-caption">iPhone · 393 × 852${page === settings ? ' · 由主頁右上齒輪推入' : ''}</div></div>`;
+}
+function ipad(page) {
+  const v = page.ipad();
+  const side = TABS.map((t, i) => `<div class="side-i ${i === page.tab && page !== settings ? 'on' : ''}">${I(t[0])}${t[1]}</div>`).join('');
+  return `<div class="device-wrap"><div class="scaler" data-w="1194" data-h="834"><div class="ipad"><div class="screen">
+    <aside class="sidebar"><h2>StudyPulse</h2>${side}<div class="side-sp"></div><div class="side-i ${page === settings ? 'on' : ''}">${I('gear')}設定</div></aside>
+    <div class="detail" style="--cols:${v.cols}">
+      <div class="statusbar" style="grid-column:1/-1;position:absolute"><span>21:41  10月16日 週五</span><span class="sb-icons">●●● ▮</span></div>
+      <div class="col">${v.a}</div>
+      <div class="col ${v.bTint ? 'tint' : ''}">${v.b}</div>
+    </div>
+    ${v.overlay || ''}
+  </div></div></div><div class="device-caption">iPad · 1194 × 834 · 列表 | 詳情</div></div>`;
+}
+
+/* ---------- Controls ---------- */
+const ACCENTS = ['#007AFF', '#32ADE6', '#30B0C7', '#34C759', '#00C7BE', '#FF9500', '#FF2D55', '#AF52DE', '#5856D6'];
+const state = { page: 'trends', device: 'both', theme: 'light', accent: ACCENTS[0] };
+try { Object.assign(state, JSON.parse(localStorage.getItem('sp-pages-preview') || '{}')); } catch (e) {}
+const q = new URLSearchParams(location.search);
+['page', 'device', 'theme', 'accent'].forEach(k => { if (q.get(k)) state[k] = q.get(k); });
+if (!PAGES[state.page]) state.page = 'trends';
+const save = () => { try { localStorage.setItem('sp-pages-preview', JSON.stringify(state)); } catch (e) {} };
+
+const sw = document.getElementById('swatches');
+sw.innerHTML = ACCENTS.map(c => `<button style="background:${c}" data-c="${c}" aria-label="主色 ${c}"></button>`).join('');
+
+function render() {
+  const page = PAGES[state.page];
+  document.documentElement.dataset.theme = state.theme;
+  document.documentElement.style.setProperty('--accent', state.accent);
+  [['#pageSeg', 'page'], ['#deviceSeg', 'device'], ['#themeSeg', 'theme']].forEach(([sel, k]) =>
+    document.querySelectorAll(sel + ' button').forEach(b => b.classList.toggle('on', b.dataset.v === state[k])));
+  [...sw.children].forEach(b => b.classList.toggle('on', b.dataset.c === state.accent));
+  document.getElementById('subtitle').textContent = `${page.title}：${page.sub}`;
+  document.getElementById('noteTitle').textContent = `${page.title} · 設計說明`;
+  document.getElementById('noteLead').textContent = page.sub;
+  document.getElementById('noteList').innerHTML = page.notes.map((n, i) => `<div class="note"><span class="n">${i + 1}</span><div><h3>${n[0]}</h3><p>${n[1]}</p></div></div>`).join('');
+  document.getElementById('mapList').innerHTML = page.map.map(m => `<div class="maprow"><b>${m[0]}</b><span>${m[1]}</span></div>`).join('');
+  const stage = document.getElementById('stage');
+  stage.innerHTML = (state.device !== 'ipad' ? iphone(page) : '') + (state.device !== 'iphone' ? ipad(page) : '');
+  wire(stage);
+  fit();
+}
+function fit() {
+  const stage = document.getElementById('stage');
+  const avail = stage.clientWidth;
+  stage.querySelectorAll('.scaler').forEach(s => {
+    const w = +s.dataset.w + 4, h = +s.dataset.h + 4;
+    const scale = Math.min(1, avail / w);
+    s.style.transform = `scale(${scale})`;
+    s.style.width = w + 'px'; s.style.height = h + 'px';
+    s.parentElement.style.width = w * scale + 'px';
+    s.style.marginBottom = (h * scale - h) + 'px';
+  });
+}
+function wire(root) {
+  root.querySelectorAll('[data-seg]').forEach(seg => seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  }));
+  root.querySelectorAll('[data-chips]').forEach(seg => seg.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    seg.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b));
+  }));
+  root.querySelectorAll('.wd').forEach(d => d.addEventListener('click', () => {
+    d.parentElement.querySelectorAll('.wd').forEach(x => x.classList.toggle('on', x === d));
+  }));
+  root.querySelectorAll('.check').forEach(c => c.addEventListener('click', () => {
+    const row = c.closest('.rw, .agc, .cl'); const done = !c.classList.contains('done');
+    c.classList.toggle('done', done); c.textContent = done ? '✓' : '';
+    if (row) row.classList.toggle('done', done);
+  }));
+}
+[['pageSeg', 'page'], ['deviceSeg', 'device'], ['themeSeg', 'theme']].forEach(([id, k]) =>
+  document.getElementById(id).addEventListener('click', e => { const b = e.target.closest('button'); if (b) { state[k] = b.dataset.v; save(); render(); window.scrollTo({ top: 0 }); } }));
+sw.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { state.accent = b.dataset.c; save(); render(); } });
+document.getElementById('annoToggle').addEventListener('change', e => document.body.classList.toggle('anno', e.target.checked));
+window.addEventListener('resize', fit);
+render();
+</script>
+</body>
+</html>

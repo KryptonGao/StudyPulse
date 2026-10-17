@@ -69,6 +69,50 @@ nonisolated struct TimeInvestmentAggregator: Sendable {
     }
 }
 
+/// 本周(周一起)各项目的投入 / This week's (Monday-first) per-project investment.
+nonisolated struct WeeklyInvestment: Sendable, Equatable {
+    struct Row: Identifiable, Sendable, Equatable {
+        let subject: TimeInvestmentSubject
+        let seconds: Int
+        var id: UUID { subject.id }
+    }
+
+    var totalSeconds: Int
+    var previousTotalSeconds: Int
+    /// 秒数降序,仅含 > 0 的项目 / Descending by seconds, only projects with time.
+    var rows: [Row]
+    var unassignedCount: Int
+}
+
+nonisolated extension TimeInvestmentAggregator {
+    func weekly(now: Date = Date(), calendar: Calendar = .current) -> WeeklyInvestment {
+        var cal = calendar
+        cal.firstWeekday = 2
+        let weekStart = cal.dateInterval(of: .weekOfYear, for: now)?.start ?? cal.startOfDay(for: now)
+        let prevStart = cal.date(byAdding: .day, value: -7, to: weekStart) ?? weekStart
+
+        func seconds(_ target: InvestmentTarget, from: Date, to: Date?) -> Int {
+            sessions(for: target)
+                .filter { $0.startDate >= from && (to == nil || $0.startDate < to!) }
+                .reduce(0) { $0 + $1.durationSeconds }
+        }
+
+        var rows: [WeeklyInvestment.Row] = []
+        var total = 0
+        var previous = 0
+        for subject in subjects where !subject.isArchived {
+            let current = seconds(.subject(subject.id), from: weekStart, to: nil)
+            total += current
+            previous += seconds(.subject(subject.id), from: prevStart, to: weekStart)
+            if current > 0 { rows.append(.init(subject: subject, seconds: current)) }
+        }
+        rows.sort { $0.seconds > $1.seconds }
+        return WeeklyInvestment(
+            totalSeconds: total, previousTotalSeconds: previous, rows: rows, unassignedCount: unassignedSessions.count
+        )
+    }
+}
+
 nonisolated enum StudyStreakCalculator {
     private struct DayKey: Hashable, Comparable {
         let year: Int

@@ -16,8 +16,42 @@ import SwiftStreamingMarkdown
 struct MistakeSetHeaderSection: View {
     let mistake: MistakeNote
     let tintColor: Color
+    /// 点击「立即复习」/ Tapped "Review now".
+    var onReview: (() -> Void)? = nil
+
+    private var reviewCaption: String {
+        guard let days = MistakeHomeEngine.daysUntilReview(mistake) else {
+            return "mistake.v2.detail.notEnrolled".localized()
+        }
+        if days < 0 { return String(format: "mistake.v2.detail.overdue".localized(), -days) }
+        if days == 0 { return "mistake.v2.detail.dueToday".localized() }
+        return String(format: "mistake.v2.detail.dueIn".localized(), days)
+    }
 
     var body: some View {
+        Section {
+            HStack(spacing: 12) {
+                MiniRing(progress: mistake.masteryScore, color: tintColor, lineWidth: 5, size: 44)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(Int((mistake.masteryScore * 100).rounded()))%")
+                        .font(.system(.title3, design: .rounded, weight: .bold))
+                    Text(reviewCaption)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if let onReview {
+                    Button(action: onReview) {
+                        Text("mistake.v2.detail.reviewNow".localized())
+                            .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.capsule)
+                }
+            }
+            .padding(.vertical, 4)
+        }
+
         Section {
             MasteryCurveView(
                 history: mistake.masteryHistory,

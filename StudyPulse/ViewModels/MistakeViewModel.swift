@@ -54,6 +54,14 @@ final class MistakeViewModel {
     /// SRS 总览 / SRS overview.
     private(set) var srsOverview: SRSOverview = .empty
     private(set) var patternSummaries: [MistakePatternSummary] = []
+    /// 今日复习分解 / Today's review breakdown.
+    private(set) var review: MistakeReviewBreakdown = .empty
+    /// 科目汇总(到期多的在前) / Subject summaries (most due first).
+    private(set) var subjectSummaries: [MistakeSubjectSummary] = []
+    /// 最近新增 / Recently added.
+    private(set) var recentMistakes: [MistakeNote] = []
+    /// 搜索结果(平铺,按日期降序) / Flat search results, newest first.
+    private(set) var searchResults: [MistakeNote] = []
 
     // MARK: - 初始化 / Initialization
     init(container: RepositoryContainer) {
@@ -80,6 +88,12 @@ final class MistakeViewModel {
             searchText: searchText
         )
         srsOverview = SRSAlgorithm.overview(from: filteredMistakes)
+        review = MistakeHomeEngine.review(mistakes: filteredMistakes)
+        subjectSummaries = MistakeHomeEngine.subjectSummaries(mistakes: filteredMistakes)
+        recentMistakes = MistakeHomeEngine.recent(mistakes: filteredMistakes, limit: 4)
+        searchResults = groups.filteredSubjects
+            .flatMap { groups.bySubject[$0] ?? [] }
+            .sorted { $0.date > $1.date }
         let parsed = MistakeFilter.parseSearchQuery(searchText)
         let patternMistakes = (parsed.tags.isEmpty && parsed.text.isEmpty)
             ? filteredMistakes

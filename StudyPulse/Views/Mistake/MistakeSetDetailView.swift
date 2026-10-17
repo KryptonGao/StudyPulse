@@ -48,6 +48,8 @@ struct MistakeSetDetailView: View {
     /// 是否弹出 AI 错题辩论 sheet
     /// Whether to present the AI mistake-debate sheet.
     @State private var showingAIDebate = false
+    /// 是否全屏显示思维导图 / Whether to present the mind map full screen.
+    @State private var showingMindMap = false
     /// 最近一次成功的 AI 解析(供"深入探讨"sheet 当作 initial assistant 消息)
     /// Most recent successful AI analysis (used as the initial assistant
     /// message in the deep-discussion sheet).
@@ -65,7 +67,11 @@ struct MistakeSetDetailView: View {
         List {
             // 顶部 header 区块:掌握度曲线 + 错题基本字段
             // Top header block: mastery curve + basic fields.
-            MistakeSetHeaderSection(mistake: liveMistake, tintColor: container.envManager.effectiveAccentColor)
+            MistakeSetHeaderSection(
+                mistake: liveMistake,
+                tintColor: container.envManager.effectiveAccentColor,
+                onReview: { showingQuickReview = true }
+            )
 
             // 主体内容:原题 / 错因 / 错解 / 正解 四段 Markdown
             // Main content: 4 markdown sections (question / reason / wrong / correct).
@@ -84,13 +90,24 @@ struct MistakeSetDetailView: View {
         .toolbar {
             MistakeDetailToolbar(
                 liveMistake: liveMistake,
-                isLLMConfigured: container.envManager.llmConfig.isConfigured,
                 onEdit: { showingEditSheet = true },
-                onQuickReview: { showingQuickReview = true },
-                onAIAnalysis: { showingAIAnalysis = true },
-                onAISimilarQuestion: { showingAISimilarQuestion = true },
-                onAIDebate: { showingAIDebate = true }
+                onQuickReview: { showingQuickReview = true }
             )
+        }
+        // AI 动作:底部悬浮玻璃胶囊,滚到哪都能用
+        // AI actions: floating glass capsule at the bottom, reachable anywhere on the page.
+        .safeAreaInset(edge: .bottom) {
+            MistakeAIActionBar(
+                onAnalysis: { showingAIAnalysis = true },
+                onSimilar: { showingAISimilarQuestion = true },
+                onMindMap: { showingMindMap = true },
+                onDebate: { showingAIDebate = true }
+            )
+            .padding(.bottom, 6)
+        }
+        .fullScreenCover(isPresented: $showingMindMap) {
+            AutoMindMapView(mistakes: [liveMistake], contextTitle: liveMistake.title)
+                .environment(container)
         }
         // 编辑 sheet
         // Edit sheet.
