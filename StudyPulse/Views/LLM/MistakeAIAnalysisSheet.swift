@@ -129,59 +129,38 @@ struct MistakeAIAnalysisSheet: View {
     // MARK: - Subviews / 子视图
 
     private var notConfiguredView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "brain")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary)
-            Text("LLM Not Configured".localized())
-                .font(.headline)
-            Text("Set Base URL, API Key and Model in Settings → LLM.".localized())
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            NavigationLink(destination: LLMSettingsView()) {
-                Label("Open LLM Settings".localized(), systemImage: "gearshape")
-            }
-            .buttonStyle(.borderedProminent)
+        ScrollView {
+            AIChatEmptyState(kind: .notConfigured())
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func errorView(_ message: String) -> some View {
-        VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 48))
-                .foregroundColor(.orange)
-            Text("AI 解析失败".localized())
-                .font(.headline)
-            Text(message)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            Button("Retry".localized()) {
-                startAnalysis()
+        ScrollView {
+            VStack(spacing: 8) {
+                AIChatEmptyState(kind: .welcome(
+                    symbol: "exclamationmark.triangle.fill",
+                    title: "AI 解析失败".localized(),
+                    message: message
+                ))
+                Button("Retry".localized()) {
+                    startAnalysis()
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.bordered)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    /// 首字未到:与对话页同款的思考态(头部计时 + 扫光占位条)
+    /// Before the first token: the same thinking state the chat screens use.
     private var loadingView: some View {
-        AIWaitingView(
-            title: "Analyzing...".localized(),
-            messages: [
-                "AI正在结合历史数据...".localized(),
-                "AI正在提炼表达...".localized(),
-                "正在解构错题的考查要点...".localized(),
-                "正在诊断您的思维误区...".localized(),
-                "正在撰写深度的正确解题思路...".localized(),
-                "正在沉淀易错防坑指南...".localized()
-            ],
-            onCancel: {
-                streamTask?.cancel()
-                dismiss()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                summaryHeader
+                Divider()
+                AIThinkingState(presentation: .sheen, lineCount: 4)
             }
-        )
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     private var contentView: some View {
@@ -189,13 +168,14 @@ struct MistakeAIAnalysisSheet: View {
             VStack(alignment: .leading, spacing: 12) {
                 summaryHeader
                 Divider()
+                AIReplyHeader(isWorking: isLoading)
                 if streamedText.isEmpty {
                     Text("Waiting for response...".localized())
                         .foregroundColor(.secondary)
                 } else {
                     // 流式渲染:每个字符更新都会触发 onDelta,但 SwiftUI 的 .task(id:) 会在 text 变化时重新 parse
                     // 我们用一个内部 AsyncStream 把 streamedText 喂给 StreamedMarkdownView
-                    MarkdownStreamedContent(text: streamedText)
+                    MarkdownStreamedContent(text: streamedText, isStreaming: isLoading)
                 }
                 if let patternResult, !patternResult.patternIDs.isEmpty {
                     patternDecisionView(patternResult)
@@ -336,9 +316,10 @@ struct MistakeAIAnalysisSheet: View {
 /// 与 `MarkdownView` 内置的 `task(id: text)` 一致,无需自己实现 `StreamedMarkdownSource`。
 private struct MarkdownStreamedContent: View {
     let text: String
+    var isStreaming: Bool = false
 
     var body: some View {
         // 使用与项目其它位置一致的 previewConfig + 单美元符号 LaTeX 归一化
-        MarkdownView(text: text.normalisingSingleDollarMath(), config: .previewConfig)
+        MarkdownView(text: text.normalisingSingleDollarMath(), config: .chatConfig(isStreaming: isStreaming))
     }
 }

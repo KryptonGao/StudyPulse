@@ -27,15 +27,11 @@ struct LLMChatView: View {
     /// Input bar text.
     @State private var inputText: String = ""
     @State private var inputAttachments: [LLMImageAttachment] = []
-    /// 输入框焦点状态
-    /// Input focus state.
-    @FocusState private var inputFocused: Bool
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            AIChatFlowingBackground()
-                .ignoresSafeArea()
+        AIChatScaffold {
             messagesList
+        } input: {
             ChatInputBar(
                 text: $inputText,
                 isStreaming: viewModel.isStreaming,
@@ -47,7 +43,6 @@ struct LLMChatView: View {
                 onSendWithImages: { attachments in send(attachments: attachments) }
             )
         }
-        .containerBackground(.clear, for: .navigation)
         .debugModeContainer()
         .debugLayoutBoundsAuto()
         .llmDebugButton(caller: "LLMChat")
@@ -56,20 +51,12 @@ struct LLMChatView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                if viewModel.isStreaming {
-                    Button {
-                        viewModel.cancel()
-                    } label: {
-                        Image(systemName: "stop.circle.fill")
-                    }
-                } else {
-                    Button {
-                        viewModel.reset()
-                    } label: {
-                        Image(systemName: "trash")
-                    }
-                    .disabled(viewModel.messages.isEmpty)
-                }
+                AIChatTrailingAction(
+                    isStreaming: viewModel.isStreaming,
+                    canClear: !viewModel.messages.isEmpty,
+                    onStop: { viewModel.cancel() },
+                    onClear: { viewModel.reset() }
+                )
             }
         }
     }
@@ -86,10 +73,8 @@ struct LLMChatView: View {
             ScrollView {
                 if viewModel.messages.isEmpty {
                     emptyState
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 80)
                 } else {
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(alignment: .leading, spacing: 18) {
                         ForEach(viewModel.messages) { message in
                             ChatBubble(
                                 role: message.role == .user ? .user : .assistant(dimmed: false),
@@ -101,12 +86,7 @@ struct LLMChatView: View {
                             .id(message.id)
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                    .padding(.bottom, 16)
-                    // 驱动 bubble 进出场的 transition
-                    // Drives bubble enter/exit transitions.
-                    .animation(.spring(response: 0.35, dampingFraction: 0.78), value: viewModel.messages.count)
+                    .aiChatMessageColumn(animatedBy: viewModel.messages.count)
                 }
             }
             .scrollDismissesKeyboard(.interactively)
@@ -121,35 +101,16 @@ struct LLMChatView: View {
 
     // MARK: - Empty State / 空态
 
+    @ViewBuilder
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            if !container.envManager.llmConfig.isConfigured {
-                Image(systemName: "brain")
-                    .font(.system(size: 56))
-                    .foregroundColor(.secondary)
-                Text("LLM Not Configured".localized())
-                    .font(.headline)
-                Text("Set Base URL, API Key and Model in Settings → LLM.".localized())
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                NavigationLink(destination: LLMSettingsView()) {
-                    Label("Open LLM Settings".localized(), systemImage: "gearshape")
-                }
-                .buttonStyle(.borderedProminent)
-            } else {
-                Image(systemName: "bubble.left.and.bubble.right")
-                    .font(.system(size: 56))
-                    .foregroundColor(.secondary)
-                Text("Start a conversation".localized())
-                    .font(.headline)
-                Text("Ask about your grades, mistakes, or exams.".localized())
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-            }
+        if !container.envManager.llmConfig.isConfigured {
+            AIChatEmptyState(kind: .notConfigured())
+        } else {
+            AIChatEmptyState(kind: .welcome(
+                symbol: "bubble.left.and.bubble.right",
+                title: "Start a conversation".localized(),
+                message: "Ask about your grades, mistakes, or exams.".localized()
+            ))
         }
     }
 

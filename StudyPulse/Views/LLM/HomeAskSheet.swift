@@ -30,13 +30,8 @@ import SwiftStreamingMarkdown
 /// then merges the context for the final answer.
 struct HomeAskSheet: View {
     @State private var viewModel: HomeAskViewModel
-    @Environment(RepositoryContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
-    /// 输入框焦点状态(用于 example chip 点击后弹出键盘)
-    /// Input focus state (used so tapping an example chip pops the keyboard).
-    @FocusState private var inputFocused: Bool
-    @State private var showingHealthDataConsent = false
-    
+
     /// 预设的初始提问内容
     /// Injected initial question.
     private let initialQuestion: String?
@@ -50,58 +45,81 @@ struct HomeAskSheet: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                AIChatFlowingBackground()
-                    .ignoresSafeArea()
-                if !viewModel.envManager.llmConfig.isConfigured {
-                    notConfiguredView
-                } else if viewModel.messages.isEmpty {
-                    emptyState
-                } else {
-                    messageList
-                }
-                ChatInputBar(
-                    text: $viewModel.inputText,
-                    isStreaming: viewModel.phase != .idle,
-                    canSend: canSend,
-                    onSend: {
-                        let text = viewModel.inputText
-                        viewModel.send(text)
-                    },
-                    onCancel: { viewModel.cancel() }
-                )
-            }
-            .containerBackground(.clear, for: .navigation)
-            .navigationTitle("Ask AI".localized())
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close".localized()) {
-                        viewModel.cancel()
-                        dismiss()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    if viewModel.phase != .idle {
-                        Button {
+            HomeAskChatView(viewModel: viewModel)
+                .navigationTitle("Ask AI".localized())
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Close".localized()) {
                             viewModel.cancel()
-                        } label: {
-                            Image(systemName: "stop.circle.fill")
+                            dismiss()
                         }
-                    } else if !viewModel.messages.isEmpty {
-                        Button(role: .destructive) {
-                            viewModel.reset()
-                        } label: {
-                            Image(systemName: "trash")
-                        }
-                        .accessibilityLabel("Clear".localized())
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        AIChatTrailingAction(
+                            isStreaming: viewModel.phase != .idle,
+                            canClear: !viewModel.messages.isEmpty,
+                            onStop: { viewModel.cancel() },
+                            onClear: { viewModel.reset() }
+                        )
                     }
                 }
-            }
         }
         .llmDebugButton(caller: "HomeAsk-Answer")
         .cloudThinkingToolbar()
         .onDisappear { viewModel.cancel() }
+        .onAppear {
+            // 如果传入了初始问题，且当前无对话记录，则自动触发发送
+            // Automatically submit the initial question on appear if present and conversation is empty.
+            if let initialQuestion, !initialQuestion.isEmpty, viewModel.messages.isEmpty {
+                viewModel.send(initialQuestion)
+            }
+        }
+    }
+}
+
+/// 主页 AI 提问的对话主体(空态 / 消息流 / 底部输入框 / 健康数据授权),
+/// 不含导航栏,可嵌入 sheet,也可嵌入主页原地展开的玻璃面板。
+/// Conversation body of the Home ask flow (empty state / messages / bottom input / health-data consent),
+/// without a navigation bar, so it can live in a sheet or in the in-place expanding glass panel.
+struct HomeAskChatView: View {
+    @Bindable var viewModel: HomeAskViewModel
+    /// 嵌入玻璃面板时关闭流光背景 / Turn off the flowing background when embedded in a glass panel.
+    var showsFlowingBackground: Bool = true
+
+    @Environment(RepositoryContainer.self) private var container
+    @State private var showingHealthDataConsent = false
+
+    var body: some View {
+        AIChatScaffold(showsFlowingBackground: showsFlowingBackground) {
+            // 空态放进 ScrollView:低矮的面板(半屏 + 键盘)里内容可滚动而不是溢出裁切。
+            // Empty states live in a ScrollView so a short panel (half height + keyboard) scrolls instead of clipping.
+            if !viewModel.envManager.llmConfig.isConfigured {
+                ScrollView {
+                    AIChatEmptyState(kind: .notConfigured(showsSettingsLink: false))
+                        .frame(maxWidth: .infinity)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+            } else if viewModel.messages.isEmpty {
+                ScrollView {
+                    emptyState
+                }
+                .scrollBounceBehavior(.basedOnSize)
+            } else {
+                messageList
+            }
+        } input: {
+            ChatInputBar(
+                text: $viewModel.inputText,
+                isStreaming: viewModel.phase != .idle,
+                canSend: canSend,
+                onSend: {
+                    let text = viewModel.inputText
+                    viewModel.send(text)
+                },
+                onCancel: { viewModel.cancel() }
+            )
+        }
         .onChange(of: viewModel.shouldRequestHealthDataConsent) { _, newValue in
             showingHealthDataConsent = newValue
         }
@@ -115,82 +133,29 @@ struct HomeAskSheet: View {
             }
             .environment(container)
         }
-        .onAppear {
-            // 如果传入了初始问题，且当前无对话记录，则自动触发发送
-            // Automatically submit the initial question on appear if present and conversation is empty.
-            if let initialQuestion, !initialQuestion.isEmpty, viewModel.messages.isEmpty {
-                viewModel.send(initialQuestion)
-            }
-        }
     }
 
-    // MARK: - Empty / not configured / 空态 / 未配置
-
-    private var notConfiguredView: some View {
-        VStack(spacing: 12) {
-            Spacer()
-            Image(systemName: "exclamationmark.bubble")
-                .font(.system(size: 40))
-                .foregroundColor(.orange)
-            Text("未配置大模型".localized())
-                .font(.headline)
-            Text("前往 设置 → AI 设置,填入 Base URL / API Key 后即可使用".localized())
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-            Spacer()
-        }
-    }
+    // MARK: - Empty / 空态
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            Image(systemName: "text.bubble.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(LinearGradient(
-                    colors: [.teal, .blue],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ))
-            Text("Ask AI".localized())
-                .font(.title2.weight(.semibold))
-            Text("问我关于你的身体状态、成绩、趋势、复习建议的问题。\n我会先判断需要哪些数据,再合并上下文给你回答。".localized())
-                .font(.callout)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            // 推荐提问样例
-            VStack(spacing: 8) {
-                exampleChip("今天适合做难题吗?".localized())
-                exampleChip("我最近的数学成绩怎么样?".localized())
-                exampleChip("本周学习时间够不够?".localized())
-                exampleChip("现在应该复习什么?".localized())
+        VStack(spacing: 20) {
+            AIChatEmptyState(kind: .welcome(
+                symbol: "text.bubble.fill",
+                title: "Ask AI".localized(),
+                message: "问我关于你的身体状态、成绩、趋势、复习建议的问题。\n我会先判断需要哪些数据,再合并上下文给你回答。".localized()
+            ))
+            AIPromptChips(
+                prompts: [
+                    "今天适合做难题吗?".localized(),
+                    "我最近的数学成绩怎么样?".localized(),
+                    "本周学习时间够不够?".localized(),
+                    "现在应该复习什么?".localized()
+                ]
+            ) { prompt in
+                viewModel.inputText = prompt
             }
-            .padding(.top, 8)
-            Spacer()
         }
-    }
-
-    private func exampleChip(_ text: String) -> some View {
-        Button {
-            inputFocused = true
-            viewModel.inputText = text
-        } label: {
-            Text(text)
-                .font(.callout)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule().fill(Color(.tertiarySystemBackground))
-                )
-                .overlay(
-                    Capsule().strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
-                )
-                .foregroundColor(.primary)
-        }
-        .buttonStyle(.plain)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     // MARK: - Message list / 消息列表
@@ -198,43 +163,28 @@ struct HomeAskSheet: View {
     private var messageList: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 14) {
+                LazyVStack(alignment: .leading, spacing: 18) {
                     ForEach(viewModel.messages) { message in
                         messageRow(message)
                             .id(message.id)
                     }
-                    if viewModel.phase != .idle {
-                        HStack(spacing: 6) {
-                            ProgressView().scaleEffect(0.7)
-                            Text(phaseLabel(viewModel.phase))
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading, 12)
-                        .id("phase-indicator")
-                    }
-                    // 96pt 占位 = ChatInputBar 高度 + 一点安全边距
-                    // 96pt placeholder = ChatInputBar height + a bit of safe padding.
-                    Color.clear.frame(height: 96).id("bottom")
+                    Color.clear.frame(height: 1).id("bottom")
                 }
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
-                // 驱动 bubble 进出场 transition
-                // Drives bubble enter/exit transitions.
-                .animation(.spring(response: 0.35, dampingFraction: 0.78), value: viewModel.messages.count)
+                .aiChatMessageColumn(animatedBy: viewModel.messages.count)
             }
-            .scrollContentBackground(.hidden)
             .scrollDismissesKeyboard(.interactively)
             .onChange(of: viewModel.messages.last?.content) { _, _ in
-                withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
+                withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo("bottom", anchor: .bottom) }
+            }
+            .onChange(of: viewModel.messages.count) { _, _ in
+                withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo("bottom", anchor: .bottom) }
             }
         }
     }
 
-    private func phaseLabel(_ phase: HomeAskViewModel.Phase) -> String {
+    private func phaseLabel(_ phase: HomeAskViewModel.Phase) -> String? {
         switch phase {
-        case .idle: return ""
+        case .idle: return nil
         case .routing: return "正在判断需要哪些数据…".localized()
         case .answering: return "正在生成回答…".localized()
         }
@@ -259,7 +209,8 @@ struct HomeAskSheet: View {
                     : message.routingCategories.map(categoryDisplayName).joined(separator: " · "),
                 footer: message.dataSnapshot.isEmpty
                     ? nil
-                    : AnyView(DataSnapshotBlock(snapshot: message.dataSnapshot))
+                    : AnyView(DataSnapshotBlock(snapshot: message.dataSnapshot)),
+                statusText: message.isStreaming ? phaseLabel(viewModel.phase) : nil
             )
         case .system:
             VStack(alignment: .leading, spacing: 4) {
@@ -267,11 +218,6 @@ struct HomeAskSheet: View {
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
-                if message.isStreaming {
-                    ProgressView()
-                        .scaleEffect(0.55)
-                        .modifier(PulseModifier())
-                }
             }
         case .tool:
             // Tool messages are not surfaced in this UI (LLM is a pure chat flow)

@@ -47,9 +47,6 @@ struct AIDiscussionSheet: View {
     /// 当前输入框文本
     /// Current input bar text.
     @State private var inputText: String = ""
-    /// 输入框焦点状态(键盘自动弹出)
-    /// Focus state for the input field (drives keyboard auto-appearance).
-    @FocusState private var inputFocused: Bool
 
     init(
         title: String,
@@ -67,10 +64,9 @@ struct AIDiscussionSheet: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                AIChatFlowingBackground()
-                    .ignoresSafeArea()
+            AIChatScaffold {
                 messagesList
+            } input: {
                 ChatInputBar(
                     text: $inputText,
                     isStreaming: viewModel.isStreaming,
@@ -79,7 +75,6 @@ struct AIDiscussionSheet: View {
                     onCancel: { viewModel.cancel() }
                 )
             }
-            .containerBackground(.clear, for: .navigation)
             .llmDebugButton(caller: "AIDiscussion")
             .cloudThinkingToolbar()
             .navigationTitle(title)
@@ -92,20 +87,12 @@ struct AIDiscussionSheet: View {
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if viewModel.isStreaming {
-                        Button {
-                            viewModel.cancel()
-                        } label: {
-                            Image(systemName: "stop.circle.fill")
-                        }
-                    } else {
-                        Button {
-                            viewModel.reset()
-                        } label: {
-                            Image(systemName: "trash")
-                        }
-                        .disabled(viewModel.messages.isEmpty)
-                    }
+                    AIChatTrailingAction(
+                        isStreaming: viewModel.isStreaming,
+                        canClear: !viewModel.messages.isEmpty,
+                        onStop: { viewModel.cancel() },
+                        onClear: { viewModel.reset() }
+                    )
                 }
             }
             .onAppear {
@@ -131,10 +118,8 @@ struct AIDiscussionSheet: View {
             ScrollView {
                 if viewModel.messages.isEmpty {
                     emptyState
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 80)
                 } else {
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(alignment: .leading, spacing: 18) {
                         ForEach(viewModel.messages) { message in
                             ChatBubble(
                                 role: message.role == .user
@@ -150,13 +135,7 @@ struct AIDiscussionSheet: View {
                             .id(message.id)
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                    // 给浮动输入框留位 / Reserve space for the floating input bar.
-                    .padding(.bottom, 96)
-                    // 驱动 bubble 进出场的 transition
-                    // Drives bubble enter/exit transitions.
-                    .animation(.spring(response: 0.35, dampingFraction: 0.78), value: viewModel.messages.count)
+                    .aiChatMessageColumn(animatedBy: viewModel.messages.count)
                 }
             }
             .scrollDismissesKeyboard(.interactively)
@@ -167,30 +146,16 @@ struct AIDiscussionSheet: View {
 
     // MARK: - Empty State / 空态
 
+    @ViewBuilder
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            if !container.envManager.llmConfig.isConfigured {
-                Image(systemName: "brain")
-                    .font(.system(size: 56))
-                    .foregroundColor(.secondary)
-                Text("LLM Not Configured".localized())
-                    .font(.headline)
-                Text("Set Base URL, API Key and Model in Settings → LLM.".localized())
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                NavigationLink(destination: LLMSettingsView()) {
-                    Label("Open LLM Settings".localized(), systemImage: "gearshape")
-                }
-                .buttonStyle(.borderedProminent)
-            } else {
-                Image(systemName: "bubble.left.and.bubble.right")
-                    .font(.system(size: 56))
-                    .foregroundColor(.secondary)
-                Text("Ask anything".localized())
-                    .font(.headline)
-            }
+        if !container.envManager.llmConfig.isConfigured {
+            AIChatEmptyState(kind: .notConfigured())
+        } else {
+            AIChatEmptyState(kind: .welcome(
+                symbol: "bubble.left.and.bubble.right",
+                title: "Ask anything".localized(),
+                message: nil
+            ))
         }
     }
 

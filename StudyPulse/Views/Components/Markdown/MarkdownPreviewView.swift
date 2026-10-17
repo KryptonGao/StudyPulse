@@ -89,6 +89,18 @@ extension MarkdownRenderConfig {
         config = config.withBlockSpacing(value: 8)
         return config
     }()
+
+    /// 流式输出用:在 `previewConfig` 基础上开启逐词淡入(新到的词各自淡入,而不是整段跳出)。
+    /// 仅在正在流式输出时使用;流结束后切回 `previewConfig`,已在渐显的词会自然完成。
+    /// Streaming variant of `previewConfig` with per-word fade-in enabled, so new words
+    /// ink in one by one instead of popping. Used only while a reply is streaming.
+    static let streamingConfig: MarkdownRenderConfig = previewConfig.withShouldAnimateText(value: true)
+
+    /// 按是否正在流式输出选择配置。
+    /// Picks the config for the current streaming state.
+    static func chatConfig(isStreaming: Bool) -> MarkdownRenderConfig {
+        isStreaming ? streamingConfig : previewConfig
+    }
 }
 
 #Preview {

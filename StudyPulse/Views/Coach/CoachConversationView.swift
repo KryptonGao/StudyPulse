@@ -7,17 +7,21 @@ struct CoachConversationView: View {
     @State private var inputAttachments: [LLMImageAttachment] = []
     @State private var emptyPromptKey = CoachConversationPrompts.all.randomElement() ?? "Coach prompt 01"
 
-    init(goal: CoachGoal?, chat: CoachChat, container: RepositoryContainer) {
+    /// 从「问教练」预设问题进入时,自动发出的第一句。
+    /// First message auto-sent when opened from a "Ask the coach" prompt.
+    private let initialPrompt: String?
+    @State private var didSendInitialPrompt = false
+
+    init(goal: CoachGoal?, chat: CoachChat, container: RepositoryContainer, initialPrompt: String? = nil) {
+        self.initialPrompt = initialPrompt
         _viewModel = State(initialValue: CoachConversationViewModel(goal: goal, chat: chat, container: container))
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            AIChatFlowingBackground()
-                .ignoresSafeArea()
+        AIChatScaffold {
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(alignment: .leading, spacing: 18) {
                         if viewModel.messages.isEmpty { emptyState }
                         ForEach(viewModel.messages) { message in
                             ChatBubble(role: message.role == .user ? .user : .assistant(dimmed: false),
@@ -33,15 +37,15 @@ struct CoachConversationView: View {
                                            }
                                        ))
                             .id(message.id)
-                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
                         }
                     }
-                    .padding(.horizontal, 12).padding(.top, 10).padding(.bottom, 88)
+                    .aiChatMessageColumn(animatedBy: viewModel.messages.count)
                 }
+                .scrollDismissesKeyboard(.interactively)
                 .onChange(of: viewModel.messages.count) { _, _ in scrollToBottom(proxy) }
                 .onChange(of: viewModel.messages.last?.content ?? "") { _, _ in scrollToBottom(proxy) }
-                .animation(.spring(response: 0.38, dampingFraction: 0.58, blendDuration: 0.12), value: viewModel.messages)
             }
+        } input: {
             ChatInputBar(text: $input, placeholder: "Message AI Coach...".localized(),
                          isStreaming: viewModel.isStreaming,
                          canSend: (!input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !inputAttachments.isEmpty)
@@ -55,6 +59,12 @@ struct CoachConversationView: View {
         }
         .navigationTitle(viewModel.chat.title)
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            guard let initialPrompt, !didSendInitialPrompt, viewModel.messages.isEmpty,
+                  viewModel.container.envManager.llmConfig.isConfigured else { return }
+            didSendInitialPrompt = true
+            viewModel.send(initialPrompt)
+        }
         .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -68,17 +78,17 @@ struct CoachConversationView: View {
         } message: { Text(viewModel.errorMessage ?? "") }
     }
 
+    @ViewBuilder
     private var emptyState: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "brain.head.profile").font(.system(size: 48)).foregroundStyle(.teal)
-            Text("Your AI Coach is ready".localized()).font(.headline)
-            Text(emptyPromptKey.localized())
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 280)
+        if viewModel.container.envManager.llmConfig.isConfigured {
+            AIChatEmptyState(kind: .welcome(
+                symbol: "brain.head.profile",
+                title: "Your AI Coach is ready".localized(),
+                message: emptyPromptKey.localized()
+            ))
+        } else {
+            AIChatEmptyState(kind: .notConfigured())
         }
-        .frame(maxWidth: .infinity).padding(.top, 100).padding(.bottom, 30)
     }
 
     private func todoCard(messageID: UUID, suggestion: CoachTodoSuggestion) -> some View {
