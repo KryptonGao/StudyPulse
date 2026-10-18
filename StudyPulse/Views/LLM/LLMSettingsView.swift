@@ -663,6 +663,9 @@ private struct LLMProviderEditor: View {
     @State private var model: String
     @State private var multimodalEnabled: Bool
     @State private var thinkingEnabled: Bool
+    /// AI Mode reasoning levels: off = detect from the model name.
+    @State private var customLevelsEnabled: Bool
+    @State private var customLevels: Set<AIReasoningLevel>
     @State private var saveError: String?
 
     init(provider: LLMProvider) {
@@ -673,6 +676,9 @@ private struct LLMProviderEditor: View {
         _model = State(initialValue: provider.model)
         _multimodalEnabled = State(initialValue: provider.multimodalEnabled)
         _thinkingEnabled = State(initialValue: provider.thinkingEnabled)
+        let stored = AIReasoningLevel.parse(provider.reasoningLevels)
+        _customLevelsEnabled = State(initialValue: stored != nil)
+        _customLevels = State(initialValue: Set(stored ?? []))
     }
 
     var body: some View {
@@ -700,6 +706,8 @@ private struct LLMProviderEditor: View {
                     Toggle("Enable Multimodal".localized(), isOn: $multimodalEnabled)
                     Toggle("Enable Thinking".localized(), isOn: $thinkingEnabled)
                 } header: { Text("Connection".localized()) }
+
+                reasoningLevelsSection
             }
 
             Section {
@@ -729,19 +737,70 @@ private struct LLMProviderEditor: View {
         } message: { Text(saveError ?? "") }
     }
 
+    /// Levels detected from what is typed in the form right now.
+    private var detectedLevels: [AIReasoningLevel] {
+        AIReasoningProfile.detect(isCloud: false, providerName: name, baseURL: baseURL, model: model).levels
+    }
+
+    @ViewBuilder
+    private var reasoningLevelsSection: some View {
+        Section {
+            Toggle("aiMode.reasoning.levels.custom".localized(), isOn: Binding(
+                get: { customLevelsEnabled },
+                set: { enabled in
+                    if enabled, customLevels.isEmpty {
+                        // Start from the detected set, mapped onto the levels that can be picked by hand.
+                        let mapped = detectedLevels.compactMap {
+                            AIReasoningProfile.nearest(to: $0, in: AIReasoningLevel.customizable)
+                        }
+                        customLevels = Set(mapped)
+                    }
+                    customLevelsEnabled = enabled
+                }
+            ))
+            if customLevelsEnabled {
+                ForEach(AIReasoningLevel.customizable, id: \.self) { level in
+                    Toggle(level.titleKey.localized(), isOn: Binding(
+                        get: { customLevels.contains(level) },
+                        set: { on in
+                            if on {
+                                customLevels.insert(level)
+                            } else if customLevels.count > 1 {
+                                customLevels.remove(level)
+                            }
+                        }
+                    ))
+                    .disabled(customLevels == [level])
+                }
+            } else {
+                LabeledContent("aiMode.reasoning.levels.detected".localized()) {
+                    Text(detectedLevels.map { $0.titleKey.localized() }.joined(separator: " · "))
+                        .multilineTextAlignment(.trailing)
+                }
+            }
+        } header: {
+            Text("aiMode.reasoning.levels.section".localized())
+        } footer: {
+            Text("aiMode.reasoning.levels.footer".localized())
+        }
+    }
+
     private func save() -> Bool {
         do {
             let updatedProvider: LLMProvider
             if provider.isCloudProvider {
                 updatedProvider = LLMProvider(id: provider.id, name: provider.name, baseURL: provider.baseURL,
                     model: provider.model, multimodalEnabled: provider.multimodalEnabled,
-                    thinkingEnabled: provider.thinkingEnabled, isCloudProvider: true)
+                    thinkingEnabled: provider.thinkingEnabled, isCloudProvider: true,
+                    reasoningLevels: provider.reasoningLevels)
             } else {
                 updatedProvider = LLMProvider(id: provider.id,
                     name: name.trimmingCharacters(in: .whitespacesAndNewlines),
                     baseURL: baseURL.trimmingCharacters(in: .whitespacesAndNewlines),
                     model: model.trimmingCharacters(in: .whitespacesAndNewlines),
-                    multimodalEnabled: multimodalEnabled, thinkingEnabled: thinkingEnabled)
+                    multimodalEnabled: multimodalEnabled, thinkingEnabled: thinkingEnabled,
+                    reasoningLevels: customLevelsEnabled && !customLevels.isEmpty
+                        ? AIReasoningLevel.ordered(customLevels).map(\.rawValue) : nil)
             }
             try container.envManager.updateLLMProvider(updatedProvider, apiKey: apiKey)
             return true

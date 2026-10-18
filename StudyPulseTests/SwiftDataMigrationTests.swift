@@ -5,7 +5,7 @@ import XCTest
 
 @MainActor
 final class SwiftDataMigrationTests: XCTestCase {
-    func testV3StoreMigratesToV5AndAcceptsTimeInvestmentRecords() throws {
+    func testV3StoreMigratesToV6AndAcceptsTimeInvestmentRecords() throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -25,7 +25,7 @@ final class SwiftDataMigrationTests: XCTestCase {
             try container.mainContext.save()
         }
 
-        let schema = Schema(versionedSchema: StudyPulseSchemaV5.self)
+        let schema = Schema(versionedSchema: StudyPulseSchemaV6.self)
         let configuration = ModelConfiguration(
             "StudyPulse",
             schema: schema,
@@ -55,7 +55,7 @@ final class SwiftDataMigrationTests: XCTestCase {
         )
     }
 
-    func testV4StoreMigratesToV5PreservingPayloadBackedRecords() throws {
+    func testV4StoreMigratesToV6PreservingPayloadBackedRecords() throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -93,7 +93,7 @@ final class SwiftDataMigrationTests: XCTestCase {
             try container.mainContext.save()
         }
 
-        let schema = Schema(versionedSchema: StudyPulseSchemaV5.self)
+        let schema = Schema(versionedSchema: StudyPulseSchemaV6.self)
         let configuration = ModelConfiguration(
             "StudyPulse",
             schema: schema,
@@ -123,6 +123,50 @@ final class SwiftDataMigrationTests: XCTestCase {
         XCTAssertEqual(chatRecord.id, chat.id)
         XCTAssertNil(chatRecord.title)
         XCTAssertEqual(chatRecord.toSnapshot()?.title, "V4 chat")
+    }
+
+    func testV5StoreMigratesToV6AndAcceptsAIConversationRecords() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let storeURL = directory.appendingPathComponent("studypulse.store")
+
+        do {
+            let schema = Schema(versionedSchema: StudyPulseSchemaV5.self)
+            let configuration = ModelConfiguration(
+                "StudyPulse",
+                schema: schema,
+                url: storeURL,
+                cloudKitDatabase: .none
+            )
+            let container = try ModelContainer(for: schema, configurations: [configuration])
+            container.mainContext.insert(SubjectRecord(from: Subject(name: "Existing")))
+            try container.mainContext.save()
+        }
+
+        let schema = Schema(versionedSchema: StudyPulseSchemaV6.self)
+        let configuration = ModelConfiguration(
+            "StudyPulse",
+            schema: schema,
+            url: storeURL,
+            cloudKitDatabase: .none
+        )
+        let migrated = try ModelContainer(
+            for: schema,
+            migrationPlan: StudyPulseMigrationPlan.self,
+            configurations: [configuration]
+        )
+        let context = migrated.mainContext
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<SubjectRecord>()), 1)
+
+        let conversation = AIConversation(title: "Migrated")
+        let message = AIChatMessage(conversationID: conversation.id, orderIndex: 0, role: .user, content: "hi")
+        context.insert(try AIConversationRecord(from: conversation))
+        context.insert(try AIChatMessageRecord(from: message))
+        try context.save()
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<AIConversationRecord>()), 1)
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<AIChatMessageRecord>()), 1)
     }
 
     func testV1StoreMigratesToV2WithoutChangingUserEntityCountsOrKeyFields() throws {

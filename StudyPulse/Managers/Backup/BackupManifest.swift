@@ -3,7 +3,7 @@ import Foundation
 nonisolated struct BackupManifest: Codable, Equatable, Sendable {
     static let expectedFormatIdentifier = "com.chenkai.gao.studypulse.backup"
     static let currentFormatVersion = 1
-    static let currentSchemaVersion = 5
+    static let currentSchemaVersion = 6
 
     var formatIdentifier: String
     var formatVersion: Int

@@ -300,6 +300,69 @@ final class BackupTests: XCTestCase {
         }
     }
 
+    func testValidatorDecodesAIConversationsAndMessages() async throws {
+        let conversation = AIConversation(title: "Backup chat")
+        let user = AIChatMessage(conversationID: conversation.id, orderIndex: 0, role: .user, content: "hi")
+        let reply = AIChatMessage(
+            conversationID: conversation.id, orderIndex: 1, role: .assistant, content: "hello",
+            followUps: ["More?"]
+        )
+        let archive = try makeEmptyArchive(
+            overrides: ["aiConversations": 1, "aiMessages": 2],
+            mutate: { root in
+                let dir = root.appendingPathComponent("data")
+                try BackupJSONL.encode([BackupRecordDTO(id: conversation.id, updatedAt: conversation.updatedAt, value: conversation)])
+                    .write(to: dir.appendingPathComponent("ai_conversations.jsonl"))
+                try BackupJSONL.encode([user, reply].map { BackupRecordDTO(id: $0.id, updatedAt: $0.createdAt, value: $0) })
+                    .write(to: dir.appendingPathComponent("ai_messages.jsonl"))
+            }
+        )
+        defer { try? FileManager.default.removeItem(at: archive) }
+        let result = try await BackupValidator.validate(archiveURL: archive)
+        defer { result.cleanup() }
+        XCTAssertEqual(result.content.aiConversations.map(\.title), ["Backup chat"])
+        XCTAssertEqual(result.content.aiMessages.count, 2)
+        XCTAssertEqual(result.content.aiMessages.last?.followUps, ["More?"])
+    }
+
+    func testOldBackupWithoutAIFilesStillValidates() async throws {
+        let archive = try makeEmptyArchive()
+        defer { try? FileManager.default.removeItem(at: archive) }
+        let result = try await BackupValidator.validate(archiveURL: archive)
+        defer { result.cleanup() }
+        XCTAssertTrue(result.content.aiConversations.isEmpty)
+        XCTAssertTrue(result.content.aiMessages.isEmpty)
+    }
+
+    func testOrphanAIMessageIsRejected() async throws {
+        let orphan = AIChatMessage(conversationID: UUID(), orderIndex: 0, role: .user, content: "lost")
+        let archive = try makeEmptyArchive(
+            overrides: ["aiMessages": 1],
+            mutate: { root in
+                try BackupJSONL.encode([BackupRecordDTO(id: orphan.id, updatedAt: orphan.createdAt, value: orphan)])
+                    .write(to: root.appendingPathComponent("data/ai_messages.jsonl"))
+            }
+        )
+        defer { try? FileManager.default.removeItem(at: archive) }
+        do {
+            _ = try await BackupValidator.validate(archiveURL: archive)
+            XCTFail("Expected invalid relationship")
+        } catch let error as BackupError {
+            guard case .invalidRelationship = error else { return XCTFail("Unexpected: \(error)") }
+        }
+    }
+
+    func testAIConversationCountMismatchIsRejected() async throws {
+        let archive = try makeEmptyArchive(overrides: ["aiConversations": 2])
+        defer { try? FileManager.default.removeItem(at: archive) }
+        do {
+            _ = try await BackupValidator.validate(archiveURL: archive)
+            XCTFail("Expected count mismatch")
+        } catch let error as BackupError {
+            guard case .countMismatch("aiConversations") = error else { return XCTFail("Unexpected: \(error)") }
+        }
+    }
+
     func testSensitivePayloadDetection() {
         XCTAssertFalse(
             BackupEncryption.containsSensitivePayload(

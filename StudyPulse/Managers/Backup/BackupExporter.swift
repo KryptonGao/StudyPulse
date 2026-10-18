@@ -29,6 +29,8 @@ private struct BackupSourceSnapshot: @unchecked Sendable {
     var coachProposals: [CoachProposal]
     var coachChats: [CoachChat]
     var coachMessages: [CoachConversationMessage]
+    var aiConversations: [AIConversation]
+    var aiMessages: [AIChatMessage]
     var preferences: BackupPreferencesDTO
     var healthHistory: [DailyHealthSnapshot]?
 }
@@ -94,6 +96,8 @@ enum BackupExporter {
             coachProposals: container.coachRepo.proposals,
             coachChats: container.coachRepo.chats,
             coachMessages: container.coachRepo.allMessages(),
+            aiConversations: container.aiConversationRepo.conversations,
+            aiMessages: container.aiConversationRepo.allMessages(),
             preferences: BackupPreferencesDTO(preferences: container.envManager.preferences),
             healthHistory: healthHistory
         )
@@ -138,6 +142,8 @@ enum BackupExporter {
         files["data/plant_state.json"] = try encoder.encode(source.plantState)
         files["data/achievements.json"] = try encoder.encode(source.achievements)
         files["data/coach_data.jsonl"] = try encodeCoach(source)
+        files["data/ai_conversations.jsonl"] = try jsonl(source.aiConversations, updatedAt: { $0.updatedAt })
+        files["data/ai_messages.jsonl"] = try jsonl(source.aiMessages, updatedAt: { $0.createdAt })
         files["data/preferences.json"] = try encoder.encode(source.preferences)
         if let healthHistory = source.healthHistory {
             files["data/health_history.json"] = try encoder.encode(healthHistory)
@@ -171,6 +177,7 @@ enum BackupExporter {
             source.coachGoals.count + source.coachAnalyses.count
             + source.coachProposals.count + source.coachChats.count
             + source.coachMessages.count
+            + source.aiConversations.count + source.aiMessages.count
         let shouldEncrypt = password != nil || BackupEncryption.containsSensitivePayload(
             diaryCount: source.diaryEntries.count,
             includesHealthHistory: source.healthHistory != nil,
@@ -290,7 +297,8 @@ enum BackupExporter {
             "subTasks": s.subTasks.count, "goalRewards": s.goalRewards.count,
             "achievements": 1, "coachGoals": s.coachGoals.count,
             "coachAnalyses": s.coachAnalyses.count, "coachProposals": s.coachProposals.count,
-            "coachChats": s.coachChats.count, "coachMessages": s.coachMessages.count
+            "coachChats": s.coachChats.count, "coachMessages": s.coachMessages.count,
+            "aiConversations": s.aiConversations.count, "aiMessages": s.aiMessages.count
         ]
     }
 }

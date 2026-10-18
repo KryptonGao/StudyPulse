@@ -75,6 +75,9 @@ nonisolated struct BackupPreferencesDTO: Codable, Equatable, Sendable {
     var habitInsightEnabled: Bool
     var habitInsightNotificationEnabled: Bool
     var habitInsightNotificationHour: Int
+    var aiModeAppearance: String?
+    var aiModeAnswerMode: String?
+    var aiModeReasoningLevels: [String: String]?
 
     init(preferences p: AppPreferences) {
         appLanguage = p.appLanguage
@@ -95,6 +98,9 @@ nonisolated struct BackupPreferencesDTO: Codable, Equatable, Sendable {
         habitInsightEnabled = p.habitInsightEnabled
         habitInsightNotificationEnabled = p.habitInsightNotificationEnabled
         habitInsightNotificationHour = p.habitInsightNotificationHour
+        aiModeAppearance = p.aiModeAppearance
+        aiModeAnswerMode = p.aiModeAnswerMode
+        aiModeReasoningLevels = p.aiModeReasoningLevels
     }
 
     func applying(to original: AppPreferences) -> AppPreferences {
@@ -117,6 +123,9 @@ nonisolated struct BackupPreferencesDTO: Codable, Equatable, Sendable {
         p.habitInsightEnabled = habitInsightEnabled
         p.habitInsightNotificationEnabled = habitInsightNotificationEnabled
         p.habitInsightNotificationHour = habitInsightNotificationHour
+        p.aiModeAppearance = aiModeAppearance
+        p.aiModeAnswerMode = aiModeAnswerMode
+        p.aiModeReasoningLevels = aiModeReasoningLevels
         return p
     }
 
@@ -127,6 +136,7 @@ nonisolated struct BackupPreferencesDTO: Codable, Equatable, Sendable {
         case plantPetalColorId, diaryEnabled, diaryDailyReminderEnabled
         case diaryDailyReminderHour, habitInsightEnabled
         case habitInsightNotificationEnabled, habitInsightNotificationHour
+        case aiModeAppearance, aiModeAnswerMode, aiModeReasoningLevels
     }
 
     init(from decoder: Decoder) throws {
@@ -150,6 +160,9 @@ nonisolated struct BackupPreferencesDTO: Codable, Equatable, Sendable {
         habitInsightEnabled = try c.decodeIfPresent(Bool.self, forKey: .habitInsightEnabled) ?? false
         habitInsightNotificationEnabled = try c.decodeIfPresent(Bool.self, forKey: .habitInsightNotificationEnabled) ?? true
         habitInsightNotificationHour = try c.decodeIfPresent(Int.self, forKey: .habitInsightNotificationHour) ?? 7
+        aiModeAppearance = try c.decodeIfPresent(String.self, forKey: .aiModeAppearance)
+        aiModeAnswerMode = try c.decodeIfPresent(String.self, forKey: .aiModeAnswerMode)
+        aiModeReasoningLevels = try c.decodeIfPresent([String: String].self, forKey: .aiModeReasoningLevels)
     }
 }
 

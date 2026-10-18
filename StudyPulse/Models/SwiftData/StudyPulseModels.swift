@@ -1870,3 +1870,53 @@ final class DiaryEntryRecord {
         )
     }
 }
+
+// MARK: - AI Mode persistence
+
+/// One full-screen AI Mode conversation. List-facing columns are denormalized;
+/// `payload` is the JSON-encoded `AIConversation`.
+@Model
+final class AIConversationRecord {
+    #Index<AIConversationRecord>([\.updatedAt])
+    @Attribute(.unique) var id: UUID
+    var title: String
+    var createdAt: Date
+    var updatedAt: Date
+    var payload: Data
+
+    init(from conversation: AIConversation) throws {
+        id = conversation.id
+        title = conversation.title
+        createdAt = conversation.createdAt
+        updatedAt = conversation.updatedAt
+        payload = try JSONEncoder().encode(conversation)
+    }
+
+    func toSnapshot() -> AIConversation? { try? JSONDecoder().decode(AIConversation.self, from: payload) }
+}
+
+/// One AI Mode message. `searchText` is a plain-text copy of the content so
+/// history search can run as a database predicate without decoding payloads.
+@Model
+final class AIChatMessageRecord {
+    #Index<AIChatMessageRecord>([\.conversationID], [\.statusRaw])
+    @Attribute(.unique) var id: UUID
+    var conversationID: UUID
+    var orderIndex: Int
+    var createdAt: Date
+    var statusRaw: String
+    var searchText: String
+    var payload: Data
+
+    init(from message: AIChatMessage) throws {
+        id = message.id
+        conversationID = message.conversationID
+        orderIndex = message.orderIndex
+        createdAt = message.createdAt
+        statusRaw = message.status.rawValue
+        searchText = message.searchableText
+        payload = try JSONEncoder().encode(message)
+    }
+
+    func toSnapshot() -> AIChatMessage? { try? JSONDecoder().decode(AIChatMessage.self, from: payload) }
+}

@@ -23,6 +23,39 @@ struct AppearanceSettingsView: View {
                     }
                 }
 
+                // AI Mode appearance
+                Section {
+                    Picker(selection: Binding<AIModeAppearance>(
+                        get: {
+                            container.envManager.preferences.aiModeAppearance
+                                .flatMap(AIModeAppearance.init(rawValue:)) ?? .pureBlue
+                        },
+                        set: { container.envManager.setAIModeAppearance($0) }
+                    )) {
+                        Text("aiMode.appearance.pureBlue".localized()).tag(AIModeAppearance.pureBlue)
+                        Text("aiMode.appearance.warmSerif".localized()).tag(AIModeAppearance.warmSerif)
+                    } label: {
+                        Label("aiMode.settings.appearance".localized(), systemImage: "sparkles")
+                    }
+                    // Stops come from the active model; the choice is remembered per model and shared with AI Mode.
+                    let profile = container.envManager.aiModeReasoningProfile
+                    Picker(selection: Binding<AIReasoningLevel>(
+                        get: { container.envManager.aiModeReasoningLevel(for: profile) },
+                        set: { container.envManager.setAIModeReasoningLevel($0, for: profile) }
+                    )) {
+                        ForEach(profile.levels, id: \.self) { level in
+                            Text(level.titleKey.localized()).tag(level)
+                        }
+                    } label: {
+                        Label("aiMode.reasoning.title".localized(), systemImage: "gauge.with.dots.needle.50percent")
+                    }
+                    .disabled(!profile.isAdjustable)
+                } header: {
+                    Text("aiMode.settings.section".localized())
+                } footer: {
+                    Text("aiMode.settings.appearanceFooter".localized() + " " + "aiMode.settings.answerModeFooter".localized())
+                }
+
                 // Home Layout
                 Section {
                     NavigationLink(destination: HomeLayoutSettingsView()) {

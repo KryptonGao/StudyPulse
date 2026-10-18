@@ -140,6 +140,8 @@ enum BackupImporter {
         try requireUnique(c.coachProposals, name: "coach proposals")
         try requireUnique(c.coachChats, name: "coach chats")
         try requireUnique(c.coachMessages, name: "coach messages")
+        try requireUnique(c.aiConversations, name: "AI conversations")
+        try requireUnique(c.aiMessages, name: "AI messages")
     }
 
     private static func replacePersistentContent(
@@ -163,6 +165,8 @@ enum BackupImporter {
         try deleteAll(CoachProposalRecord.self, context)
         try deleteAll(CoachConversationMessageRecord.self, context)
         try deleteAll(CoachChatRecord.self, context)
+        try deleteAll(AIChatMessageRecord.self, context)
+        try deleteAll(AIConversationRecord.self, context)
         try deleteAll(StudySessionRecord.self, context)
         try deleteAll(TimeInvestmentSubjectRecord.self, context)
         try deleteAll(SubTaskRecord.self, context)
@@ -196,6 +200,8 @@ enum BackupImporter {
         for proposal in c.coachProposals { context.insert(try CoachProposalRecord(from: proposal)) }
         for message in c.coachMessages { context.insert(try CoachConversationMessageRecord(from: message)) }
         for chat in c.coachChats { context.insert(try CoachChatRecord(from: chat)) }
+        for conversation in c.aiConversations { context.insert(try AIConversationRecord(from: conversation)) }
+        for message in c.aiMessages { context.insert(try AIChatMessageRecord(from: message)) }
         c.studySessions.forEach { context.insert(StudySessionRecord(from: $0)) }
         c.timeInvestmentSubjects.forEach { context.insert(TimeInvestmentSubjectRecord(from: $0)) }
         c.subTasks.forEach { context.insert(SubTaskRecord(from: $0)) }
@@ -232,6 +238,8 @@ enum BackupImporter {
             ("coachProposals", c.coachProposals.count, try context.fetchCount(FetchDescriptor<CoachProposalRecord>())),
             ("coachChats", c.coachChats.count, try context.fetchCount(FetchDescriptor<CoachChatRecord>())),
             ("coachMessages", c.coachMessages.count, try context.fetchCount(FetchDescriptor<CoachConversationMessageRecord>())),
+            ("aiConversations", c.aiConversations.count, try context.fetchCount(FetchDescriptor<AIConversationRecord>())),
+            ("aiMessages", c.aiMessages.count, try context.fetchCount(FetchDescriptor<AIChatMessageRecord>())),
         ]
         if let mismatch = counts.first(where: { $0.1 != $0.2 }) {
             throw BackupError.countMismatch(mismatch.0)
@@ -271,6 +279,8 @@ enum BackupImporter {
             coachProposals: container.coachRepo.proposals,
             coachChats: container.coachRepo.chats,
             coachMessages: container.coachRepo.allMessages(),
+            aiConversations: container.aiConversationRepo.conversations,
+            aiMessages: container.aiConversationRepo.allMessages(),
             preferences: BackupPreferencesDTO(preferences: container.envManager.preferences),
             healthHistory: nil
         )
@@ -327,6 +337,12 @@ enum BackupImporter {
             new.updatedAt >= old.updatedAt ? new : old
         }
         result.coachMessages = mergeByID(current.coachMessages, incoming.coachMessages) { old, new in
+            new.createdAt >= old.createdAt ? new : old
+        }
+        result.aiConversations = mergeByID(current.aiConversations, incoming.aiConversations) { old, new in
+            new.updatedAt >= old.updatedAt ? new : old
+        }
+        result.aiMessages = mergeByID(current.aiMessages, incoming.aiMessages) { old, new in
             new.createdAt >= old.createdAt ? new : old
         }
         if current.plantState.lastUpdated > incoming.plantState.lastUpdated {

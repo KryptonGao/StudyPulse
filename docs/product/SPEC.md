@@ -414,6 +414,39 @@ years of mistake questions from mixing in a single timeline.
 - `SubjectEntity` is a typed `AppEntity` so subjects can be passed
   as parameters to the intents.
 
+### 3.22a AI Mode (full-screen AI space)
+- Entered from the sparkles button in the Home toolbar; presented
+  full screen and left via the sidebar account menu.
+- Two appearances (clean blue, warm serif), selectable in the sidebar
+  menu and in Settings → Appearance; light and dark aware.
+- Settings → Appearance has an "AI Mode" section with the style and the
+  default answer style (Deep / Quick). Both persist in `AppPreferences`
+  across launches and stay in sync with the in-chat menus.
+- A drawer (fixed sidebar on wide iPad) holds history search, six data
+  entries (grades, mistakes, exams & plan, time invested, body & mind,
+  diary) with live counts, grouped conversation history (rename /
+  delete) and a new-chat button.
+- Six data pages render only real data from the same snapshot that is
+  sent to the model as context; each ends with a "chat about my …"
+  action that carries the page's period into the composer as a
+  reference. Rows open the app's existing detail screens.
+- Chat streams real replies from the configured model (BYOK or Cloud),
+  with multi-turn history, answer style (deep / quick), stop, retry and
+  data references. Without a model, or when a request fails, a clearly
+  labelled on-device "local analysis" answers from the same data.
+- Built from native SwiftUI parts: system toolbar, `List(.sidebar)` with
+  search and swipe actions, bordered button styles, and a Liquid Glass
+  composer (Material fallback before iOS 26).
+- The drawer follows the finger one to one and settles by release
+  velocity; a flick opens or closes it.
+- Replies use an animated style (`StreamingReply`): a header pill that
+  morphs thinking → writing → done, per-word fade-in while streaming,
+  and a long-press "lift" card with Copy / Regenerate. Reply text is not
+  selectable (the long press is used for the lift).
+- Health-derived context requires the existing health-data consent.
+- Conversations are stored in SwiftData (schema V6) and included in
+  encrypted full backups.
+
 ### 3.23 Architecture
 - **MVVM + Repository**.
   - Views are pure SwiftUI; they read data from

@@ -826,7 +826,6 @@ final class LLMClient: @unchecked Sendable {
         let allMessages = [LLMMessage.system(effective)] + prompt.messages
         var payload: [String: Any] = [
             "model": config.model ?? "",
-            "temperature": max(0, min(2, config.temperature)),
             "stream": stream,
             "messages": allMessages.map { message in
                 var body: [String: Any] = ["role": message.role.rawValue]
@@ -849,6 +848,18 @@ final class LLMClient: @unchecked Sendable {
             payload["thinking"] = ["type": config.thinkingEnabled ? "adaptive" : "disabled"]
         } else if config.thinkingEnabled {
             payload["thinking"] = ["type": "enabled"]
+        }
+        if config.sendsTemperature {
+            payload["temperature"] = max(0, min(2, config.temperature))
+        }
+        if let effort = config.reasoningEffort {
+            payload["reasoning_effort"] = effort
+        }
+        if let enableThinking = config.enableThinking {
+            payload["enable_thinking"] = enableThinking
+        }
+        if let budget = config.thinkingBudgetTokens {
+            payload["thinking_budget"] = budget
         }
         return try JSONSerialization.data(withJSONObject: payload, options: [])
     }
