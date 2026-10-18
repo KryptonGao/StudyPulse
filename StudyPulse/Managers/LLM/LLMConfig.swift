@@ -33,6 +33,16 @@ nonisolated struct LLMConfig: Sendable, Equatable {
     var thinkingEnabled: Bool
     /// Cloud AI thinking preference (`off` / `auto` / `on`). Server policy has the final say.
     var thinkingMode: LLMThinkingMode = .auto
+    /// OpenAI-style `reasoning_effort` (none / minimal / low / medium / high). nil = not sent.
+    var reasoningEffort: String? = nil
+    /// Qwen-style `enable_thinking`. nil = not sent.
+    var enableThinking: Bool? = nil
+    /// Qwen-style `thinking_budget` tokens. nil = not sent.
+    var thinkingBudgetTokens: Int? = nil
+    /// OpenAI reasoning models reject any `temperature` but the default, so it is left out for them.
+    var sendsTemperature: Bool = true
+    /// AI Mode reasoning levels enabled by hand for the active provider. nil = detect from the model name.
+    var customReasoningLevels: [AIReasoningLevel]? = nil
     /// App UI language forwarded to Cloud AI so replies follow the user, not the model default.
     var locale: String? = nil
     /// `true` 表示使用 StudyPulse Cloud AI 网关（/v1/chat），而非 OpenAI 兼容端点。
@@ -129,7 +139,7 @@ extension LLMConfig {
         }
         let apiKey = try? keychain.read(account: account)
 
-        let config = LLMConfig(
+        var config = LLMConfig(
             enabled: prefs.llmEnabled,
             baseURL: isCloud ? (prefs.cloudAIWorkerURL ?? "spapi.chenkai.space") : (provider?.baseURL ?? prefs.llmBaseURL),
             apiKey: apiKey ?? nil,
@@ -146,6 +156,7 @@ extension LLMConfig {
             temperature: prefs.llmTemperature,
             overrideSystemPrompt: prefs.debugOverrideSystemPrompt
         )
+        config.customReasoningLevels = isCloud ? nil : AIReasoningLevel.parse(provider?.reasoningLevels)
         Log.llm.info("LLMConfig: enabled=\(config.enabled, privacy: .public) isCloud=\(config.isCloudProvider, privacy: .public) baseURL=\(config.baseURL ?? "nil", privacy: .public) hasSessionToken=\(config.sessionToken != nil, privacy: .public) hasAPIKey=\(config.apiKey != nil, privacy: .public) isConfigured=\(config.isConfigured, privacy: .public) model=\(config.model ?? "nil", privacy: .public)")
         return config
     }

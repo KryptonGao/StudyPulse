@@ -89,6 +89,15 @@ struct HomeView: View {
                     .accessibilityLabel("Settings".localized())
                 }
                 ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        uiState.showingAIMode = true
+                    } label: {
+                        Image(systemName: "sparkles")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .accessibilityLabel("aiMode.entry.label".localized())
+                }
+                ToolbarItem(placement: .topBarTrailing) {
                     shareMenu
                 }
             }
@@ -497,9 +506,15 @@ private struct HomeCoversAndSheets: ViewModifier {
     @Binding var uiState: HomeUIState
     let container: RepositoryContainer
     let generateReport: (ReportOptions) -> Void
+    @Environment(HealthKitManager.self) private var hrvManager: HealthKitManager
 
     func body(content: Content) -> some View {
         content
+            .fullScreenCover(isPresented: $uiState.showingAIMode) {
+                AIModeRootView(container: container, hrvManager: hrvManager)
+                    .environment(container)
+                    .environment(hrvManager)
+            }
             .fullScreenCover(isPresented: $uiState.showingFlashcards) {
                 NavigationStack {
                     FlashcardStudyView(container: container)

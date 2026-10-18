@@ -45,7 +45,7 @@ nonisolated enum LLMCallerPolicy {
         "AIQuiz", "QuizGeneration", "AIQuizGrading", "QuizGrading",
         "AIDiscussion", "AICoach", "AICoach-Conversation",
         "HomeAsk-Answer", "ExamSimulationGeneration", "ExamSimulationGrading",
-        "ExamAutopsy",
+        "ExamAutopsy", "AIMode-Chat",
     ]
 
     private static let defaults: [String: LLMThinkingMode] = [
@@ -82,6 +82,7 @@ nonisolated enum LLMCallerPolicy {
         "HomeAsk-Answer": .auto,
         "MistakeDebate": .on,
         "ExamAutopsy": .auto,
+        "AIMode-Chat": .auto,
         "MistakeImageRecognition": .auto,
         "Legacy": .auto,
     ]

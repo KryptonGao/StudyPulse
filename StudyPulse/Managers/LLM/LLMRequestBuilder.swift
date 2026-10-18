@@ -45,7 +45,7 @@ import SwiftUI
 /// Must be appended to every system prompt that may output math.
 /// Reason: the iosMath rendering engine does not support `\begin{cases}` and similar
 /// LaTeX environments; they are silently rendered as blank space.
-private let latexFormattingRule = """
+nonisolated let latexFormattingRule = """
 
         【数学公式格式强制规则 — 不得违反】
         严禁使用 `\\begin{cases}` / `\\end{cases}` 语法（渲染引擎不支持，会变为空白）。

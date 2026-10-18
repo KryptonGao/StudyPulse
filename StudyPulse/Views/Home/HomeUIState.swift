@@ -51,6 +51,9 @@ struct HomeUIState {
     /// 一并重建正在答题的 fullScreenCover。
     var showingExamRoleSimulator: Bool = false
 
+    /// 是否显示全屏 AI 模式 / Whether the full-screen AI Mode is presented.
+    var showingAIMode: Bool = false
+
     /// 是否显示考试倒推模拟器。
     var showingExamReversePlanner: Bool = false
 

@@ -23,6 +23,8 @@ nonisolated struct BackupDecodedContent: @unchecked Sendable {
     var coachProposals: [CoachProposal]
     var coachChats: [CoachChat]
     var coachMessages: [CoachConversationMessage]
+    var aiConversations: [AIConversation] = []
+    var aiMessages: [AIChatMessage] = []
     var preferences: BackupPreferencesDTO
     var healthHistory: [DailyHealthSnapshot]?
 }
@@ -149,6 +151,12 @@ nonisolated enum BackupValidator {
             let plant = try decode(PlantState.self, at: "data/plant_state.json", root: workspace, decoder: decoder)
             let achievements = try decode(AchievementsSnapshot.self, at: "data/achievements.json", root: workspace, decoder: decoder)
             let preferences = try decode(BackupPreferencesDTO.self, at: "data/preferences.json", root: workspace, decoder: decoder)
+            let aiConversations: [AIConversation] = try decodeOptionalJSONL(
+                "data/ai_conversations.jsonl", root: workspace
+            )
+            let aiMessages: [AIChatMessage] = try decodeOptionalJSONL(
+                "data/ai_messages.jsonl", root: workspace
+            )
             let coach = try decodeCoach(at: workspace.appendingPathComponent("data/coach_data.jsonl"))
             let health: [DailyHealthSnapshot]?
             let healthURL = workspace.appendingPathComponent("data/health_history.json")
@@ -178,7 +186,8 @@ nonisolated enum BackupValidator {
                 profile: profile, plantState: plant, achievements: achievements,
                 coachGoals: coach.goals, coachAnalyses: coach.analyses,
                 coachProposals: coach.proposals, coachChats: coach.chats,
-                coachMessages: coach.messages, preferences: preferences, healthHistory: health
+                coachMessages: coach.messages, aiConversations: aiConversations,
+                aiMessages: aiMessages, preferences: preferences, healthHistory: health
             )
             try validateRelationships(content)
             try validateCounts(manifest.recordCounts, content)
@@ -293,6 +302,11 @@ nonisolated enum BackupValidator {
             throw BackupError.invalidRelationship("Coach goal or chat UUID")
         }
 
+        let aiConversationIDs = Set(c.aiConversations.map(\.id))
+        guard c.aiMessages.allSatisfy({ aiConversationIDs.contains($0.conversationID) }) else {
+            throw BackupError.invalidRelationship("AI conversation UUID")
+        }
+
         let investmentSubjectIDs = Set(c.timeInvestmentSubjects.map(\.id))
         let subTaskIDs = Set(c.subTasks.map(\.id))
         guard c.subTasks.allSatisfy({ investmentSubjectIDs.contains($0.subjectID) }) else {
@@ -341,6 +355,7 @@ nonisolated enum BackupValidator {
             "achievements": 1, "coachGoals": c.coachGoals.count,
             "coachAnalyses": c.coachAnalyses.count, "coachProposals": c.coachProposals.count,
             "coachChats": c.coachChats.count, "coachMessages": c.coachMessages.count,
+            "aiConversations": c.aiConversations.count, "aiMessages": c.aiMessages.count,
         ]
         for (key, count) in actual {
             if let expectedCount = expected[key], expectedCount != count {

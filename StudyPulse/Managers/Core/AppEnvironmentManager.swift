@@ -516,6 +516,42 @@ final class AppEnvironmentManager {
         preferences.cloudThinkingMode = mode
     }
 
+    func setAIModeAppearance(_ appearance: AIModeAppearance) {
+        preferences.aiModeAppearance = appearance.rawValue
+    }
+
+    /// Reasoning profile of the active model, read from preferences only (no Keychain access), so views
+    /// can call it on every render. A signed-in Cloud session counts as Cloud, as in `LLMConfig.from`.
+    var aiModeReasoningProfile: AIReasoningProfile {
+        let p = preferences
+        let provider = p.llmProviders.first { $0.id == p.activeLLMProviderId }
+        let isCloud = (provider?.isCloudProvider ?? false) || p.cloudSessionEmail != nil
+        return AIReasoningProfile.resolve(
+            isCloud: isCloud,
+            providerName: provider?.name,
+            baseURL: provider?.baseURL ?? p.llmBaseURL,
+            model: provider?.model ?? p.llmModel,
+            customLevels: isCloud ? nil : AIReasoningLevel.parse(provider?.reasoningLevels)
+        )
+    }
+
+    /// The remembered reasoning stop for `profile` (the active model by default).
+    func aiModeReasoningLevel(for profile: AIReasoningProfile? = nil) -> AIReasoningLevel {
+        let profile = profile ?? aiModeReasoningProfile
+        return profile.resolve(
+            stored: preferences.aiModeReasoningLevels?[profile.key],
+            legacy: preferences.aiModeAnswerMode.flatMap(AIAnswerMode.init(rawValue:))
+        )
+    }
+
+    func setAIModeReasoningLevel(_ level: AIReasoningLevel, for profile: AIReasoningProfile? = nil) {
+        let profile = profile ?? aiModeReasoningProfile
+        var levels = preferences.aiModeReasoningLevels ?? [:]
+        guard levels[profile.key] != level.rawValue else { return }
+        levels[profile.key] = level.rawValue
+        preferences.aiModeReasoningLevels = levels
+    }
+
     /// 设置恢复雷达 LLM 自动分析冷却时间（5–180 分钟）。
     /// Set the Recovery Radar LLM automatic-analysis cooldown (5–180 minutes).
     func setRadarAICooldownMinutes(_ minutes: Int) {

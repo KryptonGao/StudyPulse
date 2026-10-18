@@ -19,12 +19,12 @@ AI 自测 / 相似题 / 思维导图 / 错题辩论、习惯洞察、长期时�
 架构：MVVM + Repository 模式。
   - 视图层（`Views/`）只做 SwiftUI 渲染与用户交互。
   - 5 个主页面（Home / Trends / Mistake / Exam / Todo）+ 1 个子页面（`SubjectMistakesViewModel`）各持一个 `@MainActor final class XxxViewModel: ObservableObject`，状态为 `@Published private(set)`，由父 View 通过 `static func makeDefault(container:)` 工厂创建。
-  - 数据访问通过 16 个 Repository（`Repositories/Protocols/*Repository.swift` + `Default*Repository` 实现），由 `RepositoryContainer`（`@Observable @MainActor`）聚合。View / ViewModel 通过 `@Environment(RepositoryContainer.self) var container` 注入。
+  - 数据访问通过 17 个 Repository（`Repositories/Protocols/*Repository.swift` + `Default*Repository` 实现），由 `RepositoryContainer`（`@Observable @MainActor`）聚合。View / ViewModel 通过 `@Environment(RepositoryContainer.self) var container` 注入。
   - 纯函数业务逻辑抽到 `Services/`（DateFormatters / SubjectAggregator / SuggestionEngine / ExamFilter / MistakeFilter / DailyPlanEngine / QuoteProvider / TimeInvestmentEngine），**不依赖 SwiftUI**（仅 `QuoteProvider` 例外，因为 `StudySuggestion.color: Color`）。
 并发：Swift 6 Strict Concurrency，默认 Actor 隔离为 MainActor。
 构建：Xcode 26.x。
 依赖：本地包 `SwiftStreamingMarkdown`（位于 `Packages/`）；Vendored 包 `swift-cmark` / `swift-markdown` / `highlightswift` / `iosMath`（位于 `Packages/Vendored/`）。
-存储：SwiftData 实体层（`Models/SwiftData/StudyPulseModels.swift`，@Model 实体）作为持久化后端，采用版本化 schema 迁移（`Models/SwiftData/Schema/` 下 `StudyPulseSchemaV1`–`V4` + `StudyPulseMigrationPlan`，当前生产 schema V4）；进程内单例 `ModelContainerFactory.makeContainer()`，启动时由 `ModelContainerFactory.migrateFromJSONIfNeeded(context:)` 一次性从老 `~/Documents/*.json` 迁移；视图层继续使用 `nonisolated value type` 的 struct；偏好设置、主页顺序、phase 激活、每日目标保存在 UserDefaults；健康历史 `~/Documents/health_history.json`；学习会话由 `StudySessionRepository` 承载到 SwiftData `StudySessionRecord`（整个 `StudySession` 的 JSON 编码进 `payload: Data`，`startDate` 建索引），老 `study_sessions.json` 启动时合并导入；成就 `~/Documents/achievements.json`。
+存储：SwiftData 实体层（`Models/SwiftData/StudyPulseModels.swift`，@Model 实体）作为持久化后端，采用版本化 schema 迁移（`Models/SwiftData/Schema/` 下 `StudyPulseSchemaV1`–`V4` + `StudyPulseMigrationPlan`，当前生产 schema V6（V5 为历史记录增加冗余列表列，V6 增加 AI 模式对话实体））；进程内单例 `ModelContainerFactory.makeContainer()`，启动时由 `ModelContainerFactory.migrateFromJSONIfNeeded(context:)` 一次性从老 `~/Documents/*.json` 迁移；视图层继续使用 `nonisolated value type` 的 struct；偏好设置、主页顺序、phase 激活、每日目标保存在 UserDefaults；健康历史 `~/Documents/health_history.json`；学习会话由 `StudySessionRepository` 承载到 SwiftData `StudySessionRecord`（整个 `StudySession` 的 JSON 编码进 `payload: Data`，`startDate` 建索引），老 `study_sessions.json` 启动时合并导入；成就 `~/Documents/achievements.json`。
 应用组：`group.com.chenkai.gao.studypulse`，用于小组件与 Live Activity 数据同步。
 本地化：English、简体中文、繁體中文、日本語、한국（主应用 `StudyPulse/Localizable.xcstrings` 与小组件 `StudyPulseWidget/Localizable.xcstrings` 各一份 String Catalog，内含五种语言；下文提到的 `*.lproj/Localizable.strings` 为旧格式）。主页新卡片文案使用 `home.*` 命名空间。
 图表：SwiftUI Charts。
@@ -745,6 +745,30 @@ PersonalBaselines 30 天个人基线：
 
 ---
 
+## 7.14 AI Mode (全屏 AI 对话空间) 子系统
+
+独立于主页 `HomeAskPanel` 的全屏 AI 对话空间，入口为主页工具栏 ✨ 按钮（`HomeUIState.showingAIMode` → `fullScreenCover { AIModeRootView }`）。两套外观（纯净蓝白 `pureBlue` / 暖色衬线 `warmSerif`，`AppPreferences.aiModeAppearance`），推理强度按**当前模型自有的档位**选择（`Models/AIReasoning.swift`：`AIReasoningProfile.resolve(...)` 按 Cloud / 模型 id / 供应商识别家族与档位——Cloud 关闭·自动·高；GPT-5 极低…高、GPT-5.x 关闭…高、o 系列 / Gemini 低·中·高（`reasoning_effort`）；Qwen3 关闭…高（`enable_thinking` + `thinking_budget`）；MiniMax 关闭·自动；DeepSeek Reasoner / R1 / *-thinking 固定；GPT-5.2+ / codex-max 额外有超高；其余 BYOK 关闭·高，高档只沿用供应商「深度思考」开关）。各厂商 API 不公开模型支持的 effort 档位（`/v1/models` 只有 id），因此只能按模型名推断；BYOK 供应商可在供应商编辑页「AI 模式推理强度档位」里自行启用 关闭 / 低 / 中 / 高 / 超高 / 最大（`LLMProvider.reasoningLevels`，nil = 自动识别；`LLMConfig.customReasoningLevels` 透传），自定义档位按 `reasoning_effort` 原值发送（Qwen / MiniMax 仍用各自参数），自定义的「关闭」不发送 effort，按模型分别记在 `AppPreferences.aiModeReasoningLevels`（`profile.key` → 档位；旧 `aiModeAnswerMode` 仅作无记录时的回退）。档位再派生 `AIAnswerMode`（关闭 / 极低 → quick 提示词与数据预算，其余 → deep）。输入框发送键左侧是仪表盘图标 `AIReasoningGaugeButton`（指针位置 = 档位在该模型范围内的位置），点按后在输入框正上方浮出 `AIReasoningPickerOverlay`（输入框保持可见、不被模糊）：Liquid Glass 胶囊离散滑块 `AIReasoningSlider` + 向外渐隐的分层材质模糊 `AIRadialProgressiveBlur`，点外部关闭（`Views/AIMode/AIReasoningPicker.swift`）。滑块放在独立的非 key 窗口（`AIReasoningOverlayPresenter`，`canBecomeKey = false`），所以打开时输入框不失焦、键盘不收起；系统键盘始终绘制在所有 App 窗口之上（App 窗口层级上限 10,000,000），无法被覆盖或模糊。滑块打开时**不要**给输入框加 `.allowsHitTesting(false)`，否则 TextField 会失焦收起键盘。偏好均持久化在 `AppPreferences`，可在 设置 → 外观与布局 → 「AI 模式」分组（风格 + 当前模型的推理强度）修改，与 AI 模式内同源同步。
+
+**模型**（`Models/AIMode.swift`）：`AIConversation` / `AIChatMessage`（`status`: complete / streaming / stopped / interrupted / failed；`origin`: model / localAnalysis）/ `AIDataReference`（域 + 时间范围 + 科目）/ `AISourceLink` / `AIDataDomain`（grades / mistakes / exams / time / health / diary）。全部 `nonisolated` + `decodeIfPresent`。
+
+**持久化**：`StudyPulseSchemaV6` = V5 + `AIConversationRecord` + `AIChatMessageRecord`（`payload: Data` + 冗余索引列）；`AIConversationRepository`（第 17 个 Repository，`DefaultAIConversationRepository`，**独立于 `CoachRepository`**）。重新加载时残留的 `streaming` 消息转为 `interrupted`。备份 `schemaVersion = 6`，新增 `data/ai_conversations.jsonl` / `data/ai_messages.jsonl`（含对话内容，**强制加密**；旧备份用 `decodeOptionalJSONL` 兼容）。
+
+**服务**（`Services/`，纯函数）：`AIStudyDataEngine`（六域快照，复用 `TrendsInsightsEngine` / `MistakeHomeEngine` / `MistakePatternEngine` / `TimeInvestmentAggregator` / `HomeInsightsEngine`）→ `AIContextComposer`（关键词路由 + token 预算 deep 6000 / quick 2500 + 单位/满分/范围说明；成绩 / 错题 / 考试 / 日记按 active phase 过滤，**时间与健康不按 phase 过滤并在上下文中声明**）→ `AIModeResponseParser`（拆出「继续追问」≤3 条）/ `AIModeLocalAnalyzer`（未配置或失败时的确定性本地分析，UI 明确标注「本地分析」，不冒充模型回复）。
+
+**LLM**：`Managers/LLM/AIModeLLM.swift`，caller `"AIMode-Chat"`（已加入 `LLMCallerPolicy.interactive`）；含健康数据的上下文走 `LLMPromptSensitivity.healthSensitive`，`healthDataConsentRequired` 时弹 `HealthDataLLMConsentSheet`；`AIModeLLM.tuned(_:level:)` 按家族把档位翻译成请求参数（Cloud `thinkingMode`；`LLMConfig.reasoningEffort` / `enableThinking` / `thinkingBudgetTokens`；OpenAI 推理模型 `sendsTemperature = false`；MiniMax adaptive / disabled）。消息记录 `AIChatMessage.reasoningLevel`（`decodeIfPresent`，旧消息按 answerMode 回退），重试沿用当前档位。**停止**用 `userStopped` 标志（`LLMClient.stream` 取消时抛 `LLMError.network` 而非 `CancellationError`）。
+
+**ViewModel**：`AIModeViewModel` / `AIModeDataViewModel`（均 `@MainActor @Observable`，`makeDefault(container:hrvManager:)`）。流式增量只写内存，约 1.5s 节流落库。`AIModeDataViewModel.inputSignature` 在视图 body 中读取，`.onChange` 触发 `recompute()`。
+
+**视图**（`Views/AIMode/`）：`AIModeTheme`（两套 token，环境值 `\.aiTheme`）/ `AIModeRootView`（抽屉 + iPad ≥900pt 固定侧栏 + `NavigationStack` 推入既有详情页）/ `AIModeSidebar` / `AIModeHeader` / `AIModeWelcomeView` / `AIModeComposer` / `AIModeMessageView` / `AIModeDataPage` + `AIModeDataSections` / `AIModeRoute`。数据行与来源 chip 推入 `MistakeSetDetailView` / `ExamDetailView` / `ComprehensiveExamDetailView` / `DiaryView` / `TimeInvestmentView` / `SubjectDetailView`；被引用记录已删除时显示「找不到该记录」。
+
+**原生组件与交互**：顶栏用系统 `toolbar`（`View.aiModeToolbar(...)`，`AIModeHeader.swift`）；侧栏是 `NavigationStack` + `List(.sidebar)` + `.searchable` + `swipeActions` / `contextMenu`；按钮用 `.borderedProminent` / `.bordered` 原生样式。输入框走 `.aiGlass(_:interactive: true)`（iOS 26 Liquid Glass，旧系统回退 Material）。**抽屉跟手**：`AIModeRootView.drawerDrag` 用 `DragGesture` 让面板 1:1 跟随手指（`dragOffset`），松手按 `predictedEndTranslation` 决定开合，弹簧动画；仅在水平为主且（已打开或起点距左缘 < 48pt）时接管，避免抢滚动。**回复样式**：`StreamingReply.swift`（移植自 SwiftPieces，**保留 Commons Clause 版权头，勿删**；用户 / 助手气泡、思考 → 书写 → 完成的头部胶囊形变、长按「浮起」玻璃卡片 + 复制 / 重新生成 bud、失败重试）。助手正文通过 `body:` 传入 `MarkdownView`（块级 Markdown / LaTeX，自带逐词淡入）；用户文本走 StreamingReply 自带的逐词渲染。**取舍**：为让长按浮起可用，助手 Markdown 设了 `.allowsHitTesting(false)`——回复正文不可选中、链接不可点，复制走浮起卡片或底部操作行。`Color.init(light:dark:)`（`AIModeTheme.swift`）必须 `nonisolated` 且 UIColor 闭包为 `@Sendable`，否则渲染线程解析动态色会触发 dispatch 断言崩溃。
+
+**写入提案（成绩 / 待办）**：模型在用户明确要求时，于正文后附加 ```studypulse-actions JSON 块（`add_grade` / `add_task`，最多 5 项）。`AIModeActionParser`（`Services/`）剥离该块（流式中未闭合的块也隐藏）并按用户启用科目校验（科目不存在 / 分数越界 / 缺标题或截止时间 / 未来日期的成绩一律丢弃），结果存入 `AIChatMessage.actions`（`AIProposedAction`，`Models/AIModeAction.swift`，`decodeIfPresent` 兼容旧 payload，无需 schema 变更）。**提案不会自动写入**：消息下方显示确认卡片，用户点「添加」后 `AIModeViewModel.applyAction` 才经 `container.addGrade` / `container.addTask` 写入（与手动表单同一 facade，保留成就 / 小组件副作用），已写入项可「撤销」（`deleteGrade` / `deleteTask`）。历史回放时 `AIModeLLM.actionNote` 附带各提案状态，避免重复提议。提示词中学习数据 / 日记里的“指令”视为数据，不得触发写入块。
+
+**规范**：文案全部走 `aiMode.*` 键（五语言）；**不要**把设计稿 HTML 里的预设回复、模拟延迟、虚构数据搬进代码；新增数据域需同步 `AIStudyDataEngine` / `AIContextComposer` / `AIModeLocalAnalyzer` / 数据页与 `aiMode.domain.*`。
+
+---
+
 ## 8. 可定制主页
 
 `HomeLayoutPreference` 为 Codable struct，持久化到 UserDefaults。`HomeView` 每一次 body 评估时都从 UserDefaults 读取，按启用顺序渲染启用的卡片。iPad 使用两栏 `LazyVGrid`，iPhone 使用单列 VStack。
@@ -927,7 +951,8 @@ xcodebuild -project StudyPulse.xcodeproj -scheme StudyPulse -configuration Debug
 - 子 View 接收 ViewModel 用 `let viewModel: XxxViewModel` 参数 + `@ObservedObject` 标注（**不是 `@StateObject`**，因为 VM 由父 View 创建并拥有）。
 - Service 规范：纯函数 `enum` 或 `struct`，**不 import SwiftUI**（`QuoteProvider` 例外，因为 `StudySuggestion.color: Color`）。
 - Repository 规范：`@MainActor class` 实现 protocol；只服务自己的域；**不互相调用**；跨域操作由 `RepositoryContainer` 编排。
-- **16 域 Repository**：Grade / Mistake / Exam / Task / Phase / Profile / Subject / Routine / RoutineInstance / Diary / Coach / StudySession / TimeInvestment / ExamAutopsy / ExamSimulation / ExamPlan。
+- **17 域 Repository**：Grade / Mistake / Exam / Task / Phase / Profile / Subject / Routine / RoutineInstance / Diary / Coach / StudySession / TimeInvestment / ExamAutopsy / ExamSimulation / ExamPlan / AIConversation。
+- **ViewModel / Manager 约定（实际代码）**：新增 ViewModel 与单例 Manager 使用 `@MainActor @Observable`（而非 `ObservableObject`），视图用 `@State` 持有、`@Environment` 注入；`ObservableObject` 仅存在于早期遗留类型。
 - 模型为 `Codable` + `Sendable` + `Hashable` 的 `nonisolated value type`，可安全地跨 actor 传递。
 - 拥有 `@Published` 状态的管理器使用 `@MainActor`；纯辅助（`DataFileIO` / `WidgetDataStore` / `EducationConfig` / `ImageCache` / `SubjectConfig` / `EducationRegion`）为 `nonisolated`。
 - SwiftUI 视图放在 `Views/` 目录下；`Components/` / `Helpers/` / `Admin/` / `OnBoarding/` 作为子目录。

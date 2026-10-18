@@ -48,6 +48,8 @@ final class RepositoryContainer {
     let examAutopsyRepo: any ExamAutopsyRepository
     let examSimulationRepo: any ExamSimulationRepository
     let examPlanRepo: any ExamPlanRepository
+    /// 全 AI 模式对话 Repository / Full AI Mode conversation repository.
+    let aiConversationRepo: any AIConversationRepository
 
     // 3 个跨域编排子模块(组合而非继承,避免注入面爆炸)
     // 3 cross-domain orchestration sub-modules (composition over inheritance,
@@ -105,7 +107,8 @@ final class RepositoryContainer {
         timeInvestmentRepo: (any TimeInvestmentRepository)? = nil,
         examAutopsyRepo: (any ExamAutopsyRepository)? = nil,
         examSimulationRepo: (any ExamSimulationRepository)? = nil,
-        examPlanRepo: (any ExamPlanRepository)? = nil
+        examPlanRepo: (any ExamPlanRepository)? = nil,
+        aiConversationRepo: (any AIConversationRepository)? = nil
     ) {
         self.envManager = envManager
         self.intentStore = intentStore
@@ -129,6 +132,7 @@ final class RepositoryContainer {
         self.examAutopsyRepo = examAutopsyRepo ?? DefaultExamAutopsyRepository()
         self.examSimulationRepo = examSimulationRepo ?? DefaultExamSimulationRepository()
         self.examPlanRepo = examPlanRepo ?? DefaultExamPlanRepository()
+        self.aiConversationRepo = aiConversationRepo ?? DefaultAIConversationRepository()
 
         if let investmentImpl = self.timeInvestmentRepo as? DefaultTimeInvestmentRepository {
             investmentImpl.setSessionRepository(self.studySessionRepo)
@@ -228,6 +232,8 @@ final class RepositoryContainer {
         try Task.checkCancellation()
         await self.examPlanRepo.loadAll(context: context)
         try Task.checkCancellation()
+        await self.aiConversationRepo.loadAll(context: context)
+        try Task.checkCancellation()
 
         // 内嵌图片迁移(在 waitForAll 后,grades 已加载)
         let migrated = gradeRepo.migrateInlineImagesIfNeeded()
@@ -283,6 +289,7 @@ final class RepositoryContainer {
         await examSimulationRepo.loadAll(context: context)
         await phaseRefresher.recomputeAll()
         await examPlanRepo.loadAll(context: context)
+        await aiConversationRepo.loadAll(context: context)
         PlantManager.shared.attach(container: self)
         AchievementManager.shared.bootstrap(container: self)
         SRSReviewNotifications.shared.rescheduleAll(mistakes: mistakeRepo.mistakeSets)
@@ -319,6 +326,7 @@ final class RepositoryContainer {
         await self.examAutopsyRepo.loadAll(context: context)
         await self.examSimulationRepo.loadAll(context: context)
         await self.examPlanRepo.loadAll(context: context)
+        await self.aiConversationRepo.loadAll(context: context)
 
         if subjectRepo.subjects.isEmpty {
             subjectRepo.initializeDefaultSubjects()
